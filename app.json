@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Palia Time Tracker",
+    "slug": "palia-time-tracker",
+    "android": {
+      "package": "com.daleowen.paliatimetracker"
+    },
+    "plugins": [
+      "expo-notifications"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "13e2dd6b-135f-4ab1-ace6-32f02bb61672"
+      }
+    }
+  }
+}
