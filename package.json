@@ -10,8 +10,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "fish:pull": "node pull-fish.mjs",
-    "fish:bump": "node tools/bumpfishVersion.js",
-    "fish:update": "node pull-fish.mjs && node tools/bumpfishVersion.js"
+    "fish:bump": "node tools/bumpFishVersion.js",
+    "fish:update": "node pull-fish.mjs && node tools/bumpFishVersion.js"
 
   },
   "dependencies": {
