@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "fish:pull": "node pull-fish.mjs",
     "fish:bump": "node tools/bumpFishVersion.js",
-    "fish:update": "node pull-fish.mjs && node tools/bumpFishVersion.js",
+    "fish:update": "node pull-fish.mjs && node tools/enrichFishImages.mjs && node tools/bumpFishVersion.js",
     "fish:publish": "npm run fish:update && git add fish.json src/fishVersion.ts pull-fish.mjs tools/bumpFishVersion.js package.json && git commit -m \"Update fish data\" || echo \"No changes to commit\" && git push"
 
 

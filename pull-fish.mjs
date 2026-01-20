@@ -21,7 +21,7 @@ const CONCURRENCY = 2;
 const DELAY_MS = 350; // baseline throttle between requests
 
 // Tip: set a real contact (email or repo) before running this a lot.
-const USER_AGENT = "PaliaEventTrackerBot/1.2 (contact: you@example.com)";
+const USER_AGENT = "PaliaEventTrackerBot/1.2 (contact: https://daleowendigital.github.io/palia-event-tracker-privacy-policy/)";
 
 // ------------ utils ------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
