@@ -22,6 +22,7 @@ import {
   View,
   useWindowDimensions,
   Alert,
+  Image,
   Share,
 } from "react-native";
 import * as Notifications from "expo-notifications";
@@ -88,6 +89,9 @@ type Marker = {
   hasRange?: boolean;
   endHour?: number;   // 0-23
   endMinute?: number; // 0-59
+
+  // Fish-only (from fish.json enrichment)
+  imageUrl?: string;
 };
 
 type FishEntry = {
@@ -101,6 +105,7 @@ type FishEntry = {
   biomes?: string[];
   bestBait?: string[];
   value?: { basic: number | null; quality: number | null };
+  imageUrl?: string;
 };
 
 // SECTION 2.X) Fish wiki cleanup
@@ -155,7 +160,20 @@ function normalizeRemoteFish(raw: any): FishEntry[] {
   // Only keep objects that at least have id + title
   return arr
     .filter((x: any) => x && typeof x === "object" && typeof x.id === "string" && typeof x.title === "string")
-    .map((x: any) => x as FishEntry);
+    .map((x: any) => {
+      // Accept a few possible keys for image URLs, but normalize to `imageUrl`.
+      const imageUrl =
+        (typeof x.imageUrl === "string" ? x.imageUrl : null) ??
+        (typeof x.image_url === "string" ? x.image_url : null) ??
+        (typeof x.image === "string" ? x.image : null) ??
+        (typeof x.thumb === "string" ? x.thumb : null) ??
+        null;
+
+      return {
+        ...(x as any),
+        imageUrl: imageUrl || undefined,
+      } as FishEntry;
+    });
 }
 
 function fishAppearsToWindow(appearsRaw: string | undefined | null): { hour: number; minute: number; hasRange: boolean; endHour?: number; endMinute?: number } {
@@ -271,8 +289,9 @@ const STORAGE_TEXT_SIZE_MODE = "palia_text_size_mode_v1";
 const NEXT_TIME_COUNT_KEY = "next_time_count";
 const HELP_DIAGNOSTICS_OPTIN_KEY = "help_include_diagnostics_v1";
 
-const STORAGE_REMOTE_FISH_CACHE = "palia_remote_fish_cache_v1";
-const STORAGE_REMOTE_FISH_FETCHED_AT = "palia_remote_fish_fetched_at_v1";
+// Fish cache keys should bust when the remote fish JSON version changes
+const STORAGE_REMOTE_FISH_CACHE = `palia_remote_fish_cache_${FISH_JSON_VERSION}`;
+const STORAGE_REMOTE_FISH_FETCHED_AT = `palia_remote_fish_fetched_at_${FISH_JSON_VERSION}`;
 const REMOTE_FISH_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 
@@ -2494,6 +2513,12 @@ export default function App() {
 
   const [hydrated, setHydrated] = useState(false);
 
+  // Home list mode (Events/Fish/Bugs)
+  const [clockViewOpen, setClockViewOpen] = useState(false);
+  const [clockViewMode, setClockViewMode] = useState<"events" | "fish" | "bugs">("events");
+
+  // Home list mode (Events/Fish/Bugs)
+
 // SECTION 11.1.X) Remote wiki data (minimal fetch + cache)
 
   const [remoteFish, setRemoteFish] = useState<any | null>(null);
@@ -2973,6 +2998,7 @@ useEffect(() => {
         hasRange: timing.hasRange,
         endHour: timing.endHour,
         endMinute: timing.endMinute,
+        imageUrl: f.imageUrl,
       };
 
       if (!existing) return base;
@@ -3144,6 +3170,23 @@ useEffect(() => {
 
   const enabledMarkers = useMemo(() => sortedMarkers.filter((m) => m.enabled), [sortedMarkers]);
 
+  // Home screen list source (Now + Next cards) is driven by the clock "eye" view.
+  // - Events: default + repeatable + custom
+  // - Fish: fish events only
+  // - Bugs: none (not wired yet)
+  const homeListMarkers = useMemo(() => {
+    if (!enabledMarkers.length) return [] as Marker[];
+
+    if (clockViewMode === "bugs") return [] as Marker[];
+
+    if (clockViewMode === "fish") {
+      return enabledMarkers.filter((m) => String(m.id).startsWith("fish_"));
+    }
+
+    // "events"
+    return enabledMarkers.filter((m) => !String(m.id).startsWith("fish_"));
+  }, [enabledMarkers, clockViewMode]);
+
 
   const nextTimeKey = useMemo(() => {
     if (!enabledMarkers.length) return null;
@@ -3237,12 +3280,10 @@ useEffect(() => {
   };
 
   const nowItems = useMemo<NowItem[]>(() => {
-    if (!enabledMarkers.length) return [];
+    if (!homeListMarkers.length) return [];
 
     const out: NowItem[] = [];
-    for (const m of enabledMarkers) {
-      // Keep the "time-of-day" defaults out of Now. They already have their own strip.
-      if (String(m.id).startsWith("default_")) continue;
+    for (const m of homeListMarkers) {
 
       if (!isActiveNow(m, paliaTime.hour, paliaTime.minute)) continue;
 
@@ -3269,7 +3310,7 @@ useEffect(() => {
     // Soonest ending first
     out.sort((a, b) => a.endsInMins - b.endsInMins);
     return out;
-  }, [enabledMarkers, paliaTime.hour, paliaTime.minute]);
+  }, [homeListMarkers, paliaTime.hour, paliaTime.minute]);
 
   // Palia time runs 24h in ~1 real hour => 1440 palia minutes per 3600 real seconds.
   const REAL_SEC_PER_PALIA_MIN = 3600 / 1440; // 2.5s
@@ -3311,16 +3352,19 @@ useEffect(() => {
   };
 
   const nextTimeGroups = useMemo<NextTimeGroup[]>(() => {
-    if (!enabledMarkers.length) return [];
+    if (!homeListMarkers.length) return [];
 
     const filtering = nextTimeFilter != null;
 
+    // Fish view is a pure “show me everything” experience, so don't cap.
+    const noCap = clockViewMode === "fish";
+
     // Default: cozy “guide” (limited groups/items). Filtered: show EVERYTHING in that time-of-day.
-    const MAX_GROUPS = filtering ? 9999 : 3; // distinct time headers
-    const MAX_ITEMS = filtering ? 9999 : 8;  // total rows across all groups
+    const MAX_GROUPS = filtering || noCap ? 9999 : 3; // distinct time headers
+    const MAX_ITEMS = filtering || noCap ? 9999 : 8;  // total rows across all groups
 
     const source = filtering
-      ? enabledMarkers
+      ? homeListMarkers
           .filter((m) => isMinuteInTimeOfDay(m.hour * 60 + m.minute, nextTimeFilter!))
           .slice()
           .sort((a, b) => {
@@ -3331,7 +3375,7 @@ useEffect(() => {
             if (ak !== bk) return ak - bk;
             return String(a.name).localeCompare(String(b.name));
           })
-      : enabledMarkers;
+      : homeListMarkers;
 
     const groups: NextTimeGroup[] = [];
     const indexByTimeKey = new Map<string, number>();
@@ -3368,7 +3412,7 @@ useEffect(() => {
     }
 
     return groups;
-  }, [enabledMarkers, countdowns, nextTimeFilter]);
+  }, [homeListMarkers, countdowns, nextTimeFilter, clockViewMode]);
 
 
 
@@ -4633,6 +4677,49 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               />
             </View>
 
+            {/* Clock view switcher (sits under the clock, not on top of it) */}
+            <View style={styles.clockViewRow}>
+              <View style={[styles.clockViewGroup, clockViewOpen && styles.clockViewGroupOpen]}>
+                <Pressable
+                  onPress={() => setClockViewOpen((v) => !v)}
+                  hitSlop={10}
+                  style={({ pressed }) => [
+                    styles.clockViewEyeBtn,
+                    clockViewOpen && styles.clockViewEyeBtnOpen,
+                    pressed && { opacity: 0.78 },
+                  ]}
+                >
+                  <Ionicons name="eye-outline" size={16} color={SOFT_WHITE} />
+                </Pressable>
+
+                {clockViewOpen ? (
+                  <View style={styles.clockViewOptions}>
+                    {([
+                      { key: "events", label: "Events" },
+                      { key: "fish", label: "Fish" },
+                      { key: "bugs", label: "Bugs" },
+                    ] as const).map((it) => {
+                      const active = clockViewMode === it.key;
+                      return (
+                        <Pressable
+                          key={it.key}
+                          onPress={() => setClockViewMode(it.key)}
+                          style={[styles.clockViewOptionItem, active && styles.clockViewOptionItemOn]}
+                          hitSlop={6}
+                        >
+                          <Text
+                            style={[styles.clockViewOptionText, active && styles.clockViewOptionTextOn]}
+                          >
+                            {it.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
+              </View>
+            </View>
+
             <View style={styles.timeOfDayRow}>
               {([
                 { key: "morning", label: "Morning" },
@@ -4707,85 +4794,167 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               ) : null}
 
               {nowItems.length ? (
-                <View style={styles.nextList}>
-                  {nowItems.map((it) => {
-                    const marker = markers.find((m) => m.id === it.id);
-                    const notesOpen = expandedNowNotesId === it.id;
+                clockViewMode === "fish" ? (
+                  <View style={styles.fishGrid}>
+                    {nowItems.map((it) => {
+                      const marker = markers.find((m) => m.id === it.id);
+                      const notesOpen = expandedNowNotesId === it.id;
 
-                    return (
-                      <View key={`now-${it.id}`} style={{ marginBottom: 10 }}>
-                        <Pressable
-                          onPress={() => {
-                            // Tap = quick notes dropdown (match the "Next" UX)
-                            if (nextCardGuardRef.current) {
-                              nextCardGuardRef.current = false;
-                              return;
-                            }
-                            setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
-                          }}
-                          style={({ pressed }) => [
-                            styles.nextRow,
-                            pressed && { opacity: 0.92, transform: [{ scale: 0.995 }] },
-                          ]}
-                          android_ripple={{ color: "rgba(255,255,255,0.06)" }}
-                        >
-                        <View style={styles.nextIconWrap}>
-                        {(() => {
-                          const isSoonestEnd =
-                            !!nowSoonestKey && `${it.endHour}:${it.endMinute}` === nowSoonestKey;
-                          return (
-                            <MaterialIcons
-                              name={it.location ? "place" : "eco"}
-                              size={14}
-                              color={isSoonestEnd ? ACCENT : "rgba(252,248,240,0.86)"}
-                            />
-                          );
-                        })()}
-                      </View>
+                      return (
+                        <View key={`nowfish-${it.id}`} style={styles.fishCell}>
+                          <Pressable
+                            onPress={() => {
+                              if (nextCardGuardRef.current) {
+                                nextCardGuardRef.current = false;
+                                return;
+                              }
+                              setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
+                            }}
+                            style={({ pressed }) => [
+                              styles.fishCard,
+                              pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] },
+                            ]}
+                            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                          >
+                            <View style={styles.fishCardInner}>
+                              <View style={styles.fishTopRow}>
+                                <View style={styles.fishImageSlot}>
+                                  {marker?.imageUrl ? (
+                                    <Image source={{ uri: marker.imageUrl }} style={styles.fishImage} />
+                                  ) : null}
+                                </View>
 
-                      <View style={styles.nextRowTextCol}>
-                        <Text style={styles.nextRowTitle} numberOfLines={1}>
-                          {it.eventName}
-                        </Text>
-                        {it.location ? (
-                          <Text style={styles.nextRowSub} numberOfLines={1}>
-                            {it.location}
-                          </Text>
-                        ) : null}
-                      </View>
-
-                      <View style={styles.nowRightRow}>
-                        <ScalePressable
-                          onPress={() => {
+                                <ScalePressable
+                                  onPress={() => {
                                     nextCardGuardRef.current = true;
                                     if (!marker) return;
                                     toggleNotify(marker.id);
                                   }}
-                          style={styles.nowBellChip}
-                        >
-                          <Ionicons
-                            name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
-                            size={18}
-                            color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-                          />
-                        </ScalePressable>
-                      </View>
-                        </Pressable>
+                                  style={styles.fishBellBtn}
+                                >
+                                  <Ionicons
+                                    name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                    size={16}
+                                    color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                  />
+                                </ScalePressable>
+                              </View>
 
-                        {notesOpen ? (
-                          <View style={styles.eventNotesDrop}>
-                            <Text style={styles.eventNotesLabel}>Notes</Text>
-                            <Text style={styles.eventNotesText}>
-                              {String(marker?.notes ?? "").trim().length > 0
-                                ? String(marker?.notes).trim()
-                                : "No notes yet."}
-                            </Text>
-                          </View>
-                        ) : null}
-                      </View>
-                    );
-                  })}
-                </View>
+                              <View style={styles.fishBottomBlock}>
+                                <Text style={styles.fishTitle} numberOfLines={2}>
+                                  {it.eventName}
+                                </Text>
+
+                                {it.location ? (
+                                  <Text style={styles.fishSub} numberOfLines={1}>
+                                    {it.location}
+                                  </Text>
+                                ) : null}
+
+                                <View style={styles.fishMetaRow}>
+                                  <Text style={styles.fishMetaText} numberOfLines={2}>
+                                    {"Ends\n"}{format12hTime(it.endHour, it.endMinute)}
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </Pressable>
+
+                          {notesOpen ? (
+                            <View style={styles.eventNotesDrop}>
+                              <Text style={styles.eventNotesLabel}>Notes</Text>
+                              <Text style={styles.eventNotesText}>
+                                {String(marker?.notes ?? "").trim().length > 0
+                                  ? String(marker?.notes).trim()
+                                  : "No notes yet."}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <View style={styles.nextList}>
+                    {nowItems.map((it) => {
+                      const marker = markers.find((m) => m.id === it.id);
+                      const notesOpen = expandedNowNotesId === it.id;
+
+                      return (
+                        <View key={`now-${it.id}`} style={{ marginBottom: 10 }}>
+                          <Pressable
+                            onPress={() => {
+                              // Tap = quick notes dropdown (match the "Next" UX)
+                              if (nextCardGuardRef.current) {
+                                nextCardGuardRef.current = false;
+                                return;
+                              }
+                              setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
+                            }}
+                            style={({ pressed }) => [
+                              styles.nextRow,
+                              pressed && { opacity: 0.92, transform: [{ scale: 0.995 }] },
+                            ]}
+                            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                          >
+                            <View style={styles.nextIconWrap}>
+                              {(() => {
+                                const isSoonestEnd =
+                                  !!nowSoonestKey && `${it.endHour}:${it.endMinute}` === nowSoonestKey;
+                                return (
+                                  <MaterialIcons
+                                    name={it.location ? "place" : "eco"}
+                                    size={14}
+                                    color={isSoonestEnd ? ACCENT : "rgba(252,248,240,0.86)"}
+                                  />
+                                );
+                              })()}
+                            </View>
+
+                            <View style={styles.nextRowTextCol}>
+                              <Text style={styles.nextRowTitle} numberOfLines={1}>
+                                {it.eventName}
+                              </Text>
+                              {it.location ? (
+                                <Text style={styles.nextRowSub} numberOfLines={1}>
+                                  {it.location}
+                                </Text>
+                              ) : null}
+                            </View>
+
+                            <View style={styles.nowRightRow}>
+                              <ScalePressable
+                                onPress={() => {
+                                  nextCardGuardRef.current = true;
+                                  if (!marker) return;
+                                  toggleNotify(marker.id);
+                                }}
+                                style={styles.nowBellChip}
+                              >
+                                <Ionicons
+                                  name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                  size={18}
+                                  color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                />
+                              </ScalePressable>
+                            </View>
+                          </Pressable>
+
+                          {notesOpen ? (
+                            <View style={styles.eventNotesDrop}>
+                              <Text style={styles.eventNotesLabel}>Notes</Text>
+                              <Text style={styles.eventNotesText}>
+                                {String(marker?.notes ?? "").trim().length > 0
+                                  ? String(marker?.notes).trim()
+                                  : "No notes yet."}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                )
               ) : (
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No active events</Text>
               )}
@@ -4834,7 +5003,92 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 ) : null}</View>
               </View>
 
-              {nextTimeGroups.length ? (
+              {clockViewMode === "fish" ? (
+                homeListMarkers.length ? (
+                  <View style={styles.fishGrid}>
+                    {homeListMarkers.map((m) => {
+                      const marker = markers.find((x) => x.id === m.id);
+                      const notesOpen = expandedNextNotesId === m.id;
+                      const { eventName, location } = splitName(m.name);
+
+                      return (
+                        <View key={`nextfish-${m.id}`} style={styles.fishCell}>
+                          <Pressable
+                            onPress={() => {
+                              if (nextCardGuardRef.current) {
+                                nextCardGuardRef.current = false;
+                                return;
+                              }
+                              setExpandedNextNotesId((prev) => (prev === m.id ? null : m.id));
+                            }}
+                            style={({ pressed }) => [
+                              styles.fishCard,
+                              pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] },
+                            ]}
+                            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                          >
+                            <View style={styles.fishCardInner}>
+                              <View style={styles.fishTopRow}>
+                                <View style={styles.fishImageSlot}>
+                                  {marker?.imageUrl ? (
+                                    <Image source={{ uri: marker.imageUrl }} style={styles.fishImage} />
+                                  ) : null}
+                                </View>
+
+                                <ScalePressable
+                                  onPress={() => {
+                                    nextCardGuardRef.current = true;
+                                    if (!marker) return;
+                                    toggleNotify(marker.id);
+                                  }}
+                                  style={styles.fishBellBtn}
+                                >
+                                  <Ionicons
+                                    name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                    size={16}
+                                    color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                  />
+                                </ScalePressable>
+                              </View>
+
+                              <View style={styles.fishBottomBlock}>
+                                <Text style={styles.fishTitle} numberOfLines={2}>
+                                  {eventName}
+                                </Text>
+
+                                {location ? (
+                                  <Text style={styles.fishSub} numberOfLines={1}>
+                                    {location}
+                                  </Text>
+                                ) : null}
+
+                                <View style={styles.fishMetaRow}>
+                                  <Text style={styles.fishMetaText} numberOfLines={1}>
+                                    {format12hTime(m.hour, m.minute)}
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                          </Pressable>
+
+                          {notesOpen ? (
+                            <View style={styles.eventNotesDrop}>
+                              <Text style={styles.eventNotesLabel}>Notes</Text>
+                              <Text style={styles.eventNotesText}>
+                                {String(marker?.notes ?? "").trim().length > 0
+                                  ? String(marker?.notes).trim()
+                                  : "No notes yet."}
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
+                )
+              ) : nextTimeGroups.length ? (
                 <View style={styles.nextList}>
                   {(nextTimeFilter ? nextTimeGroups : nextTimeGroups.slice(0, nextTimeCount)).map((group) => (
                     <View key={`ntg-${group.timeKey}`} style={styles.nextGroup}>
@@ -7070,6 +7324,69 @@ const makeStyles = (scale: number) => {
   rotateIcon: { includeFontPadding: false, textAlignVertical: "center" },
   clockWrap: { width: "100%", alignItems: "center", justifyContent: "center" },
 
+  // Clock view switcher (eye + segmented options) that lives UNDER the clock
+  clockViewRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    marginTop: 10,
+    marginBottom: 2,
+  },
+
+  clockViewGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    overflow: "hidden",
+  },
+
+  clockViewGroupOpen: {
+    backgroundColor: "rgba(255,255,255,0.08)",
+    borderColor: `rgba(${ACCENT_RGB},0.22)`,
+  },
+
+  clockViewEyeBtn: {
+    width: 34,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  clockViewEyeBtnOpen: {
+    borderRightWidth: 1,
+    borderRightColor: "rgba(255,255,255,0.14)",
+  },
+
+  clockViewOptions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  clockViewOptionItem: {
+    paddingHorizontal: 10,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  clockViewOptionItemOn: {
+    backgroundColor: `rgba(${ACCENT_RGB},0.18)`,
+  },
+
+  clockViewOptionText: {
+    fontSize: t(12),
+    fontWeight: "800",
+    color: SOFT_WHITE_DIM,
+    fontFamily: FONT_ROUNDED,
+  },
+
+  clockViewOptionTextOn: {
+    color: ACCENT,
+  },
+
 // SECTION 20.8) Time-of-day strip
 
   timeOfDayRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: 16, marginBottom: 2 },
@@ -7153,6 +7470,117 @@ const makeStyles = (scale: number) => {
   },
 
   nextList: { marginTop: 10 },
+
+  // Fish view: 3-column grid cards (used in both Now + Next)
+  fishGrid: {
+    marginTop: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -4,
+  },
+
+  fishCell: {
+    width: "33.3333%",
+    paddingHorizontal: 4,
+    paddingBottom: 8,
+  },
+
+  fishCard: {
+    // +50% vertical height (was 92)
+    minHeight: 138,
+    borderRadius: 12,
+    padding: 10,
+    backgroundColor: "rgba(255,255,255,0.050)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.06)",
+    overflow: "hidden",
+  },
+
+
+  fishCardInner: {
+    flex: 1,
+    justifyContent: "space-between",
+  },
+
+  fishImageSlot: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.055)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+    overflow: "hidden",
+  },
+
+  fishImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+
+  fishBottomBlock: {
+    marginTop: 8,
+  },
+  fishTopRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+
+  fishTitle: {
+    color: SOFT_WHITE,
+    fontWeight: "900",
+    fontSize: t(12),
+    lineHeight: t(15),
+    fontFamily: FONT_ROUNDED,
+  },
+
+  fishBellBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.055)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  fishSub: {
+    marginTop: 4,
+    color: SOFT_WHITE_FAINT,
+    fontWeight: "800",
+    fontSize: t(10.5),
+    lineHeight: t(13),
+    fontFamily: FONT_ROUNDED,
+  },
+
+  fishMetaRow: {
+    marginTop: 8,
+  },
+
+  fishMetaText: {
+    color: ACCENT,
+    fontWeight: "900",
+    fontSize: t(10.5),
+    fontFamily: FONT_ROUNDED,
+  },
+
+  fishCountdownPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.055)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
+  },
+
+  fishCountdownText: {
+    color: SOFT_WHITE_DIM,
+    fontWeight: "900",
+    fontSize: t(10.5),
+    fontFamily: FONT_ROUNDED,
+    includeFontPadding: false,
+  },
 
   nextGroup: { marginBottom: 12 },
 
@@ -8299,6 +8727,37 @@ clockSettingsSubTitle: {
     borderColor: "rgba(255,255,255,0.14)",
     overflow: "hidden",
   },
+
+  // Home view picker segmented control (Events / Fish / Bugs)
+  viewModeSegment: {
+    flexDirection: "row",
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.14)",
+    overflow: "hidden",
+  },
+
+  viewModeSegmentItem: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  viewModeSegmentItemOn: {
+    backgroundColor: `rgba(${ACCENT_RGB},0.18)`,
+  },
+
+  viewModeSegmentText: {
+    fontSize: t(12),
+    fontWeight: "800",
+    color: SOFT_WHITE_DIM,
+    fontFamily: FONT_ROUNDED,
+  },
+
+  viewModeSegmentTextOn: {
+    color: ACCENT,
+  },
+
 
   nextCountSegmentItem: {
     paddingHorizontal: 8,
