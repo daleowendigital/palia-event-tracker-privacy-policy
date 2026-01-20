@@ -1,56 +1,40 @@
 /**
  * tools/enrichFishImages.mjs
  *
- * Enriches fish.json by adding imageUrl for each fish using the Official Palia Wiki (wiki.gg) MediaWiki API.
- * - Keeps existing imageUrl if already present
- * - Only fetches for missing imageUrl
- * - Uses pageid lookup (much less likely to get rate-limited than title search)
- * - Retries on HTTP 429 with backoff
- * - Does not fail the whole run if one fish lookup fails
+ * Batch-enriches fish.json with imageUrl using pageid lookups.
+ * Designed to avoid wiki.gg rate limits by batching requests.
  *
- * Node 18+ required (GitHub Actions Node 20 is fine).
+ * Node 18+ required.
  */
 
 import fs from "node:fs/promises";
 
 const FISH_JSON_PATH = "fish.json";
-
-// Official Palia Wiki (wiki.gg) Action API endpoint
 const WIKI_API = "https://palia.wiki.gg/api.php";
 
-// Be polite: small delay between requests.
-const REQUEST_DELAY_MS = 200;
-
-// Retry/backoff for 429s
-const RETRIES = 4;
-const BACKOFF_MS = 900;
+// How many pageids per request (20–30 is safe)
+const PAGEID_BATCH_SIZE = 20;
+// Small delay between batches
+const BATCH_DELAY_MS = 500;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function extractFishArrays(data) {
-  // Supports:
-  // 1) fish.json = [ {...}, {...} ]
-  // 2) fish.json = { someGroup: [ {...} ], otherGroup: [ {...} ] }
-  // 3) fish.json = { fish: [ {...} ], ... }
   if (Array.isArray(data)) return [data];
-
   if (data && typeof data === "object") {
     return Object.values(data).filter(Array.isArray);
   }
-
   return [];
 }
 
-async function fetchPageImageUrlByPageId(pageid, retriesLeft = RETRIES) {
-  if (pageid === undefined || pageid === null || pageid === "") return null;
-
+async function fetchImagesForPageIds(pageids) {
   const params = new URLSearchParams({
     action: "query",
     format: "json",
-    pageids: String(pageid),
+    pageids: pageids.join("|"),
     prop: "pageimages",
-    piprop: "original", // prefer original if available
-    pithumbsize: "256", // fallback thumb if original isn't returned
+    piprop: "original",
+    pithumbsize: "256",
     origin: "*",
   });
 
@@ -58,32 +42,17 @@ async function fetchPageImageUrlByPageId(pageid, retriesLeft = RETRIES) {
 
   const res = await fetch(url, {
     headers: {
-      "User-Agent": "palia-event-tracker-bot/1.0 (GitHub Actions; image enrichment)",
+      "User-Agent": "palia-event-tracker-bot/1.0 (GitHub Actions; batch image enrichment)",
       Accept: "application/json",
     },
   });
-
-  // Handle rate limiting with retry/backoff
-  if (res.status === 429) {
-    if (retriesLeft > 0) {
-      await sleep(BACKOFF_MS);
-      return fetchPageImageUrlByPageId(pageid, retriesLeft - 1);
-    }
-    throw new Error(`HTTP 429 (rate limited)`);
-  }
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}`);
   }
 
   const json = await res.json();
-  const pages = json?.query?.pages;
-  if (!pages) return null;
-
-  const firstKey = Object.keys(pages)[0];
-  const page = pages[firstKey];
-
-  return page?.original?.source ?? page?.thumbnail?.source ?? null;
+  return json?.query?.pages ?? {};
 }
 
 async function main() {
@@ -95,49 +64,62 @@ async function main() {
     throw new Error("No fish arrays found in fish.json");
   }
 
-  let changed = false;
-  let found = 0;
-  let missing = 0;
-  let failed = 0;
-
-  for (const fishArr of fishArrays) {
-    for (let i = 0; i < fishArr.length; i++) {
-      const f = fishArr[i];
-      if (!f || typeof f !== "object") continue;
-
-      // keep existing
-      if (f.imageUrl) continue;
-
-      // Your schema includes pageid (and title). Use pageid for lookups.
-      const pageid = f.pageid;
-
-      try {
-        const img = await fetchPageImageUrlByPageId(pageid);
-        if (img) {
-          f.imageUrl = img;
-          changed = true;
-          found++;
-        } else {
-          missing++;
-        }
-      } catch (e) {
-        failed++;
-        const label = f.title || f.name || f.id || String(pageid);
-        console.warn(`[image] ${label}: ${e?.message || e}`);
+  // Flatten fish needing images
+  const fishNeedingImages = [];
+  for (const arr of fishArrays) {
+    for (const f of arr) {
+      if (!f?.imageUrl && f?.pageid) {
+        fishNeedingImages.push(f);
       }
-
-      await sleep(REQUEST_DELAY_MS);
     }
   }
 
-  if (changed) {
-    await fs.writeFile(FISH_JSON_PATH, JSON.stringify(data, null, 2) + "\n", "utf8");
+  if (fishNeedingImages.length === 0) {
+    console.log("No fish missing images.");
+    return;
+  }
+
+  let added = 0;
+
+  // Process in batches
+  for (let i = 0; i < fishNeedingImages.length; i += PAGEID_BATCH_SIZE) {
+    const batch = fishNeedingImages.slice(i, i + PAGEID_BATCH_SIZE);
+    const pageids = batch.map((f) => String(f.pageid));
+
+    try {
+      const pages = await fetchImagesForPageIds(pageids);
+
+      for (const f of batch) {
+        const page = pages[String(f.pageid)];
+        const img =
+          page?.original?.source ??
+          page?.thumbnail?.source ??
+          null;
+
+        if (img) {
+          f.imageUrl = img;
+          added++;
+        }
+      }
+    } catch (e) {
+      console.warn(
+        `[batch] Failed pageids: ${pageids.join(", ")} – ${e.message}`
+      );
+    }
+
+    await sleep(BATCH_DELAY_MS);
+  }
+
+  if (added > 0) {
+    await fs.writeFile(
+      FISH_JSON_PATH,
+      JSON.stringify(data, null, 2) + "\n",
+      "utf8"
+    );
   }
 
   console.log(
-    `Image enrichment done. Added: ${found}. Missing: ${missing}. Failed: ${failed}. Changed file: ${
-      changed ? "YES" : "NO"
-    }`
+    `Image enrichment done. Added: ${added}. Changed file: ${added > 0 ? "YES" : "NO"}`
   );
 }
 
