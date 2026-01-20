@@ -26,9 +26,6 @@ jobs:
       - name: Generate fish.json
         run: npm run fish:update
 
-      - name: Enrich fish.json with image URLs
-        run: node tools/enrichFishImages.mjs
-
       - name: Sync root fish.json to data-site (optional mirror)
         run: |
           mkdir -p data-site
