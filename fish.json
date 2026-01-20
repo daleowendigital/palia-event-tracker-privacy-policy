@@ -2,16 +2,14 @@
   "meta": {
     "category": "Category:Fish",
     "count": 105,
-    "ok": 101,
-    "failed": 4,
-    "fetchedAt": "2026-01-15T21:52:59.084Z",
+    "ok": 103,
+    "failed": 2,
+    "fetchedAt": "2026-01-20T21:04:24.144Z",
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
     "skippedTitles": [
-      "Devilfish",
-      "Duskray",
-      "Silvery Minnow",
-      "Smallmouth Bass"
+      "Void Ray",
+      "Willow Lamprey"
     ]
   },
   "fish": [
@@ -41,7 +39,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -69,7 +67,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -96,7 +94,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -125,7 +123,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -152,7 +150,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -179,7 +177,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -206,7 +204,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -233,7 +231,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -260,7 +258,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -287,14 +285,14 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
       "id": "bass",
       "title": "Bass",
       "pageid": 249444,
-      "lastrevid": 639387,
+      "lastrevid": 647288,
       "url": "https://palia.wiki.gg/wiki/Bass",
       "description": "Bass are a type of Fish in Palia.",
       "rarity": null,
@@ -308,7 +306,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -337,7 +335,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -364,7 +362,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -391,7 +389,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -420,7 +418,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -447,7 +445,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -474,7 +472,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -501,7 +499,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -528,7 +526,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -555,7 +553,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -584,7 +582,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -613,7 +611,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -634,7 +632,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -661,7 +659,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -688,7 +686,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -717,7 +715,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -746,7 +744,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -773,7 +771,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -800,7 +798,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -827,7 +825,61 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
+      }
+    },
+    {
+      "id": "devilfish",
+      "title": "Devilfish",
+      "pageid": 167255,
+      "lastrevid": 624365,
+      "url": "https://palia.wiki.gg/wiki/Devilfish",
+      "description": "Devilfish is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, during the morning, evening and night (6:00 PM - 6:00 AM).",
+      "rarity": "Rare",
+      "appears": "Morning (3:00 AM - 6:00 AM) and Evening and Night (6:00 PM - 3:00 AM)",
+      "locations": [
+        "Elderwood"
+      ],
+      "biomes": [
+        "Elderwood Freshwater"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
+      }
+    },
+    {
+      "id": "duskray",
+      "title": "Duskray",
+      "pageid": 338,
+      "lastrevid": 619665,
+      "url": "https://palia.wiki.gg/wiki/Duskray",
+      "description": "The Duskray is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, during the evening (6:00 PM - 9:00 PM).",
+      "rarity": "Uncommon",
+      "appears": "Evening (6:00 PM - 9:00 PM)",
+      "locations": [
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Bahari Rivers"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -854,7 +906,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -882,7 +934,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -909,7 +961,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -938,7 +990,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -967,7 +1019,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -994,7 +1046,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1021,7 +1073,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1048,7 +1100,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1077,7 +1129,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1105,7 +1157,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1133,7 +1185,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1160,7 +1212,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1187,7 +1239,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1216,7 +1268,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1243,7 +1295,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1270,7 +1322,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1297,7 +1349,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1326,7 +1378,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1353,7 +1405,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1380,7 +1432,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1407,7 +1459,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1435,14 +1487,14 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
       "id": "long_nosed_unicorn_fish",
       "title": "Long Nosed Unicorn Fish",
       "pageid": 765,
-      "lastrevid": 633954,
+      "lastrevid": 646277,
       "url": "https://palia.wiki.gg/wiki/Long_Nosed_Unicorn_Fish",
       "description": "Long Nosed Unicorn Fish is more attracted to Glow Worms, and can be caught at Bahari Coast in Bahari Bay, during the day (6:00 AM - 6:00 PM).",
       "rarity": "Epic",
@@ -1462,7 +1514,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1489,7 +1541,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1516,7 +1568,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1543,7 +1595,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1571,7 +1623,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1598,7 +1650,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1627,7 +1679,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1654,7 +1706,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1683,7 +1735,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1712,7 +1764,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1741,7 +1793,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1768,7 +1820,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1797,7 +1849,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1824,7 +1876,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1852,7 +1904,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1879,7 +1931,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1906,7 +1958,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1933,7 +1985,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -1961,14 +2013,14 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
       "id": "radiant_sunfish",
       "title": "Radiant Sunfish",
       "pageid": 316,
-      "lastrevid": 641278,
+      "lastrevid": 646480,
       "url": "https://palia.wiki.gg/wiki/Radiant_Sunfish",
       "description": "Radiant Sunfish is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Rare",
@@ -1988,7 +2040,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2015,7 +2067,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2042,7 +2094,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2069,7 +2121,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2096,7 +2148,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2123,7 +2175,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2150,7 +2202,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2179,7 +2231,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2207,7 +2259,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2234,7 +2286,62 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
+      }
+    },
+    {
+      "id": "silvery_minnow",
+      "title": "Silvery Minnow",
+      "pageid": 335,
+      "lastrevid": 619725,
+      "url": "https://palia.wiki.gg/wiki/Silvery_Minnow",
+      "description": "Silvery Minnow is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Bahari Rivers"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
+      }
+    },
+    {
+      "id": "smallmouth_bass",
+      "title": "Smallmouth Bass",
+      "pageid": 325,
+      "lastrevid": 641108,
+      "url": "https://palia.wiki.gg/wiki/Smallmouth_Bass",
+      "description": "Smallmouth Bass is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Kilima Valley",
+        "Fairgrounds"
+      ],
+      "biomes": [
+        "Kilima Lake"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2261,7 +2368,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2290,14 +2397,14 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
       "id": "starry_bitterling",
       "title": "Starry Bitterling",
       "pageid": 167274,
-      "lastrevid": 621306,
+      "lastrevid": 646473,
       "url": "https://palia.wiki.gg/wiki/Starry_Bitterling",
       "description": "Starry Bitterling is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2317,7 +2424,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2344,7 +2451,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2373,7 +2480,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2400,7 +2507,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2427,7 +2534,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2455,7 +2562,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2482,7 +2589,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2509,7 +2616,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2536,7 +2643,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2563,7 +2670,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2584,7 +2691,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2611,7 +2718,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2638,7 +2745,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2667,63 +2774,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
-      }
-    },
-    {
-      "id": "void_ray",
-      "title": "Void Ray",
-      "pageid": 373,
-      "lastrevid": 567197,
-      "url": "https://palia.wiki.gg/wiki/Void_Ray",
-      "description": "Void Ray is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
-      "rarity": "Epic",
-      "appears": "Any Time",
-      "locations": [
-        "Kilima Valley",
-        "Bahari Bay",
-        "The Underground"
-      ],
-      "biomes": [
-        "Caves"
-      ],
-      "bestBait": [
-        "Glow Worm"
-      ],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
-      }
-    },
-    {
-      "id": "willow_lamprey",
-      "title": "Willow Lamprey",
-      "pageid": 344,
-      "lastrevid": 567696,
-      "url": "https://palia.wiki.gg/wiki/Willow_Lamprey",
-      "description": "Willow Lamprey is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, at night (9:00 PM - 3:00 AM).",
-      "rarity": "Rare",
-      "appears": "Night (9:00 PM - 3:00 AM)",
-      "locations": [
-        "Bahari Bay"
-      ],
-      "biomes": [
-        "Bahari Rivers"
-      ],
-      "bestBait": [
-        "Worm"
-      ],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2750,7 +2801,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     },
     {
@@ -2777,7 +2828,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-15T21:52:59.084Z"
+        "fetchedAt": "2026-01-20T21:04:24.144Z"
       }
     }
   ]
