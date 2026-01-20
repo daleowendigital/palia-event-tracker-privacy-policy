@@ -26,6 +26,10 @@ jobs:
       - name: Generate fish.json
         run: npm run fish:update
 
+      - name: Enrich fish.json with image URLs
+        run: node tools/enrichFishImages.mjs
+
+
       - name: Commit & push if changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
