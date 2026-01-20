@@ -103,7 +103,7 @@ async function main() {
 
       if (f.imageUrl) continue; // keep existing
 
-      const title = cleanTitle(f.name);
+      const title = cleanTitle(f.title || f.name);
       if (!title) continue;
 
       try {
