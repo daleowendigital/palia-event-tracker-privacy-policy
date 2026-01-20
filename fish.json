@@ -2,14 +2,15 @@
   "meta": {
     "category": "Category:Fish",
     "count": 105,
-    "ok": 103,
-    "failed": 2,
-    "fetchedAt": "2026-01-17T12:09:17.488Z",
+    "ok": 102,
+    "failed": 3,
+    "fetchedAt": "2026-01-20T07:05:12.999Z",
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
     "skippedTitles": [
       "Mottled Gobi",
-      "Mudminnow"
+      "Mudminnow",
+      "Oily Anchovy"
     ]
   },
   "fish": [
@@ -39,7 +40,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -67,7 +68,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -94,7 +95,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -123,7 +124,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -150,7 +151,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -177,7 +178,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -204,7 +205,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -231,7 +232,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -258,7 +259,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -285,14 +286,14 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
       "id": "bass",
       "title": "Bass",
       "pageid": 249444,
-      "lastrevid": 639387,
+      "lastrevid": 647288,
       "url": "https://palia.wiki.gg/wiki/Bass",
       "description": "Bass are a type of Fish in Palia.",
       "rarity": null,
@@ -306,7 +307,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -335,7 +336,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -362,7 +363,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -389,7 +390,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -418,7 +419,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -445,7 +446,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -472,7 +473,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -499,7 +500,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -526,7 +527,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -553,7 +554,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -582,7 +583,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -611,7 +612,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -632,7 +633,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -659,7 +660,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -686,7 +687,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -715,7 +716,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -744,7 +745,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -771,7 +772,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -798,7 +799,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -825,7 +826,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -852,7 +853,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -879,7 +880,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -906,7 +907,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -934,7 +935,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -961,7 +962,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -990,7 +991,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1019,7 +1020,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1046,7 +1047,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1073,7 +1074,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1100,7 +1101,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1129,7 +1130,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1157,7 +1158,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1185,7 +1186,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1212,7 +1213,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1239,7 +1240,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1268,7 +1269,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1295,7 +1296,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1322,7 +1323,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1349,7 +1350,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1378,7 +1379,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1405,7 +1406,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1432,7 +1433,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1459,7 +1460,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1487,7 +1488,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1514,7 +1515,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1541,7 +1542,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1568,7 +1569,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1595,7 +1596,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1623,7 +1624,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1650,7 +1651,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1679,7 +1680,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1706,7 +1707,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1735,34 +1736,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
-      }
-    },
-    {
-      "id": "oily_anchovy",
-      "title": "Oily Anchovy",
-      "pageid": 340,
-      "lastrevid": 633974,
-      "url": "https://palia.wiki.gg/wiki/Oily_Anchovy",
-      "description": "Oily Anchovy is more attracted to Worms, and can be caught in the Bahari Rivers in Bahari Bay, at any time of day.",
-      "rarity": "Common",
-      "appears": "Any Time",
-      "locations": [
-        "Bahari Bay"
-      ],
-      "biomes": [
-        "Bahari Rivers"
-      ],
-      "bestBait": [
-        "Worm"
-      ],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1791,7 +1765,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1818,7 +1792,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1846,7 +1820,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1873,7 +1847,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1900,7 +1874,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1927,7 +1901,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1955,7 +1929,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -1982,7 +1956,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2009,7 +1983,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2036,7 +2010,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2063,7 +2037,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2090,7 +2064,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2117,7 +2091,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2144,7 +2118,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2173,7 +2147,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2201,7 +2175,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2228,7 +2202,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2255,7 +2229,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2283,7 +2257,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2310,7 +2284,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2339,7 +2313,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2366,7 +2340,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2393,7 +2367,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2422,7 +2396,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2449,7 +2423,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2476,7 +2450,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2504,7 +2478,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2531,7 +2505,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2558,7 +2532,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2585,7 +2559,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2612,7 +2586,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2633,7 +2607,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2660,7 +2634,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2687,7 +2661,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2716,7 +2690,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2745,7 +2719,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2772,7 +2746,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2799,7 +2773,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     },
     {
@@ -2826,7 +2800,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-17T12:09:17.488Z"
+        "fetchedAt": "2026-01-20T07:05:12.999Z"
       }
     }
   ]
