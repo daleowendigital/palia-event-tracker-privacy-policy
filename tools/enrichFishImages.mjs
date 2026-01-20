@@ -33,19 +33,18 @@ async function fetchPageImageUrl(title) {
     titles: title,
     redirects: "1",
     prop: "pageimages",
-    piprop: "original",        // prefer original image if available
-    pithumbsize: "256",        // fallback if original isn't available (some wikis still return thumb)
-    pilicense: "any",          // avoids “no image” on some setups
-    origin: "*",               // CORS-friendly (harmless in Actions, helpful elsewhere)
+    piprop: "original", // prefer original image if available
+    pithumbsize: "256", // fallback if original isn't available (some wikis still return thumb)
+    pilicense: "any",
+    origin: "*",
   });
 
   const url = `${WIKI_API}?${params.toString()}`;
 
   const res = await fetch(url, {
     headers: {
-      // Helps avoid some bot protections being cranky.
       "User-Agent": "palia-event-tracker-bot/1.0 (GitHub Actions; image enrichment)",
-      "Accept": "application/json",
+      Accept: "application/json",
     },
   });
 
@@ -69,47 +68,66 @@ async function fetchPageImageUrl(title) {
   return original || thumb || null;
 }
 
+function extractFishArrays(data) {
+  // Supports:
+  // 1) fish.json = [ {...}, {...} ]
+  // 2) fish.json = { someGroup: [ {...} ], otherGroup: [ {...} ] }
+  // 3) fish.json = { fish: [ {...} ], ... }
+
+  if (Array.isArray(data)) return [data];
+
+  if (data && typeof data === "object") {
+    return Object.values(data).filter(Array.isArray);
+  }
+
+  return [];
+}
+
 async function main() {
   const raw = await fs.readFile(FISH_JSON_PATH, "utf8");
-  const fish = JSON.parse(raw);
+  const data = JSON.parse(raw);
 
-  if (!Array.isArray(fish)) {
-    throw new Error(`Expected ${FISH_JSON_PATH} to be an array of fish objects.`);
+  const fishArrays = extractFishArrays(data);
+  if (fishArrays.length === 0) {
+    throw new Error("No fish arrays found in fish.json");
   }
 
   let changed = false;
   let found = 0;
   let missing = 0;
 
-  for (let i = 0; i < fish.length; i++) {
-    const f = fish[i];
-    if (!f || typeof f !== "object") continue;
+  for (const fishArr of fishArrays) {
+    for (let i = 0; i < fishArr.length; i++) {
+      const f = fishArr[i];
+      if (!f || typeof f !== "object") continue;
 
-    if (f.imageUrl) continue; // keep existing
+      if (f.imageUrl) continue; // keep existing
 
-    const title = cleanTitle(f.name);
-    if (!title) continue;
+      const title = cleanTitle(f.name);
+      if (!title) continue;
 
-    try {
-      const img = await fetchPageImageUrl(title);
-      if (img) {
-        f.imageUrl = img;
-        changed = true;
-        found++;
-      } else {
+      try {
+        const img = await fetchPageImageUrl(title);
+        if (img) {
+          f.imageUrl = img;
+          changed = true;
+          found++;
+        } else {
+          missing++;
+        }
+      } catch (e) {
+        // Don’t nuke the daily run because one page had a tantrum.
         missing++;
+        console.warn(`[image] ${title}: ${e?.message || e}`);
       }
-    } catch (e) {
-      // Don’t nuke the daily run because one page had a tantrum.
-      missing++;
-      console.warn(`[image] ${title}: ${e?.message || e}`);
-    }
 
-    await sleep(REQUEST_DELAY_MS);
+      await sleep(REQUEST_DELAY_MS);
+    }
   }
 
   if (changed) {
-    await fs.writeFile(FISH_JSON_PATH, JSON.stringify(fish, null, 2) + "\n", "utf8");
+    // IMPORTANT: write back the full original structure (array OR object), not just one array.
+    await fs.writeFile(FISH_JSON_PATH, JSON.stringify(data, null, 2) + "\n", "utf8");
   }
 
   console.log(
