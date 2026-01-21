@@ -29,12 +29,21 @@ jobs:
       - name: Enrich fish.json with image URLs
         run: node tools/enrichFishImages.mjs
 
+      - name: Sync root fish.json to data-site (optional mirror)
+        run: |
+          mkdir -p data-site
+          echo "Syncing fish.json -> data-site/fish.json"
+          cp fish.json data-site/fish.json
+          else
+            echo "No data-site/fish.json found, leaving root fish.json as-is"
+          fi
+
       - name: Commit & push if changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add fish.json src/fishVersion.ts pull-fish.mjs tools/bumpFishVersion.js tools/enrichFishImages.mjs package.json package-lock.json
+            git add fish.json data-site/fish.json src/fishVersion.ts pull-fish.mjs tools/bumpFishVersion.js tools/enrichFishImages.mjs package.json package-lock.json
             git commit -m "Auto-update fish data"
             git push
           else
