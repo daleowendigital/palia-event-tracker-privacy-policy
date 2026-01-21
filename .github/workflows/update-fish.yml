@@ -23,12 +23,6 @@ jobs:
       - name: Install
         run: npm ci
 
-<<<<<<< HEAD
-      # fish:update already does: pull -> enrich -> bump version (per your package.json)
-      - name: Generate, enrich, and version fish.json
-        run: npm run fish:update
-
-=======
       - name: Generate fish.json
         run: npm run fish:update
 
@@ -36,25 +30,26 @@ jobs:
         run: node tools/enrichFishImages.mjs
 
       - name: Sync root fish.json to data-site (optional mirror)
+        shell: bash
         run: |
-          mkdir -p data-site
-          echo "Syncing fish.json -> data-site/fish.json"
-          cp fish.json data-site/fish.json
+          if [ -f fish.json ]; then
+            mkdir -p data-site
+            echo "Syncing fish.json -> data-site/fish.json"
+            cp -f fish.json data-site/fish.json
           else
-            echo "No data-site/fish.json found, leaving root fish.json as-is"
+            echo "fish.json not found, skipping mirror"
           fi
 
->>>>>>> 1b82361dcf3b1d7484482596130016f05ab758d5
       - name: Commit & push if changed
+        shell: bash
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-<<<<<<< HEAD
-            git add fish.json src/fishVersion.ts
-=======
-            git add fish.json data-site/fish.json src/fishVersion.ts pull-fish.mjs tools/bumpFishVersion.js tools/enrichFishImages.mjs package.json package-lock.json
->>>>>>> 1b82361dcf3b1d7484482596130016f05ab758d5
+
+            # Add whatever files your scripts actually touch
+            git add fish.json data-site/fish.json src/fishVersion.ts package.json package-lock.json tools/enrichFishImages.mjs tools/bumpFishVersion.js || true
+
             git commit -m "Auto-update fish data"
             git push
           else
