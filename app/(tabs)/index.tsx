@@ -308,6 +308,16 @@ const FISH_URL_WEB_LOCAL = `/fish.json?v=${encodeURIComponent(FISH_JSON_VERSION)
 // Primary URL by platform (web uses local file first)
 const FISH_URL = Platform.OS === "web" ? FISH_URL_WEB_LOCAL : FISH_URL_REMOTE;
 
+// Some wiki URLs include characters (like apostrophes) that React Native Image can choke on.
+// Encode safely for both native + web.
+const sanitizeImageUrl = (u?: string | null) => {
+  if (typeof u !== "string") return undefined;
+  const s = u.trim();
+  if (!s) return undefined;
+  // encodeURI preserves : / ? etc, but does NOT encode apostrophes, so patch those.
+  return encodeURI(s).replace(/'/g, "%27");
+};
+
 
 // Text size (accessibility)
 type TextSizeMode = "small" | "medium" | "large";
@@ -4820,7 +4830,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               <View style={styles.fishTopRow}>
                                 <View style={styles.fishImageSlot}>
                                   {marker?.imageUrl ? (
-                                    <Image source={{ uri: marker.imageUrl }} style={styles.fishImage} />
+                                    <Image source={{ uri: sanitizeImageUrl(marker.imageUrl) }} style={styles.fishImage} />
                                   ) : null}
                                 </View>
 
@@ -5031,7 +5041,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               <View style={styles.fishTopRow}>
                                 <View style={styles.fishImageSlot}>
                                   {marker?.imageUrl ? (
-                                    <Image source={{ uri: marker.imageUrl }} style={styles.fishImage} />
+                                    <Image source={{ uri: sanitizeImageUrl(marker.imageUrl) }} style={styles.fishImage} />
                                   ) : null}
                                 </View>
 
