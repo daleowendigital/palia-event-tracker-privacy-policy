@@ -8,7 +8,6 @@
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
     "skippedTitles": [
-      "Mottled Gobi",
       "Mudminnow",
       "Mutated Angler",
       "Oily Anchovy"
@@ -1828,8 +1827,34 @@
       "source": {
         "wiki": "palia.wiki.gg",
         "fetchedAt": "2026-01-24T06:57:32.317Z"
+      }
+    },
+    {
+      "id": "paddlefish",
+      "title": "Paddlefish",
+      "pageid": 342,
+      "lastrevid": 619717,
+      "url": "https://palia.wiki.gg/wiki/Paddlefish",
+      "description": "Paddlefish is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, during the morning, day and evening (3:00 AM - 9:00 PM).",
+      "rarity": "Uncommon",
+      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
+      "locations": [
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Bahari Rivers"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
       },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Paddlefish.png"
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-22T20:45:32.960Z"
+      }
     },
     {
       "id": "painted_perch",

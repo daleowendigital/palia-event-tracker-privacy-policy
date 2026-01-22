@@ -46,6 +46,32 @@ function buildFilepathUrl(fileName) {
   return FILEPATH_BASE + encodeURIComponent(fileName);
 }
 
+function sanitizeFilepathUrl(url) {
+  const s = String(url || "").trim();
+  if (!s) return null;
+
+  // If it looks like a Special:Filepath URL, re-encode the filename portion.
+  const idx = s.indexOf("Special:Filepath/");
+  if (idx !== -1) {
+    const head = s.slice(0, idx + "Special:Filepath/".length);
+    const tail = s.slice(idx + "Special:Filepath/".length);
+    if (!tail) return s;
+    return head + encodeURIComponent(decodeURIComponentSafe(tail));
+  }
+
+  // Generic fallback: encodeURI then patch apostrophes.
+  return encodeURI(s).replace(/'/g, "%27");
+}
+
+function decodeURIComponentSafe(str) {
+  try {
+    return decodeURIComponent(str);
+  } catch {
+    return str;
+  }
+}
+
+
 async function main() {
   const raw = await fs.readFile(FISH_JSON_PATH, "utf8");
   const data = JSON.parse(raw);
@@ -61,14 +87,22 @@ async function main() {
     for (const f of fishArr) {
       if (!f || typeof f !== "object") continue;
 
-      if (f.imageUrl) continue; // keep existing
+      // Normalize existing imageUrl, but do not remove it.
+      if (f.imageUrl) {
+        const norm = sanitizeFilepathUrl(f.imageUrl);
+        if (norm && norm !== f.imageUrl) {
+          f.imageUrl = norm;
+          added++;
+        }
+        continue;
+      }
 
       // Your schema uses "title" (not "name")
       const title = f.title || f.name;
       const fileName = titleToFileNamePng(title);
       if (!fileName) continue;
 
-      f.imageUrl = buildFilepathUrl(fileName);
+      f.imageUrl = sanitizeFilepathUrl(buildFilepathUrl(fileName));
       added++;
     }
   }
