@@ -11,7 +11,7 @@
     "lint": "expo lint",
     "fish:pull": "node pull-fish.mjs",
     "fish:bump": "node tools/bumpFishVersion.js",
-    "fish:update": "node pull-fish.mjs && node tools/bumpFishVersion.js",
+    "fish:update": "node pull-fish.mjs && node tools/enrichFishImages.mjs && node tools/mirrorFishImages.mjs && node tools/bumpFishVersion.js",
     "fish:mirror": "node tools/mirrorFishImages.mjs"
 
   },
