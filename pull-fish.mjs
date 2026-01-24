@@ -23,6 +23,14 @@ const DELAY_MS = 350; // baseline throttle between requests
 // Tip: set a real contact (email or repo) before running this a lot.
 const USER_AGENT = "PaliaEventTrackerBot/1.2 (contact: https://daleowendigital.github.io/palia-event-tracker-privacy-policy/)";
 
+// Entries that are known to be junk / not real fish pages in the upstream category listing.
+const DROP_FISH_IDS = new Set([
+  "bass",
+  "catfish",
+  "trout",
+]);
+
+
 // ------------ utils ------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -382,12 +390,20 @@ async function runPool(items, worker, concurrency) {
   const ok = records.filter((r) => r && !r._skipped);
   const failed = records.filter((r) => r && r._skipped);
 
+  // Filter out known junk entries so they don't reappear on the next update.
+  const dropped = ok
+    .filter((r) => DROP_FISH_IDS.has(String(r.id || "").toLowerCase()))
+    .map((r) => r.id);
+
+  const okClean = ok.filter((r) => !DROP_FISH_IDS.has(String(r.id || "").toLowerCase()));
+
   const out = {
     meta: {
       category: CATEGORY,
       count: titles.length,
-      ok: ok.length,
+      ok: okClean.length,
       failed: failed.length,
+      dropped: dropped,
       fetchedAt,
       base: BASE,
       api: API,
@@ -395,7 +411,7 @@ async function runPool(items, worker, concurrency) {
       skippedTitles: failed.slice(0, 200).map((r) => r?.title).filter(Boolean),
     },
     // Only ship usable fish records.
-    fish: ok,
+    fish: okClean,
   };
 
   await fs.writeFile(OUT_FILE, JSON.stringify(out, null, 2), "utf-8");

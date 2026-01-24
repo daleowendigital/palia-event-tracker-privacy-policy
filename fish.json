@@ -2,13 +2,17 @@
   "meta": {
     "category": "Category:Fish",
     "count": 105,
-    "ok": 101,
-    "failed": 4,
-    "fetchedAt": "2026-01-24T06:57:32.317Z",
+    "ok": 100,
+    "failed": 2,
+    "dropped": [
+      "bass",
+      "catfish",
+      "trout"
+    ],
+    "fetchedAt": "2026-01-24T15:06:58.960Z",
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
     "skippedTitles": [
-      "Mudminnow",
       "Mutated Angler",
       "Oily Anchovy"
     ]
@@ -40,9 +44,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Albino_Eel.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "alligator_gar",
@@ -69,9 +72,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Alligator_Gar.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "ancient_cloudminnow",
@@ -97,9 +99,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Cloudminnow.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "ancient_fish",
@@ -127,9 +128,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Fish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "ancient_koi",
@@ -155,9 +155,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Koi.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "angelfish",
@@ -183,9 +182,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Angelfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bahari_bass",
@@ -211,9 +209,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Bass.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bahari_bream",
@@ -239,9 +236,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Bream.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bahari_pike",
@@ -267,9 +263,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Pike.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "barracuda",
@@ -295,31 +290,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Barracuda.png"
-    },
-    {
-      "id": "bass",
-      "title": "Bass",
-      "pageid": 249444,
-      "lastrevid": 647288,
-      "url": "https://palia.wiki.gg/wiki/Bass",
-      "description": "Bass are a type of Fish in Palia.",
-      "rarity": null,
-      "appears": null,
-      "locations": [],
-      "biomes": [],
-      "bestBait": [],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bass.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bat_ray",
@@ -347,9 +319,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bat_Ray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "beluga_sturgeon",
@@ -375,9 +346,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Beluga_Sturgeon.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "black_sea_bass",
@@ -403,9 +373,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Black_Sea_Bass.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "blobfish",
@@ -433,9 +402,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blobfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "blue_marlin",
@@ -461,9 +429,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blue_Marlin.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "blue_spotted_ray",
@@ -489,9 +456,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blue_Spotted_Ray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bluefin_tuna",
@@ -517,9 +483,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bluefin_Tuna.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "bronze_bluegill",
@@ -545,9 +510,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bronze_Bluegill.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "cactus_moray",
@@ -573,9 +537,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cactus_Moray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "calico_koi",
@@ -603,9 +566,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Calico_Koi.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "cantankerous_koi",
@@ -633,31 +595,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cantankerous_Koi.png"
-    },
-    {
-      "id": "catfish",
-      "title": "Catfish",
-      "pageid": 249438,
-      "lastrevid": 639379,
-      "url": "https://palia.wiki.gg/wiki/Catfish",
-      "description": "Catfish are a type of Fish in Palia.",
-      "rarity": null,
-      "appears": null,
-      "locations": [],
-      "biomes": [],
-      "bestBait": [],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Catfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "channel_catfish",
@@ -683,9 +622,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Channel_Catfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "chub",
@@ -711,9 +649,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Chub.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "cloudfish",
@@ -741,9 +678,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cloudfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "crimson_fangtooth",
@@ -771,9 +707,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Crimson_Fangtooth.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "crucian_carp",
@@ -799,9 +734,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Crucian_Carp.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "cutthroat_trout",
@@ -827,9 +761,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cutthroat_Trout.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "dawnray",
@@ -855,9 +788,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Dawnray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "devilfish",
@@ -883,9 +815,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Devilfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "duskray",
@@ -911,9 +842,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Duskray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "eleroo_eel",
@@ -939,9 +869,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Eleroo_Eel.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "enchanted_pupfish",
@@ -968,9 +897,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Enchanted_Pupfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "energized_piranha",
@@ -996,9 +924,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Energized_Piranha.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "eyeless_minnow",
@@ -1026,9 +953,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Eyeless_Minnow.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "fairy_carp",
@@ -1056,9 +982,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Fairy_Carp.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "fathead_minnow",
@@ -1084,9 +1009,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Fathead_Minnow.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "flametongue_ray",
@@ -1112,9 +1036,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Flametongue_Ray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "freshwater_eel",
@@ -1140,9 +1063,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Freshwater_Eel.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "giant_goldfish",
@@ -1170,9 +1092,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Giant_Goldfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "giant_kilima_stingray",
@@ -1199,9 +1120,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Giant_Kilima_Stingray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "gillyfin",
@@ -1228,9 +1148,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Gillyfin.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "golden_salmon",
@@ -1256,9 +1175,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Golden_Salmon.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "honey_loach",
@@ -1284,9 +1202,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Honey_Loach.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "hypnotic_moray",
@@ -1314,9 +1231,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Hypnotic_Moray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "indigo_lamprey",
@@ -1342,9 +1258,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Indigo_Lamprey.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "inyrevn_mermaid",
@@ -1370,9 +1285,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Inyrevn_Mermaid.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "kenli_s_carp",
@@ -1398,9 +1312,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kenli's_Carp.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "kilima_catfish",
@@ -1428,9 +1341,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Catfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "kilima_grayling",
@@ -1456,9 +1368,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Grayling.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "kilima_redfin",
@@ -1484,9 +1395,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Redfin.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "lake_shark",
@@ -1512,9 +1422,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Lake_Shark.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "largemouth_bass",
@@ -1541,9 +1450,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Largemouth_Bass.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "long_nosed_unicorn_fish",
@@ -1569,9 +1477,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Long_Nosed_Unicorn_Fish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "majiri_of_war",
@@ -1597,9 +1504,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Majiri-of-War.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "maws",
@@ -1625,9 +1531,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Maws.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "midnight_floatfish",
@@ -1653,9 +1558,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Midnight_Floatfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "midnight_paddlefish",
@@ -1682,9 +1586,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Midnight_Paddlefish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "mini_mullet",
@@ -1710,9 +1613,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mini_Mullet.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "mirror_carp",
@@ -1740,9 +1642,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mirror_Carp.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "mossyfin",
@@ -1768,9 +1669,66 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
+    },
+    {
+      "id": "mottled_gobi",
+      "title": "Mottled Gobi",
+      "pageid": 302,
+      "lastrevid": 641475,
+      "url": "https://palia.wiki.gg/wiki/Mottled_Gobi",
+      "description": "Mottled Gobi is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Housing Plot",
+        "Kilima Valley",
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
       },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mossyfin.png"
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
+    },
+    {
+      "id": "mudminnow",
+      "title": "Mudminnow",
+      "pageid": 295,
+      "lastrevid": 641487,
+      "url": "https://palia.wiki.gg/wiki/Mudminnow",
+      "description": "Mudminnow is more attracted to no bait, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Housing Plot",
+        "Kilima Valley",
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Ponds"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "orange_bluegill",
@@ -1798,35 +1756,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Orange_Bluegill.png"
-    },
-    {
-      "id": "paddlefish",
-      "title": "Paddlefish",
-      "pageid": 342,
-      "lastrevid": 619717,
-      "url": "https://palia.wiki.gg/wiki/Paddlefish",
-      "description": "Paddlefish is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, during the morning, day and evening (3:00 AM - 9:00 PM).",
-      "rarity": "Uncommon",
-      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
-      "locations": [
-        "Bahari Bay"
-      ],
-      "biomes": [
-        "Bahari Rivers"
-      ],
-      "bestBait": [
-        "Worm"
-      ],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
       }
     },
     {
@@ -1853,7 +1783,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-22T20:45:32.960Z"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
       }
     },
     {
@@ -1881,9 +1811,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Painted_Perch.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "palian_betta",
@@ -1909,9 +1838,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Palian_Betta.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "piksii_floatfish",
@@ -1937,9 +1865,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Piksii_Floatfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "platinum_chad",
@@ -1965,9 +1892,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Platinum_Chad.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "prism_trout",
@@ -1994,9 +1920,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Prism_Trout.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "radiant_sunfish",
@@ -2022,9 +1947,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Radiant_Sunfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "rainbow_trout",
@@ -2050,9 +1974,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Rainbow_Trout.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "red_bellied_piranha",
@@ -2078,9 +2001,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Red-bellied_Piranha.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "ribbontail_ray",
@@ -2106,9 +2028,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ribbontail_Ray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "rosy_bitterling",
@@ -2134,9 +2055,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Rosy_Bitterling.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "sabertoothed_anchovy",
@@ -2162,9 +2082,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Sabertoothed_Anchovy.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "sardine",
@@ -2190,9 +2109,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Sardine.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "scarlet_koi",
@@ -2220,9 +2138,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Scarlet_Koi.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "shimmerfin",
@@ -2249,9 +2166,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Shimmerfin.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "silver_salmon",
@@ -2277,9 +2193,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Silver_Salmon.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "silvery_minnow",
@@ -2305,9 +2220,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Silvery_Minnow.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "smallmouth_bass",
@@ -2334,9 +2248,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Smallmouth_Bass.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "spotted_bullhead",
@@ -2362,9 +2275,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Spotted_Bullhead.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "stalking_catfish",
@@ -2392,9 +2304,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stalking_Catfish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "starry_bitterling",
@@ -2420,9 +2331,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Starry_Bitterling.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "stickleback",
@@ -2448,9 +2358,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stickleback.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "stonefish",
@@ -2478,9 +2387,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stonefish.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "stormray",
@@ -2506,9 +2414,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stormray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "striped_dace",
@@ -2534,9 +2441,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Striped_Dace.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "striped_sturgeon",
@@ -2563,9 +2469,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Striped_Sturgeon.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "swordfin_eel",
@@ -2591,9 +2496,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Swordfin_Eel.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "thundering_eel",
@@ -2619,9 +2523,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Thundering_Eel.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "tinfin",
@@ -2647,9 +2550,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Tinfin.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "toadstool_floatfish",
@@ -2675,31 +2577,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Toadstool_Floatfish.png"
-    },
-    {
-      "id": "trout",
-      "title": "Trout",
-      "pageid": 80652,
-      "lastrevid": 639393,
-      "url": "https://palia.wiki.gg/wiki/Trout",
-      "description": "Trout are a type of Fish in Palia.",
-      "rarity": null,
-      "appears": null,
-      "locations": [],
-      "biomes": [],
-      "bestBait": [],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Trout.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "turn_pike",
@@ -2725,9 +2604,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Turn_Pike.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "umbraan_betta",
@@ -2753,9 +2631,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Umbraan_Betta.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "umbran_carp",
@@ -2783,9 +2660,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Umbran_Carp.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "void_ray",
@@ -2813,9 +2689,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Void_Ray.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "willow_lamprey",
@@ -2841,9 +2716,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Willow_Lamprey.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "yellow_perch",
@@ -2869,9 +2743,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Yellow_Perch.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     },
     {
       "id": "yellowfin_tuna",
@@ -2897,9 +2770,8 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T06:57:32.317Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Yellowfin_Tuna.png"
+        "fetchedAt": "2026-01-24T15:06:58.960Z"
+      }
     }
   ]
 }

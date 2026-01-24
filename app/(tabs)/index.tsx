@@ -308,16 +308,6 @@ const FISH_URL_WEB_LOCAL = `/fish.json?v=${encodeURIComponent(FISH_JSON_VERSION)
 // Primary URL by platform (web uses local file first)
 const FISH_URL = Platform.OS === "web" ? FISH_URL_WEB_LOCAL : FISH_URL_REMOTE;
 
-// Some wiki URLs include characters (like apostrophes) that React Native Image can choke on.
-// Encode safely for both native + web.
-const sanitizeImageUrl = (u?: string | null) => {
-  if (typeof u !== "string") return undefined;
-  const s = u.trim();
-  if (!s) return undefined;
-  // encodeURI preserves : / ? etc, but does NOT encode apostrophes, so patch those.
-  return encodeURI(s).replace(/'/g, "%27");
-};
-
 
 // Text size (accessibility)
 type TextSizeMode = "small" | "medium" | "large";
@@ -2381,7 +2371,7 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
             ) : null}
 
             {/* Marker arrows */}
-            {markerArrows.map((m) => {
+            {markerArrows.map((m, idx) => {
               const isNextSlot = nextSlotAngle != null && Math.abs(m.angle - nextSlotAngle) < 0.001;
 
               // Active (next slot) vs inactive styling
@@ -2390,7 +2380,7 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
               const innerFill = isNextSlot ? MARKER_COL : MARKER_NEXT_COL;
 
               return (
-                <G key={`mk-${m.id}`}>
+                <G key={`mk-${String(m.id)}-${idx}`}>
                   <Path
                     d={markerArrowPath(m.angle)}
                     fill={outerFill}
@@ -2978,10 +2968,24 @@ useEffect(() => {
   if (!hydrated) return;
   if (remoteFishStatus !== "ready") return;
 
-  const fishList = normalizeRemoteFish(remoteFish).filter((f) => !isBlockedFishEntry(f));
+  const fishListRaw = normalizeRemoteFish(remoteFish).filter((f) => !isBlockedFishEntry(f));
+  console.log("FISH IMG CHECK", fishListRaw.slice(0, 5).map(f => ({ id: f.id, imageUrl: f.imageUrl })));
+
+  // Defensive de-dupe by id (prevents duplicate React keys if upstream JSON ever repeats ids)
+  const fishList = (() => {
+    const seen = new Set<string>();
+    return fishListRaw.filter((f) => {
+      const id = String((f as any)?.id ?? "").trim();
+      if (!id) return false;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  })();
   if (!fishList.length) return;
 
   setMarkers((prev) => {
+
     const prevFishById = new Map<string, Marker>();
     for (const m of prev) {
       if (String(m.id).startsWith("fish_")) prevFishById.set(String(m.id), m);
@@ -4830,7 +4834,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               <View style={styles.fishTopRow}>
                                 <View style={styles.fishImageSlot}>
                                   {marker?.imageUrl ? (
-                                    <Image source={{ uri: sanitizeImageUrl(marker.imageUrl) }} style={styles.fishImage} />
+                                    <Image
+                                      source={marker.imageUrl ? { uri: marker.imageUrl } : undefined}
+                                      style={styles.fishImage}
+                                      resizeMode="cover"
+                                      onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
+                                    />
                                   ) : null}
                                 </View>
 
@@ -5041,7 +5050,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               <View style={styles.fishTopRow}>
                                 <View style={styles.fishImageSlot}>
                                   {marker?.imageUrl ? (
-                                    <Image source={{ uri: sanitizeImageUrl(marker.imageUrl) }} style={styles.fishImage} />
+                                    <Image
+                                      source={marker.imageUrl ? { uri: marker.imageUrl } : undefined}
+                                      style={styles.fishImage}
+                                      resizeMode="cover"
+                                      onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
+                                    />
                                   ) : null}
                                 </View>
 
