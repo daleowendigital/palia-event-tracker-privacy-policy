@@ -2,21 +2,20 @@
   "meta": {
     "category": "Category:Fish",
     "count": 105,
-    "ok": 98,
-    "failed": 4,
+    "ok": 99,
+    "failed": 3,
     "dropped": [
       "bass",
       "catfish",
       "trout"
     ],
-    "fetchedAt": "2026-03-02T07:09:04.810Z",
+    "fetchedAt": "2026-03-03T07:02:54.330Z",
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
     "skippedTitles": [
-      "Mudminnow",
-      "Mutated Angler",
-      "Oily Anchovy",
-      "Orange Bluegill"
+      "Paddlefish",
+      "Painted Perch",
+      "Palian Betta"
     ]
   },
   "fish": [
@@ -46,7 +45,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Albino_Eel.png"
     },
@@ -75,7 +74,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Alligator_Gar.png"
     },
@@ -103,7 +102,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Cloudminnow.png"
     },
@@ -133,7 +132,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Fish.png"
     },
@@ -161,7 +160,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ancient_Koi.png"
     },
@@ -189,7 +188,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Angelfish.png"
     },
@@ -217,7 +216,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Bass.png"
     },
@@ -245,7 +244,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Bream.png"
     },
@@ -273,7 +272,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bahari_Pike.png"
     },
@@ -301,7 +300,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Barracuda.png"
     },
@@ -331,7 +330,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bat_Ray.png"
     },
@@ -359,7 +358,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Beluga_Sturgeon.png"
     },
@@ -387,7 +386,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Black_Sea_Bass.png"
     },
@@ -417,7 +416,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blobfish.png"
     },
@@ -445,7 +444,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blue_Marlin.png"
     },
@@ -473,7 +472,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Blue_Spotted_Ray.png"
     },
@@ -501,7 +500,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bluefin_Tuna.png"
     },
@@ -529,7 +528,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Bronze_Bluegill.png"
     },
@@ -557,7 +556,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cactus_Moray.png"
     },
@@ -587,7 +586,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Calico_Koi.png"
     },
@@ -617,7 +616,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cantankerous_Koi.png"
     },
@@ -645,7 +644,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Channel_Catfish.png"
     },
@@ -673,7 +672,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Chub.png"
     },
@@ -703,7 +702,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cloudfish.png"
     },
@@ -733,7 +732,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Crimson_Fangtooth.png"
     },
@@ -761,7 +760,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Crucian_Carp.png"
     },
@@ -789,7 +788,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Cutthroat_Trout.png"
     },
@@ -817,7 +816,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Dawnray.png"
     },
@@ -845,7 +844,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Devilfish.png"
     },
@@ -873,7 +872,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Duskray.png"
     },
@@ -901,7 +900,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Eleroo_Eel.png"
     },
@@ -930,7 +929,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Enchanted_Pupfish.png"
     },
@@ -958,7 +957,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Energized_Piranha.png"
     },
@@ -988,7 +987,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Eyeless_Minnow.png"
     },
@@ -1018,7 +1017,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Fairy_Carp.png"
     },
@@ -1046,7 +1045,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Fathead_Minnow.png"
     },
@@ -1074,7 +1073,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Flametongue_Ray.png"
     },
@@ -1102,7 +1101,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Freshwater_Eel.png"
     },
@@ -1132,7 +1131,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Giant_Goldfish.png"
     },
@@ -1161,7 +1160,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Giant_Kilima_Stingray.png"
     },
@@ -1190,7 +1189,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Gillyfin.png"
     },
@@ -1218,7 +1217,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Golden_Salmon.png"
     },
@@ -1246,7 +1245,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Honey_Loach.png"
     },
@@ -1276,7 +1275,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Hypnotic_Moray.png"
     },
@@ -1304,7 +1303,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Indigo_Lamprey.png"
     },
@@ -1332,7 +1331,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Inyrevn_Mermaid.png"
     },
@@ -1360,7 +1359,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kenli's_Carp.png"
     },
@@ -1390,7 +1389,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Catfish.png"
     },
@@ -1418,7 +1417,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Grayling.png"
     },
@@ -1446,7 +1445,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kilima_Redfin.png"
     },
@@ -1474,7 +1473,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Lake_Shark.png"
     },
@@ -1503,7 +1502,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Largemouth_Bass.png"
     },
@@ -1531,7 +1530,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Long_Nosed_Unicorn_Fish.png"
     },
@@ -1559,7 +1558,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Majiri-of-War.png"
     },
@@ -1587,7 +1586,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Maws.png"
     },
@@ -1615,7 +1614,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Midnight_Floatfish.png"
     },
@@ -1644,7 +1643,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Midnight_Paddlefish.png"
     },
@@ -1672,7 +1671,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mini_Mullet.png"
     },
@@ -1702,7 +1701,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mirror_Carp.png"
     },
@@ -1730,7 +1729,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mossyfin.png"
     },
@@ -1760,19 +1759,79 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mottled_Gobi.png"
     },
     {
-      "id": "paddlefish",
-      "title": "Paddlefish",
-      "pageid": 342,
-      "lastrevid": 619717,
-      "url": "https://palia.wiki.gg/wiki/Paddlefish",
-      "description": "Paddlefish is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, during the morning, day and evening (3:00 AM - 9:00 PM).",
-      "rarity": "Uncommon",
-      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
+      "id": "mudminnow",
+      "title": "Mudminnow",
+      "pageid": 295,
+      "lastrevid": 641487,
+      "url": "https://palia.wiki.gg/wiki/Mudminnow",
+      "description": "Mudminnow is more attracted to no bait, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Housing Plot",
+        "Kilima Valley",
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Ponds"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mudminnow.png"
+    },
+    {
+      "id": "mutated_angler",
+      "title": "Mutated Angler",
+      "pageid": 367,
+      "lastrevid": 633964,
+      "url": "https://palia.wiki.gg/wiki/Mutated_Angler",
+      "description": "Mutated Angler is more attracted to Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
+      "rarity": "Rare",
+      "appears": "Any Time",
+      "locations": [
+        "Kilima Valley",
+        "Bahari Bay",
+        "The Underground"
+      ],
+      "biomes": [
+        "Caves"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mutated_Angler.png"
+    },
+    {
+      "id": "oily_anchovy",
+      "title": "Oily Anchovy",
+      "pageid": 340,
+      "lastrevid": 633974,
+      "url": "https://palia.wiki.gg/wiki/Oily_Anchovy",
+      "description": "Oily Anchovy is more attracted to Worms, and can be caught in the Bahari Rivers in Bahari Bay, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
       "locations": [
         "Bahari Bay"
       ],
@@ -1788,25 +1847,26 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Paddlefish.png"
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Oily_Anchovy.png"
     },
     {
-      "id": "painted_perch",
-      "title": "Painted Perch",
-      "pageid": 324,
-      "lastrevid": 641073,
-      "url": "https://palia.wiki.gg/wiki/Painted_Perch",
-      "description": "Painted Perch is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
+      "id": "orange_bluegill",
+      "title": "Orange Bluegill",
+      "pageid": 298,
+      "lastrevid": 641536,
+      "url": "https://palia.wiki.gg/wiki/Orange_Bluegill",
+      "description": "Orange Bluegill is more attracted to Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
       "appears": "Any Time",
       "locations": [
+        "Housing Plot",
         "Kilima Valley",
-        "Fairgrounds"
+        "Bahari Bay"
       ],
       "biomes": [
-        "Kilima Lake"
+        "Ponds"
       ],
       "bestBait": [
         "Worm"
@@ -1817,37 +1877,9 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Painted_Perch.png"
-    },
-    {
-      "id": "palian_betta",
-      "title": "Palian Betta",
-      "pageid": 167271,
-      "lastrevid": 620942,
-      "url": "https://palia.wiki.gg/wiki/Palian_Betta",
-      "description": "Palian Betta is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
-      "rarity": "Uncommon",
-      "appears": "Any Time",
-      "locations": [
-        "Elderwood"
-      ],
-      "biomes": [
-        "Elderwood Freshwater"
-      ],
-      "bestBait": [
-        "Worm"
-      ],
-      "value": {
-        "basic": null,
-        "quality": null
-      },
-      "source": {
-        "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
-      },
-      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Palian_Betta.png"
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Orange_Bluegill.png"
     },
     {
       "id": "piksii_floatfish",
@@ -1873,7 +1905,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Piksii_Floatfish.png"
     },
@@ -1901,7 +1933,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Platinum_Chad.png"
     },
@@ -1930,7 +1962,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Prism_Trout.png"
     },
@@ -1958,7 +1990,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Radiant_Sunfish.png"
     },
@@ -1986,7 +2018,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Rainbow_Trout.png"
     },
@@ -2014,7 +2046,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Red-bellied_Piranha.png"
     },
@@ -2042,7 +2074,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ribbontail_Ray.png"
     },
@@ -2070,7 +2102,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Rosy_Bitterling.png"
     },
@@ -2098,7 +2130,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Sabertoothed_Anchovy.png"
     },
@@ -2126,7 +2158,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Sardine.png"
     },
@@ -2156,7 +2188,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Scarlet_Koi.png"
     },
@@ -2185,7 +2217,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Shimmerfin.png"
     },
@@ -2213,7 +2245,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Silver_Salmon.png"
     },
@@ -2241,7 +2273,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Silvery_Minnow.png"
     },
@@ -2270,7 +2302,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Smallmouth_Bass.png"
     },
@@ -2298,7 +2330,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Spotted_Bullhead.png"
     },
@@ -2328,7 +2360,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stalking_Catfish.png"
     },
@@ -2356,7 +2388,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Starry_Bitterling.png"
     },
@@ -2384,7 +2416,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stickleback.png"
     },
@@ -2414,7 +2446,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stonefish.png"
     },
@@ -2442,7 +2474,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Stormray.png"
     },
@@ -2470,7 +2502,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Striped_Dace.png"
     },
@@ -2499,7 +2531,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Striped_Sturgeon.png"
     },
@@ -2527,7 +2559,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Swordfin_Eel.png"
     },
@@ -2555,7 +2587,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Thundering_Eel.png"
     },
@@ -2583,7 +2615,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Tinfin.png"
     },
@@ -2611,7 +2643,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Toadstool_Floatfish.png"
     },
@@ -2639,7 +2671,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Turn_Pike.png"
     },
@@ -2667,7 +2699,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Umbraan_Betta.png"
     },
@@ -2697,7 +2729,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Umbran_Carp.png"
     },
@@ -2727,7 +2759,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Void_Ray.png"
     },
@@ -2755,7 +2787,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Willow_Lamprey.png"
     },
@@ -2783,7 +2815,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Yellow_Perch.png"
     },
@@ -2811,7 +2843,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-03-02T07:09:04.810Z"
+        "fetchedAt": "2026-03-03T07:02:54.330Z"
       },
       "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Yellowfin_Tuna.png"
     }
