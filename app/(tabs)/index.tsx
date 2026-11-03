@@ -1,35 +1,38 @@
-import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Application from "expo-application";
+import { BlurView } from "expo-blur";
+import * as Device from "expo-device";
+import { useKeepAwake } from "expo-keep-awake";
+import * as NavigationBar from "expo-navigation-bar";
+import * as Notifications from "expo-notifications";
+import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  AppState,
+  ActivityIndicator,
+  Alert,
   Animated,
+  AppState,
   Easing,
+  Image,
   LayoutAnimation,
+  Linking,
   Modal,
+  NativeModules,
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
-  Linking,
   TouchableOpacity,
-  NativeModules,
   UIManager,
   View,
   useWindowDimensions,
-  Alert,
-  Image,
-  Share,
 } from "react-native";
-import * as Notifications from "expo-notifications";
-import * as NavigationBar from "expo-navigation-bar";
-import * as Application from "expo-application";
-import * as Device from "expo-device";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, {
   Circle,
   ClipPath,
@@ -43,13 +46,7 @@ import Svg, {
   Stop,
   Text as SvgText,
 } from "react-native-svg";
-import { BlurView } from "expo-blur";
-import { useKeepAwake } from "expo-keep-awake";
 import { FISH_JSON_VERSION } from "../../src/fishVersion";
-
-
-
-
 
 // SECTION 1) NOTIFICATIONS: DISPLAY BEHAVIOR
 
@@ -65,10 +62,6 @@ if (Platform.OS !== "web") {
     }),
   });
 }
-
-
-
-
 
 // SECTION 2) TYPES
 
@@ -93,6 +86,8 @@ type Marker = {
   // Fish-only (from fish.json enrichment)
   imageUrl?: string;
 };
+
+type HomeMarker = Marker & { baseId?: string };
 
 type FishEntry = {
   id: string;
@@ -189,27 +184,207 @@ function fishAppearsToWindow(appearsRaw: string | undefined | null): { hour: num
   return { hour: 0, minute: 0, hasRange: false };
 }
 
+function fishAppearsToWindows(appearsRaw: string | undefined | null): { hour: number; minute: number; hasRange: boolean; endHour?: number; endMinute?: number }[] {
+  const s = String(appearsRaw ?? "").toLowerCase();
+
+  // Any Time / All Day -> no range windows (we also hide "Ends" UI for these)
+  if (fishAppearsIsAnyTime(s)) return [{ hour: 0, minute: 0, hasRange: false }];
+
+  const flags = fishAppearsToPeriodsFlags(s);
+  const order: (keyof typeof flags)[] = ["morning", "day", "evening", "night"];
+  const on = order.map((k) => !!flags[k]);
+
+  // If nothing matched, fall back to a non-range entry
+  if (!on.some(Boolean)) return [{ hour: 0, minute: 0, hasRange: false }];
+
+  // Map period -> start/end times (Palia time)
+  const startHM: Record<string, { h: number; m: number }> = {
+    morning: { h: 3, m: 0 },
+    day: { h: 6, m: 0 },
+    evening: { h: 18, m: 0 },
+    night: { h: 21, m: 0 },
+  };
+  const endHM: Record<string, { h: number; m: number }> = {
+    morning: { h: 6, m: 0 },
+    day: { h: 18, m: 0 },
+    evening: { h: 21, m: 0 },
+    night: { h: 3, m: 0 }, // wraps
+  };
+
+  // Find contiguous blocks in circular order (night -> morning counts as adjacent)
+  const blocks: { startIdx: number; endIdx: number }[] = [];
+  for (let i = 0; i < on.length; i++) {
+    const prev = on[(i - 1 + on.length) % on.length];
+    if (on[i] && !prev) {
+      // start of a block
+      let j = i;
+      while (on[(j + 1) % on.length]) {
+        j = (j + 1) % on.length;
+        if (j === i) break; // safety
+      }
+      blocks.push({ startIdx: i, endIdx: j });
+    }
+  }
+
+  // Convert blocks into concrete time windows
+  return blocks.map((b) => {
+    const startKey = order[b.startIdx] as string;
+    const endKey = order[b.endIdx] as string;
+
+    const st = startHM[startKey];
+    const en = endHM[endKey];
+
+    return { hour: st.h, minute: st.m, hasRange: true, endHour: en.h, endMinute: en.m };
+  });
+}
+
 function buildFishNotes(f: FishEntry) {
   const lines: string[] = [];
   if (f.description) lines.push(String(f.description).trim());
   lines.push("");
   if (f.rarity) lines.push(`Rarity: ${f.rarity}`);
-  if (f.appears) lines.push(`Appears: ${f.appears}`);
+  if (f.appears) {
+    // Normalize "All Day" to "Any Time" for consistency
+    const appears = f.appears === "All Day" ? "Any Time" : f.appears;
+    lines.push(`Appears: ${appears}`);
+  }
   if (Array.isArray(f.locations) && f.locations.length) lines.push(`Locations: ${f.locations.join(", ")}`);
   if (Array.isArray(f.biomes) && f.biomes.length) lines.push(`Biomes: ${f.biomes.join(", ")}`);
   if (Array.isArray(f.bestBait) && f.bestBait.length) lines.push(`Best bait: ${f.bestBait.join(", ")}`);
   if (f.value && (f.value.basic != null || f.value.quality != null)) {
     lines.push(`Value: ${f.value.basic ?? "—"} (basic), ${f.value.quality ?? "—"} (quality)`);
   }
-  if (f.url) {
-    lines.push("");
-    lines.push(`Wiki: ${f.url}`);
-  }
   return lines.join("\n").trim();
 }
 
+function extractFishFieldFromNotes(notes: any, fieldLabel: string): string {
+  const s = String(notes ?? "");
+  const reLine = new RegExp(`^\\s*${fieldLabel}\\s*:\\s*(.+)\\s*$`, "im");
+  const m = s.match(reLine);
+  return m && m[1] ? String(m[1]).trim() : "";
+}
 
+function getRarityBorderColor(rarity: string | undefined): string {
+  const rarityLower = String(rarity ?? "").trim().toLowerCase();
+  switch (rarityLower) {
+    case "common":
+      return "rgba(11, 27, 56, 1)";
+    case "uncommon":
+      return "rgba(29, 67, 19, 1)";
+    case "rare":
+      return "rgba(33, 101, 113, 1)";
+    case "epic":
+      return "rgba(87, 62, 210, 1)";
+    case "legendary":
+      return "rgba(102, 17, 0, 1)";
+    default:
+      return "rgba(255,255,255,0.08)"; // default border color
+  }
+}
 
+// Cache for rarity colors to avoid repeated calculations
+const rarityColorCache = new Map<string, { border: string; bg: string }>();
+
+function getRarityColors(rarity: string | undefined): { border: string; bg: string } {
+  const key = String(rarity ?? "").trim().toLowerCase();
+  if (rarityColorCache.has(key)) {
+    return rarityColorCache.get(key)!;
+  }
+  
+  const colors = {
+    border: getRarityBorderColor(rarity),
+    bg: getRarityBackgroundColor(rarity),
+  };
+  rarityColorCache.set(key, colors);
+  return colors;
+}
+
+function getRarityBackgroundColor(rarity: string | undefined): string {
+  const rarityLower = String(rarity ?? "").trim().toLowerCase();
+  switch (rarityLower) {
+    case "common":
+      return "rgba(11, 27, 56, 0.2)";
+    case "uncommon":
+      return "rgba(29, 67, 19, 0.2)";
+    case "rare":
+      return "rgba(33, 101, 113, 0.2)";
+    case "epic":
+      return "rgba(87, 62, 210, 0.2)";
+    case "legendary":
+      return "rgba(102, 17, 0, 0.2)";
+    default:
+      return "rgba(255,255,255,0.02)"; // default background color
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function fishAppearsToPeriodsLabel(appearsRaw: any): string {
+  const s = String(appearsRaw ?? "").trim();
+  if (!s) return "";
+  const lower = s.toLowerCase();
+
+  // Tokenize so we can safely detect whole words even if the source contains punctuation/times.
+  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  const has = (w: string) => tokens.includes(w);
+
+  // "Any Time" (or similar) => show all periods as requested.
+  if (lower.includes("any")) return "Morning/Day/Evening/Night";
+
+  const parts: string[] = [];
+  if (has("morning")) parts.push("Morning");
+  if (has("day")) parts.push("Day");
+  if (has("evening")) parts.push("Evening");
+  if (has("night")) parts.push("Night");
+
+  // If nothing matched, fall back to the raw string (shortened a bit) so UI isn't blank.
+  return parts.length ? parts.join("/") : s;
+}
+
+function fishAppearsToPeriodsFlags(appearsRaw: any): { morning: boolean; day: boolean; evening: boolean; night: boolean } {
+  const s = String(appearsRaw ?? "").trim();
+  const lower = s.toLowerCase();
+
+  // Tokenize so we can safely detect whole words even if the source contains punctuation/times.
+  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  const has = (w: string) => tokens.includes(w);
+
+  if (!lower) return { morning: false, day: false, evening: false, night: false };
+
+  // "Any Time" (or similar) => all true.
+  if (lower.includes("any")) return { morning: true, day: true, evening: true, night: true };
+
+  return {
+    morning: has("morning"),
+    day: has("day"),
+    evening: has("evening"),
+    night: has("night"),
+  };
+}
+
+function fishAppearsIsAnyTime(appearsRaw: any): boolean {
+  const s = String(appearsRaw ?? "").trim();
+  const lower = s.toLowerCase();
+
+  // Direct labels we use/expect
+  if (lower.includes("any time")) return true;
+  if (lower.includes("all day")) return true;
+
+  // Sometimes notes are messy; treat "Any/All" tokens as "any time".
+  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  if (tokens.includes("any") || tokens.includes("all")) return true;
+
+  // If flags say it's available in every period, it's effectively "any time".
+  const f = fishAppearsToPeriodsFlags(s);
+  return !!(f.morning && f.day && f.evening && f.night);
+}
+
+function fishBestBaitShort(baitRaw: any): string {
+  const s = String(baitRaw ?? "").trim();
+  if (!s) return "";
+  // Keep it compact for cards: first bait option only.
+  const first = s.split(",")[0]?.trim() ?? s;
+  return first;
+}
 // SECTION 2.2) Notification preference types
 
 // Reminder lead-times are REAL seconds before the marker fires.
@@ -232,10 +407,6 @@ type TimeGroup = {
   minute: number;
   markers: Marker[]; // enabled+notified markers at this HH:MM
 };
-
-
-
-
 
 // SECTION 3) THEME + STORAGE KEYS
 
@@ -276,9 +447,6 @@ const FONT_ROUNDED =
     default: "System",
   }) ?? "System";
 
-
-
-
 // SECTION 3.2) Storage keys
 
 const STORAGE_MARKERS = "palia_markers_v1";
@@ -286,6 +454,7 @@ const STORAGE_REPEATABLE_NOTIF_DEFAULTED = "palia_repeatable_notif_defaulted_v1"
 const STORAGE_NOTIF_PREFS = "palia_notif_prefs_v4";
 const STORAGE_NOTIF_DEFAULTED = "palia_notif_defaulted_v1";
 const STORAGE_TEXT_SIZE_MODE = "palia_text_size_mode_v1";
+const STORAGE_CAUGHT_FISH = "palia_caught_fish_v1";
 const NEXT_TIME_COUNT_KEY = "next_time_count";
 const HELP_DIAGNOSTICS_OPTIN_KEY = "help_include_diagnostics_v1";
 
@@ -293,7 +462,6 @@ const HELP_DIAGNOSTICS_OPTIN_KEY = "help_include_diagnostics_v1";
 const STORAGE_REMOTE_FISH_CACHE = `palia_remote_fish_cache_${FISH_JSON_VERSION}`;
 const STORAGE_REMOTE_FISH_FETCHED_AT = `palia_remote_fish_fetched_at_${FISH_JSON_VERSION}`;
 const REMOTE_FISH_REFRESH_MS = 6 * 60 * 60 * 1000; // 6 hours
-
 
 // Remote data sources (hosted JSON you control)
 //
@@ -308,25 +476,8 @@ const FISH_URL_WEB_LOCAL = `/fish.json?v=${encodeURIComponent(FISH_JSON_VERSION)
 // Primary URL by platform (web uses local file first)
 const FISH_URL = Platform.OS === "web" ? FISH_URL_WEB_LOCAL : FISH_URL_REMOTE;
 
-
 // Text size (accessibility)
 type TextSizeMode = "small" | "medium" | "large";
-
-// What’s New banner (persist dismissal across restarts)
-const WHATS_NEW_ID = "appday12_whatsnew_001";
-const STORAGE_WHATSNEW_DISMISSED_ID = "whats_new_dismissed_id_v1";
-
-
-const WHATS_NEW_ITEMS: string[] = [
-  "'What’s New' banner",
-  "Dismissable banner to alert when notifications are off",
-  "Quick link on 'Next' card to 'Event Setup'",
-];
-
-
-
-
-
 
 const CLOSED_TEST_POPUP_SEEN_KEY = "closed_test_popup_seen_v1";
 // SECTION 4) DEFAULT MARKERS
@@ -356,8 +507,6 @@ const BASE_REPEATABLE_MARKERS: Marker[] = [
   { id: "repeat_piksii_elderwood_2200", name: "Piksii Blossom Bounce - Elderwood", hour: 22, minute: 0, hasRange: true, endHour: 23, endMinute: 10, enabled: false, notify: false, notes: "The Piksii Blossom Bounce is a repeatable jump quest event in the Elderwood Deep Woods that allows players to earn Elderwood flower seeds and other rewards." },
   { id: "repeat_flowers_kilima_1200", name: "Flowers Bloom - Kilima Valley", hour: 12, minute: 0, hasRange: true, endHour: 16, endMinute: 0, enabled: false, notify: false, notes: "The Flower Bloom event is a dynamic cooperative/singleplayer event in Kilima Valley that allows players to earn flower seeds and other rewards." },
 ];
-
-
 
 const REPEATABLE_CANON_BY_ID = new Map<string, Marker>(BASE_REPEATABLE_MARKERS.map((m) => [m.id, m]));
 
@@ -397,7 +546,6 @@ function ensureRepeatableDefaults(input: Marker[]): Marker[] {
 
   return out;
 }
-
 
 const DEFAULT_CANON_BY_ID = new Map<string, Marker>(BASE_DEFAULT_MARKERS.map((m) => [m.id, m]));
 
@@ -439,16 +587,11 @@ function ensureDefaultDefaults(input: Marker[]): Marker[] {
   return out;
 }
 
-
-// Legacy defaults (so we can auto-migrate “old defaults only” installs)
+// Legacy defaults (so we can auto-migrate "old defaults only" installs)
 
 // SECTION 4.3) Default export set
 
 const DEFAULT_MARKERS: Marker[] = [...BASE_DEFAULT_MARKERS, ...BASE_REPEATABLE_MARKERS];
-
-
-
-
 
 // SECTION 5) TIME + SMALL HELPERS
 
@@ -540,7 +683,6 @@ function makeId() {
   return Math.random().toString(16).slice(2) + Date.now().toString(16);
 }
 
-
 function isProtectedMarkerId(id: string) {
   const s = String(id);
   return s.startsWith("default_") || s.startsWith("repeat_") || s.startsWith("fish_");
@@ -577,7 +719,7 @@ function toIntInRange(v: unknown, min: number, max: number, fallback: number) {
   return Math.max(min, Math.min(max, i));
 }
 
-const REMINDER_OPTIONS_ARR: ReadonlyArray<number> = REMINDER_OPTIONS;
+const REMINDER_OPTIONS_ARR: readonly number[] = REMINDER_OPTIONS;
 
 function isReminderLeadSeconds(v: unknown): v is ReminderLeadSeconds {
   return typeof v === "number" && REMINDER_OPTIONS_ARR.includes(v);
@@ -622,10 +764,6 @@ function normalizeStoredMarker(v: unknown): Marker | null {
   return { id, name, hour, minute, enabled, notify, notes: notes || undefined, hasRange, endHour, endMinute };
 }
 
-
-
-
-
 // SECTION 6) NOTIFICATION UTILITIES
 
 // SECTION 6.1) Android channel
@@ -661,7 +799,6 @@ async function ensurePermission(requestIfNeeded: boolean) {
   return { ok: req.status === "granted", status: req.status };
 }
 
-
 // SECTION 6.3) Web notification helpers (desktop notifications while the tab is open)
 
 async function ensureWebNotificationPermission() {
@@ -695,18 +832,12 @@ function fireWebNotification(title: string, body: string) {
 
   try {
     // Some browsers may not like newline-heavy bodies. Still fine.
-    // eslint-disable-next-line no-new
+     
     new Notif(title, { body });
   } catch {
     // ignore
   }
 }
-
-
-
-
-
-
 
 // SECTION 7) NOTIFICATIONS CORE (ONE NOTIF PER PALIA TIME)
 
@@ -821,10 +952,6 @@ async function scheduleTimeGroupOccurrences(params: {
   return ids;
 }
 
-
-
-
-
 // SECTION 8) BACKGROUND SPARKLES
 
 // SECTION 8.1) Component
@@ -911,7 +1038,7 @@ const BackgroundSparkles = React.memo(function BackgroundSparkles() {
     const baseCount = 170 * 2;
     const COUNT = Math.round(baseCount * (area / BASE_AREA));
 
-    const arr: Array<{ x: number; y: number; si: number; op: number }> = [];
+    const arr: { x: number; y: number; si: number; op: number }[] = [];
 
     for (let i = 0; i < COUNT; i++) {
       const x = rand01(i + 11) * width;
@@ -989,7 +1116,6 @@ const BackgroundSparkles = React.memo(function BackgroundSparkles() {
 
   const AnimatedPath = useMemo(() => Animated.createAnimatedComponent(Path), []);
 
-
   return (
     <View
       pointerEvents="none"
@@ -1038,76 +1164,7 @@ const BackgroundSparkles = React.memo(function BackgroundSparkles() {
 });
 // 
 
-// SECTION 9) REAL TIME CARD
-
-// SECTION 9.1) Component
-
-function RealTimeCard({ textScale }: { textScale: number }) {
-  const realStyles = useMemo(() => makeRealStyles(textScale), [textScale]);
-
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const display = format12hTime(now.getHours(), now.getMinutes());
-
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Text style={realStyles.realLabel}>REAL TIME</Text>
-
-      <View style={realStyles.realBox}>
-        <Text style={realStyles.realBoxText}>{display}</Text>
-      </View>
-    </View>
-  );
-}
-
-
-// SECTION 9.2) Styles
-
-
-const makeRealStyles = (scale: number) => {
-  const t = (n: number) => Math.round(n * scale);
-  return StyleSheet.create({
-  
-  // Settings rows (Notifications toggle)
-realLabel: {
-    color: ACCENT,
-    fontWeight: "900",
-    fontSize: t(12),
-    letterSpacing: t(2),
-    textAlign: "center",
-    marginBottom: 10,
-    fontFamily: FONT_ROUNDED,
-  },
-  realBox: {
-    width: 180,
-    height: 56,
-    borderRadius: 18,
-    backgroundColor: PILL_BG,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.14)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  realBoxText: {
-    color: SOFT_WHITE,
-    fontWeight: "900",
-    fontSize: t(16),
-    letterSpacing: t(1),
-    fontFamily: FONT_ROUNDED,
-  },
-  });
-};
-
-
-
-
-
-// SECTION 10) CLOCK COMPONENT
+// SECTION 9) CLOCK COMPONENT
 
 // SECTION 10.1) Constants
 
@@ -1153,7 +1210,7 @@ function PaliaClockFace({
   // Bigger number = bigger hole.
   const DONUT_VOID_R = S(70);
 
-  // Ring thickness tuning (keeps your “fatter ring” look, without changing the void size)
+  // Ring thickness tuning (keeps your "fatter ring" look, without changing the void size)
   const RING_THICKNESS = R_OUT_BASE - DONUT_VOID_R;
   const RING_THICKNESS_PLUS = RING_THICKNESS * 1.1; // +10% thickness
 
@@ -1272,7 +1329,7 @@ function PaliaClockFace({
   const SUN_STROKE_W = S(1.2) * SUN_SCALE;
   const SUN_BODY_STROKE_W = S(0) * SUN_SCALE;
 
-  // Base ray reach beyond ring1 (used as the “default line half-length”)
+  // Base ray reach beyond ring1 (used as the �default line half-length�)
   const SUN_RAY_PAD = S(0) * SUN_SCALE;
 
   /* =========================
@@ -1319,7 +1376,7 @@ function PaliaClockFace({
   const NIGHT_STAR_OP_MAX = 0.16;
   const NIGHT_STAR_OP_CAP = 0.22;
 
-  // Occasional slightly “brighter” star
+  // Occasional slightly �brighter� star
   const NIGHT_STAR_BOOST_EVERY = 11;
   const NIGHT_STAR_BOOST_OP_MULT = 1.35;
   const NIGHT_STAR_BOOST_SIZE_MULT = 1.25;
@@ -1334,7 +1391,7 @@ function PaliaClockFace({
   };
 
   // Unwrapped version (can go below 0 or above 360). Use this for ranged-event arcs so
-  // long intervals don't “flip” across the noon wrap caused by modulo math.
+  // long intervals don't �flip� across the noon wrap caused by modulo math.
   const minutesToAngleUnwrapped = (mins: number) => ((mins - 12 * 60) / 1440) * 360;
 
   function polar(angleDeg: number, radius: number) {
@@ -1366,7 +1423,7 @@ function PaliaClockFace({
   const donutSegmentPath = (startAngle: number, endAngle: number) =>
     donutSegmentPathR(startAngle - ARC_EPS_DEG, endAngle + ARC_EPS_DEG, R_OUT, R_IN);
 
-  // Full donut ring (0–360) as a single path (two arcs). Useful for drawing glows as a donut.
+  // Full donut ring (0�360) as a single path (two arcs). Useful for drawing glows as a donut.
   const donutRingPath = (rOut: number, rIn: number) => {
     const p1 = polar(0, rOut);
     const p2 = polar(180, rOut);
@@ -1447,7 +1504,6 @@ function PaliaClockFace({
   // Keep your render API stable (your render uses arcWedgePath)
   const arcWedgePath = (startDeg: number, endDeg: number, rOut: number, rIn: number) =>
     donutSegmentPathR(startDeg, endDeg, rOut, rIn);
-
 
 // Stroke-only arc path (used for range overlays along the inner ring edge)
 const arcStrokePath = (startDeg: number, endDeg: number, r: number) => {
@@ -1568,7 +1624,7 @@ const arcStrokePath = (startDeg: number, endDeg: number, r: number) => {
     const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-    // Smooth easing so the blend lingers near each segment colour (avoids a harsh “mid band”)
+    // Smooth easing so the blend lingers near each segment colour (avoids a harsh �mid band�)
     const ease01 = (t: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(t));
 
     const parseColor = (c: string) => {
@@ -1696,7 +1752,7 @@ const arcStrokePath = (startDeg: number, endDeg: number, r: number) => {
   /* =========================
      Night-only ring stars (subtle)
      - generated ONLY within the night wedge angles and ring band radii
-     - rotates naturally with the clock because it’s drawn inside the rotating <G>
+     - rotates naturally with the clock because it&apos;s drawn inside the rotating <G>
      ========================= */
   const NIGHT_A0 = minutesToAngle(21 * 60);
   const NIGHT_A1_RAW = minutesToAngle(3 * 60);
@@ -1776,7 +1832,6 @@ const arcStrokePath = (startDeg: number, endDeg: number, r: number) => {
 
     return [...base, ...blend];
   }, [ringSegments, fades]);
-
 
 // SECTION 10.13) Range arcs (inner edge overlay)
 // Draw enabled ranged events as thin rounded arcs where the ring meets the void.
@@ -1955,7 +2010,6 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
   return out;
 }, [markers, paliaHour, paliaMinute, RANGE_ARC_BASE_R, RANGE_ARC_LANE_GAP]);
 
-
   // Ticks (24 total; major every 3 hours)
   type Tick = {
     key: string;
@@ -1978,7 +2032,7 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
     return out;
   }, [R_OUT, SCALE]);
 
-// SECTION 10.14) Next marker “signature stars”
+// SECTION 10.14) Next marker �signature stars�
 
   const hashStr = (s: string) => {
     let h = 2166136261;
@@ -2132,7 +2186,6 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
             <Circle cx={CX} cy={CY} r={R_OUT} fill="url(#ringGlow)" opacity={0.30} />
             <Circle cx={CX} cy={CY} r={R_OUT} fill="rgba(255,255,255,0.012)" opacity={1} />
             <Circle cx={CX} cy={CY} r={R_IN} fill="url(#voidShade)" opacity={1} />
-
 
 {/* ring wedges */}
 {wedges.map((w) => (
@@ -2447,21 +2500,15 @@ const rangeArcs = useMemo<RangeArc[]>(() => {
 const makeClockStyles = (scale: number) => {
   const t = (n: number) => Math.round(n * scale);
   return StyleSheet.create({
-  wrap: { width: "100%", alignItems: "center", justifyContent: "flex-start", paddingTop: 0, paddingBottom: 0 },
-  canvas: { width: CANVAS_SIZE, height: CANVAS_SIZE, marginTop: -10, marginBottom: -10 },
+    wrap: { width: "100%", alignItems: "center", justifyContent: "flex-start", paddingTop: 0, paddingBottom: 0 },
+    canvas: { width: CANVAS_SIZE, height: CANVAS_SIZE, marginTop: -10, marginBottom: -10 },
   });
 };
 
 // clockStyles are used inside PaliaClockFace (keep stable; text scaling is handled in app UI text)
 const clockStyles = makeClockStyles(1);
 
-
-
-
-
-
 // SECTION 11) MAIN APP
-
 
 // SECTION X) Shared UI components
 
@@ -2473,7 +2520,7 @@ type ScalePressableProps = {
   activeScale?: number;
 };
 
-// Button press: micro scale (0.98 → 1)
+// Button press: micro scale (0.98 ? 1)
 // NOTE: Must be top-level so hooks are always used correctly across platforms.
 const ScalePressable = React.memo(function ScalePressable({
   onPress,
@@ -2500,22 +2547,77 @@ const ScalePressable = React.memo(function ScalePressable({
   );
 });
 
+// SECTION X.1) Fish card optimization - Extract color constant to prevent jitter
+// This is created once and reused, not recreated on every render
+const FISH_CARD_TIME_OF_DAY_COLORS = {
+  morning: "rgba(213, 181, 142, 1)",
+  day: "rgba(137, 186, 235, 1)",
+  evening: "rgba(220, 160, 167, 1)",
+  night: "rgba(83, 92, 132, 1)",
+} as const;
+
+// SECTION X.2) Pressed state styles - prevent re-render on every press
+const PRESSED_FISH_CARD_STYLE = { opacity: 0.92, transform: [{ scale: 0.99 }] };
+const PRESSED_BANNER_STYLE = { opacity: 0.92, transform: [{ scale: 0.995 }] };
+const PRESSED_BANNER_X_STYLE = { opacity: 0.75 };
+const PRESSED_LIST_ROW_STYLE = { opacity: 0.92, transform: [{ scale: 0.995 }] };
+const PRESSED_BUTTON_STYLE = { opacity: 0.85, transform: [{ scale: 0.99 }] };
+
+// SECTION X.3) Memoized notes component - truly memoized outside main component
+const FishNotesBox = React.memo(function FishNotesBox({ notes, styles }: { notes: string | undefined; styles: any }) {
+  const displayText = String(notes ?? "").trim().length > 0 ? String(notes).trim() : "No notes yet.";
+  return (
+    <View style={styles.eventNotesDrop}>
+      <Text style={styles.eventNotesLabel}>Notes</Text>
+      <Text style={styles.eventNotesText}>{displayText}</Text>
+    </View>
+  );
+});
 
 export default function App() {
-  useKeepAwake();
+  Platform.OS !== "web" && useKeepAwake();
 
   const { height: SCREEN_H } = useWindowDimensions();
 
 // SECTION 11.1) Core state
 
   const [paliaTime, setPaliaTime] = useState(getPaliaTime());
+  const [realtimeTick, setRealtimeTick] = useState(0); // Used for smooth countdown updates
   const [markers, setMarkers] = useState<Marker[]>(DEFAULT_MARKERS);
+
+  // Fish caught tracking (standard and star quality)
+  const [caughtFish, setCaughtFish] = useState<{ [fishId: string]: { standard: boolean; star: boolean } }>({});
 
   const [hydrated, setHydrated] = useState(false);
 
   // Home list mode (Events/Fish/Bugs)
   const [clockViewOpen, setClockViewOpen] = useState(false);
-  const [clockViewMode, setClockViewMode] = useState<"events" | "fish" | "bugs">("events");
+  const [clockViewMode, setClockViewMode] = useState<"events" | "fish">("events");
+  const [isPageLoading, setIsPageLoading] = useState(false);
+
+  // Defer image loading until user switches to fish view (prevents network congestion on initial render)
+  const [shouldLoadFishImages, setShouldLoadFishImages] = useState(false);
+  const [renderFishCount, setRenderFishCount] = useState(0);
+  
+  useEffect(() => {
+    if (clockViewMode === "fish") {
+      // Load all fish immediately
+      setRenderFishCount(9999);
+      
+      // Use requestAnimationFrame to defer image loading until after the view transition
+      requestAnimationFrame(() => {
+        setShouldLoadFishImages(true);
+        // Mark loading complete after images start loading
+        setIsPageLoading(false);
+      });
+    } else {
+      setRenderFishCount(0);
+      // For events/bugs, mark as loaded after next render
+      requestAnimationFrame(() => {
+        setIsPageLoading(false);
+      });
+    }
+  }, [clockViewMode]);
 
   // Home list mode (Events/Fish/Bugs)
 
@@ -2523,7 +2625,6 @@ export default function App() {
 
   const [remoteFish, setRemoteFish] = useState<any | null>(null);
   const [remoteFishStatus, setRemoteFishStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-
 
 // SECTION 11.2) Refs
 
@@ -2534,14 +2635,14 @@ const reminderRef = useRef<ReminderLeadSeconds>(0);
 // Web: in-memory timers for desktop notifications (works while tab is open)
 const webTimerIdsRef = useRef<any[]>([]);
 
-// ✅ Wheel refs (used to hard-snap scroll positions so Android stops drifting)
+// ? Wheel refs (used to hard-snap scroll positions so Android stops drifting)
 const hourWheelRef = useRef<ScrollView>(null as any);
 const minuteWheelRef = useRef<ScrollView>(null as any);
 const endHourWheelRef = useRef<ScrollView>(null as any);
 const endMinuteWheelRef = useRef<ScrollView>(null as any);
 const locationWheelRef = useRef<ScrollView>(null as any);
 
-// ✅ Wheel snap state (prevents drift + “freeze” loops from repeated snap animations)
+// ? Wheel snap state (prevents drift + �freeze� loops from repeated snap animations)
 const wheelSnapLockRef = useRef({ hour: false, minute: false, endHour: false, endMinute: false, location: false });
 const wheelMomentumRef = useRef({ hour: false, minute: false, endHour: false, endMinute: false, location: false });
 const wheelTimeoutRef = useRef<{ hour?: any; minute?: any; endHour?: any; endMinute?: any; location?: any }>({});
@@ -2558,8 +2659,11 @@ const wheelLastSnapIdxRef = useRef({ hour: 0, minute: 0, endHour: 0, endMinute: 
     return markers.find((m) => m.id === eventDetailsId) ?? null;
   }, [markers, eventDetailsId]);
   const [roadmapOpen, setRoadmapOpen] = useState(false);
-  const [changelogOpen, setChangelogOpen] = useState(false);
 
+  // Section collapse states
+  const [nowSectionOpen, setNowSectionOpen] = useState(true);
+  const [nextSectionOpen, setNextSectionOpen] = useState(true);
+  const [allDaySectionOpen, setAllDaySectionOpen] = useState(true);
   
   // Closed testing first-launch notice
   const [closedTestOpen, setClosedTestOpen] = useState(false);
@@ -2602,8 +2706,6 @@ const wheelLastSnapIdxRef = useRef({ hour: 0, minute: 0, endHour: 0, endMinute: 
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-
-
 // SECTION 11.X) Closed test first-launch popup (shown once)
 useEffect(() => {
   let alive = true;
@@ -2638,7 +2740,6 @@ const dismissClosedTest = useCallback(async () => {
 
   // Home banners
   const [notifBannerDismissed, setNotifBannerDismissed] = useState(false);
-  const [whatsNewDismissed, setWhatsNewDismissed] = useState(false);
 
   // Prevent X-tap from also triggering banner onPress
   const bannerXGuardRef = useRef(false);
@@ -2648,7 +2749,7 @@ const dismissClosedTest = useCallback(async () => {
 
   const [reminderLeadSeconds, setReminderLeadSeconds] = useState<ReminderLeadSeconds>(0);
 
-  // “Want to help?” (closed testing)
+  // �Want to help?� (closed testing)
   const [helpIncludeDiagnostics, setHelpIncludeDiagnostics] = useState(false);
 
   const [diagDeviceInfo, setDiagDeviceInfo] = useState<{
@@ -2727,11 +2828,6 @@ const dismissClosedTest = useCallback(async () => {
     reminderRef.current = reminderLeadSeconds;
   }, [reminderLeadSeconds]);
 
-
-
-
-
-
 // SECTION 12) LOAD STORED SETTINGS
 
 // SECTION 12.1) Hydration loader
@@ -2752,7 +2848,7 @@ const dismissClosedTest = useCallback(async () => {
               const stored: Marker[] = parsed
                 .map((m: unknown) => normalizeStoredMarker(m))
                 .filter((m): m is Marker => !!m)
-                .filter((m) => !String(m.id).startsWith("dev_hour_") && !String(m.name).startsWith("DEV •"));
+                .filter((m) => !String(m.id).startsWith("dev_hour_") && !String(m.name).startsWith("DEV �"));
 
               const baseFinal = stored.length ? stored : DEFAULT_MARKERS;
               finalMarkers = ensureDefaultDefaults(ensureRepeatableDefaults(baseFinal));
@@ -2837,7 +2933,7 @@ const raw = await AsyncStorage.getItem(STORAGE_NOTIF_PREFS);
           // ignore
         }
 
-        // SECTION 12.4) Closed testing: “Want to help?” diagnostics opt-in
+        // SECTION 12.4) Closed testing: �Want to help?� diagnostics opt-in
         try {
           const raw = await AsyncStorage.getItem(HELP_DIAGNOSTICS_OPTIN_KEY);
           if (raw === "1") setHelpIncludeDiagnostics(true);
@@ -2845,19 +2941,22 @@ const raw = await AsyncStorage.getItem(STORAGE_NOTIF_PREFS);
           // ignore
         }
 
-        // SECTION 12.5) What's New banner dismissal
+        // SECTION 12.6) Caught fish tracking
         try {
-          const raw = await AsyncStorage.getItem(STORAGE_WHATSNEW_DISMISSED_ID);
-          if (raw === WHATS_NEW_ID) setWhatsNewDismissed(true);
+          const raw = await AsyncStorage.getItem(STORAGE_CAUGHT_FISH);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            setCaughtFish(parsed);
+          }
         } catch {
           // ignore
         }
+
       } finally {
         setHydrated(true);
       }
     })();
   }, []);
-
 
 // SECTION 12.X) Remote data fetch (fish.json)
 // - Loads cached JSON instantly (if present)
@@ -3001,9 +3100,12 @@ useEffect(() => {
       const timing = fishAppearsToWindow(f.appears);
       const notes = buildFishNotes(f);
 
+      const primaryLoc = String((f.biomes?.[0] ?? f.locations?.[0] ?? "")).trim();
+      const fishDisplayName = primaryLoc ? `${f.title} - ${primaryLoc}` : f.title;
+
       const base: Marker = {
         id: markerId,
-        name: f.title,
+        name: fishDisplayName,
         hour: timing.hour,
         minute: timing.minute,
         enabled: false,
@@ -3029,8 +3131,6 @@ useEffect(() => {
   });
 }, [hydrated, remoteFishStatus, remoteFish]);
 
-
-
 // SECTION 13) PERSIST SETTINGS
 
 // SECTION 13.1) Persist markers
@@ -3040,6 +3140,13 @@ useEffect(() => {
     AsyncStorage.setItem(STORAGE_MARKERS, JSON.stringify(markers)).catch(() => {});
   }, [hydrated, markers]);
 
+// SECTION 13.2) Persist caught fish
+
+  useEffect(() => {
+    if (!hydrated) return;
+    AsyncStorage.setItem(STORAGE_CAUGHT_FISH, JSON.stringify(caughtFish)).catch(() => {});
+  }, [hydrated, caughtFish]);
+
 // SECTION 13.3) Persist notification prefs
 
   useEffect(() => {
@@ -3048,18 +3155,49 @@ useEffect(() => {
     AsyncStorage.setItem(STORAGE_NOTIF_PREFS, JSON.stringify(prefs)).catch(() => {});
   }, [hydrated, notifEnabled, reminderLeadSeconds]);
 
-  // SECTION 13.4) Persist “Want to help?” diagnostics opt-in
+  // SECTION 13.4) Persist �Want to help?� diagnostics opt-in
 
   useEffect(() => {
     if (!hydrated) return;
     AsyncStorage.setItem(HELP_DIAGNOSTICS_OPTIN_KEY, helpIncludeDiagnostics ? "1" : "0").catch(() => {});
   }, [hydrated, helpIncludeDiagnostics]);
 
-
-
-
-
 // SECTION 14) COUNTDOWN TICKER
+
+// SECTION 14.0) Real-time tick for smooth countdown updates
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRealtimeTick(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Separate ticker for Palia time - updates every 2.5 seconds (1 Palia minute)
+  useEffect(() => {
+    const updatePaliaTime = () => {
+      const now = new Date();
+      const secondsIntoHour = now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
+      const currentPaliaMinutes = (secondsIntoHour / 3600) * 1440;
+      
+      const hour = Math.floor(currentPaliaMinutes / 60) % 24;
+      const minute = Math.floor(currentPaliaMinutes % 60);
+      
+      setPaliaTime({
+        hour,
+        minute,
+        formatted24: `${pad2(hour)}:${pad2(minute)}`,
+        formatted12: format12hTime(hour, minute),
+      });
+    };
+    
+    // Update immediately
+    updatePaliaTime();
+    
+    // Then update every 2.5 seconds
+    const interval = setInterval(updatePaliaTime, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
 // SECTION 14.1) Init countdown map
 
@@ -3091,17 +3229,6 @@ useEffect(() => {
       now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
 
     const currentPaliaMinutes = (secondsIntoHour / 3600) * 1440; // 0..1440
-
-    // Update displayed Palia time from the same "now"
-    const hour = Math.floor(currentPaliaMinutes / 60) % 24;
-    const minute = Math.floor(currentPaliaMinutes % 60);
-
-    setPaliaTime({
-      hour,
-      minute,
-      formatted24: `${pad2(hour)}:${pad2(minute)}`,
-      formatted12: format12hTime(hour, minute),
-    });
 
     // Recompute countdowns from absolute time (no drift)
     const ms = markersRef.current;
@@ -3140,10 +3267,6 @@ useEffect(() => {
   };
 }, []);
 
-
-
-
-
 // SECTION 15) DERIVED UI LISTS
 // SECTION 15.1) List layout vars (fixed)
 
@@ -3154,10 +3277,12 @@ useEffect(() => {
 // SECTION 15.2) Sorted lists + next info
 
   const sortedMarkers = useMemo(() => {
+    // Sort by countdown only when markers change, NOT when countdowns update (to avoid jitter)
+    // This keeps the sort order stable even as countdown values tick down
     return [...markers].sort((a, b) => (countdowns[a.id] ?? 9e15) - (countdowns[b.id] ?? 9e15));
-  }, [markers, countdowns]);
+  }, [markers]); // ? Only depends on markers, not countdowns!
 
-  // “Folders”
+  // �Folders�
   const defaultMarkers = useMemo(() => {
     return sortedMarkers.filter((m) => String(m.id).startsWith("default_"));
   }, [sortedMarkers]);
@@ -3188,19 +3313,68 @@ useEffect(() => {
   // - Events: default + repeatable + custom
   // - Fish: fish events only
   // - Bugs: none (not wired yet)
+
+// Minutes until next occurrence of HH:MM from a given HH:MM (wraps across midnight).
+function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
+  const from = fromH * 60 + fromM;
+  let to = toH * 60 + toM;
+  if (to <= from) to += 1440;
+  return to - from;
+}
+
+  // SECTION 15.2.X) Fish expansion (only when fish list changes, NOT every second)
+  const expandedFishMarkers = useMemo(() => {
+    if (clockViewMode !== "fish") return [] as HomeMarker[];
+    
+    const fishBase = enabledMarkers.filter((m) => String(m.id).startsWith("fish_")) as HomeMarker[];
+    const out: HomeMarker[] = [];
+
+    for (const m of fishBase) {
+      const appears = extractFishFieldFromNotes(m.notes, "Appears");
+      const windows = fishAppearsToWindows(appears);
+
+      // Any Time -> keep as a single non-range entry (it will be excluded from Now, but still shows in Next)
+      if (windows.length === 1 && !windows[0].hasRange) {
+        out.push({ ...m, baseId: m.id });
+        continue;
+      }
+
+      windows.forEach((w, idx) => {
+        out.push({
+          ...m,
+          baseId: m.id,
+          id: `${m.id}__w${idx}`,
+          hour: w.hour,
+          minute: w.minute,
+          hasRange: w.hasRange,
+          endHour: w.endHour,
+          endMinute: w.endMinute,
+        });
+      });
+    }
+
+    return out;
+  }, [enabledMarkers, clockViewMode]); // Only update when fish list or view mode changes
+
   const homeListMarkers = useMemo(() => {
     if (!enabledMarkers.length) return [] as Marker[];
 
-    if (clockViewMode === "bugs") return [] as Marker[];
+
 
     if (clockViewMode === "fish") {
-      return enabledMarkers.filter((m) => String(m.id).startsWith("fish_"));
+      // Sort by next occurrence from *now* (so Next list is actually "next")
+      // This only runs when fish list changes, but we still sort by current time when rendering
+      const sorted = [...expandedFishMarkers].sort((a, b) => {
+        const aa = minutesUntil(paliaTime.hour, paliaTime.minute, a.hour, a.minute);
+        const bb = minutesUntil(paliaTime.hour, paliaTime.minute, b.hour, b.minute);
+        return aa - bb;
+      });
+      return sorted;
     }
 
     // "events"
     return enabledMarkers.filter((m) => !String(m.id).startsWith("fish_"));
-  }, [enabledMarkers, clockViewMode]);
-
+  }, [enabledMarkers, expandedFishMarkers, clockViewMode, paliaTime.hour, paliaTime.minute]);
 
   const nextTimeKey = useMemo(() => {
     if (!enabledMarkers.length) return null;
@@ -3208,55 +3382,34 @@ useEffect(() => {
     return `${pad2(first.hour)}:${pad2(first.minute)}`;
   }, [enabledMarkers]);
 
-  const nextDigitalLabel = useMemo(() => {
-    if (!enabledMarkers.length) return "—";
-    const first = enabledMarkers[0];
-    return format12hTime(first.hour, first.minute);
-  }, [enabledMarkers]);
-
-  // Countdown pill for the “Next” box (raw seconds + m:ss label)
-  const nextCountdownSeconds = useMemo(() => {
-    if (!enabledMarkers.length) return 0;
-    const first = enabledMarkers[0];
-    return Math.max(0, countdowns[first.id] ?? 0);
-  }, [enabledMarkers, countdowns]);
-
-  const nextCountdownLabel = useMemo(() => {
-    if (!enabledMarkers.length) return "—";
-    const cd = nextCountdownSeconds;
-    const mm = Math.floor(cd / 60);
-    const ss = cd % 60;
-    return `${mm}:${pad2(ss)}`;
-  }, [enabledMarkers, nextCountdownSeconds]);
-
   const activeTimeOfDay = useMemo<"morning" | "day" | "evening" | "night">(() => {
     const mm = paliaTime.hour * 60 + paliaTime.minute;
 
-    // 03:00–06:00 morning, 06:00–18:00 day, 18:00–21:00 evening, 21:00–03:00 night
+    // 03:00�06:00 morning, 06:00�18:00 day, 18:00�21:00 evening, 21:00�03:00 night
     if (mm >= 3 * 60 && mm < 6 * 60) return "morning";
     if (mm >= 6 * 60 && mm < 18 * 60) return "day";
     if (mm >= 18 * 60 && mm < 21 * 60) return "evening";
     return "night";
   }, [paliaTime.hour, paliaTime.minute]);
 
-  // --- Cozy “Next” groups (by time) ---
+  // --- Cozy �Next� groups (by time) ---
   // Shows a few upcoming time slots, each with its events as gentle rows.
   //
   // IMPORTANT:
   // Locations can contain " - " internally (e.g., "K - Kilima Village", "B - Bahari Bay", "E - Elderwoods").
   // So we split on the FIRST " - " only. Using lastIndexOf() incorrectly drags "K -" into the event name.
-  const splitName = (name: string) => {
+  const splitName = useCallback((name: string) => {
     const idx = name.indexOf(" - ");
     if (idx <= 0) return { eventName: name.trim(), location: "" };
     const eventName = name.slice(0, idx).trim();
     const location = name.slice(idx + 3).trim();
     return { eventName, location };
-  };
+  }, []);
 
   // --- "Now" (active) events ---
   // Active = enabled events that have a duration window and the current Palian time falls inside it.
   // Range can wrap past midnight (e.g., 22:00 -> 02:00).
-  const isActiveNow = (m: Marker, hour: number, minute: number) => {
+  const isActiveNow = useCallback((m: Marker, hour: number, minute: number) => {
     if (!m.hasRange) return false;
     if (typeof m.endHour !== "number" || typeof m.endMinute !== "number") return false;
 
@@ -3269,17 +3422,11 @@ useEffect(() => {
     if (start < end) return now >= start && now < end;
     // Wrap across midnight
     return now >= start || now < end;
-  };
-
-  const minutesUntil = (fromH: number, fromM: number, toH: number, toM: number) => {
-    const from = fromH * 60 + fromM;
-    let to = toH * 60 + toM;
-    if (to <= from) to += 1440;
-    return to - from;
-  };
+  }, []);
 
   type NowItem = {
     id: string;
+    baseId?: string;
     eventName: string;
     location: string;
     // Range times (used for Ends In + progress)
@@ -3301,6 +3448,9 @@ useEffect(() => {
 
       if (!isActiveNow(m, paliaTime.hour, paliaTime.minute)) continue;
 
+      // Skip "Any Time" fish - they'll show in a separate All Day section
+      if (fishAppearsIsAnyTime(m.notes)) continue;
+
       const { eventName, location } = splitName(m.name);
       const eh = (m.endHour as number) ?? m.hour;
       const em = (m.endMinute as number) ?? m.minute;
@@ -3309,6 +3459,7 @@ useEffect(() => {
 
       out.push({
         id: m.id,
+        baseId: (m as any).baseId ?? m.id,
         eventName,
         location,
         startHour: m.hour,
@@ -3326,17 +3477,116 @@ useEffect(() => {
     return out;
   }, [homeListMarkers, paliaTime.hour, paliaTime.minute]);
 
+  // All Day fish (active "Any Time", shown in a separate section at the bottom)
+  const allDayFish = useMemo(() => {
+    if (!homeListMarkers.length) return [];
+    return homeListMarkers.filter(m => fishAppearsIsAnyTime(m.notes)).sort((a, b) => {
+      const nameA = (a.name ?? "").toLowerCase();
+      const nameB = (b.name ?? "").toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }, [homeListMarkers]);
+
+  // Filtered list for Next section - excludes fish already in Now or All Day
+  const nextSectionMarkers = useMemo(() => {
+    if (!homeListMarkers.length) return [];
+    
+    // Create sets of IDs to exclude (both id and baseId to catch all variations)
+    const excludeIds = new Set<string>();
+    
+    // Add Now items
+    nowItems.forEach(item => {
+      excludeIds.add(item.id);
+      if ((item as any).baseId) {
+        excludeIds.add((item as any).baseId);
+      }
+    });
+    
+    // Add All Day items
+    allDayFish.forEach(fish => {
+      excludeIds.add(fish.id);
+      if ((fish as any).baseId) {
+        excludeIds.add((fish as any).baseId);
+      }
+    });
+    
+    // Track base IDs we've already added to avoid duplicates
+    const seenBaseIds = new Set<string>();
+    
+    return homeListMarkers.filter(m => {
+      const mId = m.id;
+      const mBaseId = (m as any).baseId;
+      
+      // Exclude if either the id or baseId is in the exclude set
+      if (excludeIds.has(mId)) return false;
+      if (mBaseId && excludeIds.has(mBaseId)) return false;
+      
+      // For fish with baseId, only show the first occurrence (next time)
+      if (mBaseId) {
+        if (seenBaseIds.has(mBaseId)) return false;
+        seenBaseIds.add(mBaseId);
+      }
+      
+      return true;
+    });
+  }, [homeListMarkers, nowItems, allDayFish]);
+
+  // Countdown values for the Next section header
+  const nextDigitalLabel = useMemo(() => {
+    if (!nextSectionMarkers.length) return "�";
+    const first = nextSectionMarkers[0];
+    return format12hTime(first.hour, first.minute);
+  }, [nextSectionMarkers]);
+
+  const nextCountdownSeconds = useMemo(() => {
+    if (!nextSectionMarkers.length) return 0;
+    const first = nextSectionMarkers[0];
+    // Use baseId if present (for fish with expanded windows)
+    const lookupId = (first as any).baseId || first.id;
+    return Math.max(0, countdowns[lookupId] ?? 0);
+  }, [nextSectionMarkers, countdowns]);
+
+  const nextCountdownLabel = useMemo(() => {
+    if (!nextSectionMarkers.length) return "�";
+    const cd = nextCountdownSeconds;
+    const mm = Math.floor(cd / 60);
+    const ss = cd % 60;
+    return `${mm}:${pad2(ss)}`;
+  }, [nextSectionMarkers, nextCountdownSeconds]);
+
   // Palia time runs 24h in ~1 real hour => 1440 palia minutes per 3600 real seconds.
   const REAL_SEC_PER_PALIA_MIN = 3600 / 1440; // 2.5s
 
   const nowSoonest = nowItems.length ? nowItems[0] : null;
-  const nowSoonestEndsInSec = nowSoonest ? Math.max(0, Math.round(nowSoonest.endsInMins * REAL_SEC_PER_PALIA_MIN)) : 0;
+  
+  // Calculate real-time precise countdown (updates every second)
+  const nowSoonestEndsInSec = useMemo(() => {
+    if (!nowSoonest) return 0;
+    
+    // Get current real time with millisecond precision
+    const now = new Date();
+    const secondsIntoHour = now.getMinutes() * 60 + now.getSeconds() + now.getMilliseconds() / 1000;
+    const currentPaliaMinutes = (secondsIntoHour / 3600) * 1440;
+    
+    // Calculate target Palia minutes (as a decimal to include sub-minute precision)
+    const targetPaliaMinutes = nowSoonest.endHour * 60 + nowSoonest.endMinute;
+    let paliaMinutesRemaining = targetPaliaMinutes - currentPaliaMinutes;
+    
+    // Handle wrap around midnight
+    if (paliaMinutesRemaining < 0) paliaMinutesRemaining += 1440;
+    
+    // Convert to real seconds
+    const realSecondsRemaining = (paliaMinutesRemaining / 1440) * 3600;
+    return Math.max(0, Math.ceil(realSecondsRemaining));
+  }, [nowSoonest?.endHour, nowSoonest?.endMinute, realtimeTick]);
   const nowSoonestTotalSec = nowSoonest ? Math.max(1, Math.round(nowSoonest.totalRangeMins * REAL_SEC_PER_PALIA_MIN)) : 1;
   const nowSoonestFrac = nowSoonest ? Math.max(0, Math.min(1, nowSoonestEndsInSec / nowSoonestTotalSec)) : 0;
   const nowSoonestKey = nowSoonest ? `${nowSoonest.endHour}:${nowSoonest.endMinute}` : "";
 
   type NextTimeItem = {
     id: string;
+    // When an item is a derived �segment� of a fish (split windows), baseId points at the source marker.
+    baseId?: string;
     eventName: string;
     location: string;
     countdownSec: number;
@@ -3348,11 +3598,10 @@ useEffect(() => {
     items: NextTimeItem[];
   };
 
-
   const [nextTimeFilter, setNextTimeFilter] = useState<"morning" | "day" | "evening" | "night" | null>(null);
 
   const isMinuteInTimeOfDay = (mm: number, tod: "morning" | "day" | "evening" | "night") => {
-    // 03:00–06:00 morning, 06:00–18:00 day, 18:00–21:00 evening, 21:00–03:00 night
+    // 03:00�06:00 morning, 06:00�18:00 day, 18:00�21:00 evening, 21:00�03:00 night
     if (tod === "morning") return mm >= 3 * 60 && mm < 6 * 60;
     if (tod === "day") return mm >= 6 * 60 && mm < 18 * 60;
     if (tod === "evening") return mm >= 18 * 60 && mm < 21 * 60;
@@ -3360,25 +3609,50 @@ useEffect(() => {
   };
 
   const sortKeyForTimeOfDay = (mm: number, tod: "morning" | "day" | "evening" | "night") => {
-    // Keep “night” in human-friendly order: 21:00..23:59, then 00:00..02:59
+    // Keep �night� in human-friendly order: 21:00..23:59, then 00:00..02:59
     if (tod === "night" && mm < 3 * 60) return mm + 1440;
     return mm;
   };
 
+  // Get the next 3 time periods starting from the given time of day
+  const getNext3Periods = (currentPeriod: "morning" | "day" | "evening" | "night"): ("morning" | "day" | "evening" | "night")[] => {
+    const order: ("morning" | "day" | "evening" | "night")[] = ["morning", "day", "evening", "night"];
+    const currentIdx = order.indexOf(currentPeriod);
+    const result: ("morning" | "day" | "evening" | "night")[] = [];
+    
+    for (let i = 1; i <= 3; i++) {
+      result.push(order[(currentIdx + i) % 4]);
+    }
+    
+    return result;
+  };
+
+  // Get period label
+  const getPeriodLabel = (period: "morning" | "day" | "evening" | "night"): string => {
+    return period.charAt(0).toUpperCase() + period.slice(1);
+  };
+
+  // Check if a fish appears in a given period
+  const fishAppearsInPeriod = (marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean => {
+    const appears = extractFishFieldFromNotes(marker.notes, "Appears");
+    const flags = fishAppearsToPeriodsFlags(appears);
+    return flags[period];
+  };
+
   const nextTimeGroups = useMemo<NextTimeGroup[]>(() => {
-    if (!homeListMarkers.length) return [];
+    if (!nextSectionMarkers.length) return [];
 
     const filtering = nextTimeFilter != null;
 
-    // Fish view is a pure “show me everything” experience, so don't cap.
+    // Fish view is a pure �show me everything� experience, so don't cap.
     const noCap = clockViewMode === "fish";
 
-    // Default: cozy “guide” (limited groups/items). Filtered: show EVERYTHING in that time-of-day.
+    // Default: cozy �guide� (limited groups/items). Filtered: show EVERYTHING in that time-of-day.
     const MAX_GROUPS = filtering || noCap ? 9999 : 3; // distinct time headers
     const MAX_ITEMS = filtering || noCap ? 9999 : 8;  // total rows across all groups
 
     const source = filtering
-      ? homeListMarkers
+      ? nextSectionMarkers
           .filter((m) => isMinuteInTimeOfDay(m.hour * 60 + m.minute, nextTimeFilter!))
           .slice()
           .sort((a, b) => {
@@ -3389,7 +3663,7 @@ useEffect(() => {
             if (ak !== bk) return ak - bk;
             return String(a.name).localeCompare(String(b.name));
           })
-      : homeListMarkers;
+      : nextSectionMarkers;
 
     const groups: NextTimeGroup[] = [];
     const indexByTimeKey = new Map<string, number>();
@@ -3402,17 +3676,20 @@ useEffect(() => {
       const timeKey = `${pad2(m.hour)}:${pad2(m.minute)}`;
       const existingIdx = indexByTimeKey.get(timeKey);
 
-      // If this would create a new group and we’re already full, stop.
+      // If this would create a new group and we&apos;re already full, stop.
       if (existingIdx == null && groups.length >= MAX_GROUPS) break;
 
       const timeLabel = format12hTime(m.hour, m.minute);
       const { eventName, location } = splitName(m.name);
 
+      // Use baseId if present (for fish with expanded windows)
+      const lookupId = (m as any).baseId || m.id;
+      
       const item: NextTimeItem = {
         id: m.id,
         eventName,
         location,
-        countdownSec: Math.max(0, countdowns[m.id] ?? 0),
+        countdownSec: Math.max(0, countdowns[lookupId] ?? 0),
       };
 
       if (existingIdx == null) {
@@ -3426,11 +3703,7 @@ useEffect(() => {
     }
 
     return groups;
-  }, [homeListMarkers, countdowns, nextTimeFilter, clockViewMode]);
-
-
-
-
+  }, [nextSectionMarkers, nextTimeFilter, clockViewMode]); // Don't depend on countdowns to avoid jitter
 
 // SECTION 16) MARKER ACTIONS
 
@@ -3546,13 +3819,34 @@ useEffect(() => {
 
 // SECTION 16.2) Mutations
 
-  function toggleEnabled(id: string) {
+  const toggleEnabled = useCallback((id: string) => {
     setMarkers((prev) => prev.map((m) => (m.id === id ? { ...m, enabled: !m.enabled } : m)));
-  }
+  }, []);
 
-  function toggleNotify(id: string) {
+  const toggleNotify = useCallback((id: string) => {
     setMarkers((prev) => prev.map((m) => (m.id === id ? { ...m, notify: !m.notify } : m)));
-  }
+  }, []);
+
+  // Fish caught tracking toggles
+  const toggleCaughtStandard = useCallback((fishId: string) => {
+    setCaughtFish((prev) => ({
+      ...prev,
+      [fishId]: {
+        standard: !(prev[fishId]?.standard ?? false),
+        star: prev[fishId]?.star ?? false,
+      },
+    }));
+  }, []);
+
+  const toggleCaughtStar = useCallback((fishId: string) => {
+    setCaughtFish((prev) => ({
+      ...prev,
+      [fishId]: {
+        standard: prev[fishId]?.standard ?? false,
+        star: !(prev[fishId]?.star ?? false),
+      },
+    }));
+  }, []);
 
   // Bulk helpers (folder actions)
   function setEnabledForMany(ids: string[], enabled: boolean) {
@@ -3629,10 +3923,6 @@ useEffect(() => {
     setMarkers((prev) => prev.filter((m) => m.id !== id));
   }
 
-
-
-
-
 // SECTION 17) NOTIFICATION ACTIONS
 
 // SECTION 17.1) Resync gate
@@ -3671,7 +3961,7 @@ useEffect(() => {
 
       if (groups.length === 0) return;
 
-      // Horizon: schedule a modest number ahead (keeps it stable + avoids “timer soup”).
+      // Horizon: schedule a modest number ahead (keeps it stable + avoids �timer soup�).
       const OCC_PER_GROUP = 6;
 
       for (const group of groups) {
@@ -3682,7 +3972,7 @@ useEffect(() => {
           const eventInMs = baseMs + cycle * 3600 * 1000; // repeats every real hour
           const fireInMs = eventInMs - leadMs;
 
-          // Same “don’t instant-fire on resync” guard as native
+          // Same �don&apos;t instant-fire on resync� guard as native
           if (fireInMs <= 1200) continue;
 
           const { title, body } = buildGroupNotificationText(group, reminderRef.current);
@@ -3840,7 +4130,7 @@ useEffect(() => {
       if (!perm.ok) {
         Alert.alert(
           "Notifications not enabled",
-          "Permission wasn’t granted. You can enable notifications for this app in your device settings.",
+          "Permission wasn&apos;t granted. You can enable notifications for this app in your device settings.",
           [
             { text: "Cancel", style: "cancel" },
             { text: "Open Settings", onPress: () => Linking.openSettings().catch(() => {}) },
@@ -3881,7 +4171,6 @@ useEffect(() => {
     }
   }, [resyncTimeNotifications]);
 
-
 // SECTION 17.4) Hard cancel when notifications are turned OFF (Settings toggle safety)
 
   useEffect(() => {
@@ -3908,17 +4197,16 @@ useEffect(() => {
     Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
   }, [notifEnabled, hydrated]);
 
-
-
-
-
-
   // SECTION 17.3) Manual refresh (UI button)
 
   const REFRESH_COOLDOWN_MS = 10_000;
   const refreshCooldownUntilRef = useRef(0);
   const refreshCooldownTimerRef = useRef<any>(null);
   const [refreshCooldownUntil, setRefreshCooldownUntil] = useState(0);
+  const [isRefreshingNotifications, setIsRefreshingNotifications] = useState(false);
+  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showNotificationsOffModal, setShowNotificationsOffModal] = useState(false);
 
   const refreshCoolingDown = refreshCooldownUntil > 0 && Date.now() < refreshCooldownUntil;
 
@@ -3944,23 +4232,23 @@ useEffect(() => {
     if (Date.now() < refreshCooldownUntilRef.current) return;
 
     if (!notifEnabledRef.current) {
-      try {
-        Alert.alert("Notifications are off", "Turn notifications on first, then refresh scheduling.");
-      } catch {}
+      setShowNotificationsOffModal(true);
       return;
     }
 
+    setIsRefreshingNotifications(true);
     startRefreshCooldown();
 
     try {
       await resyncTimeNotifications();
-      try {
-        Alert.alert("Refreshed", "Notification scheduling has been refreshed.");
-      } catch {}
+      setShowRefreshSuccess(true);
+      setTimeout(() => setShowRefreshSuccess(false), 5000);
     } catch (e) {
       try {
         Alert.alert("Refresh failed", errMsg(e));
       } catch {}
+    } finally {
+      setIsRefreshingNotifications(false);
     }
   }, [resyncTimeNotifications, startRefreshCooldown]);
 
@@ -3999,11 +4287,7 @@ useEffect(() => {
     return () => sub.remove();
   }, [hydrated, resyncTimeNotifications]);
 
-
-
-
-
-// SECTION 18.4) Closed testing: “Want to help?” helpers
+// SECTION 18.4) Closed testing: �Want to help?� helpers
 
 const CLOSED_TEST_KNOWN_ISSUES = [
   "Android: notification delivery can be delayed if battery optimisations are aggressive (see helper under the notifications 'Status').",
@@ -4016,7 +4300,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   "Create/edit/delete an Event and confirm it appears on the home screen clock and in the 'Next' list correctly.",
   "Toggle Event enabled/notify and confirm scheduling updates correctly.",
 ];
-
 
   const buildDiagnostics = useCallback(() => {
     const lines: string[] = [];
@@ -4079,55 +4362,43 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     }
   }, [buildDiagnostics]);
 
-
   const resetAppData = useCallback(() => {
-    Alert.alert(
-      "Reset app data?",
-      "This will clear your saved events, notification preferences, and settings on this device.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Reset",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await AsyncStorage.multiRemove([
-                STORAGE_MARKERS,
-                STORAGE_REPEATABLE_NOTIF_DEFAULTED,
-                STORAGE_NOTIF_PREFS,
-                STORAGE_NOTIF_DEFAULTED,
-                STORAGE_WHATSNEW_DISMISSED_ID,
-                NEXT_TIME_COUNT_KEY,
-                HELP_DIAGNOSTICS_OPTIN_KEY,
-                CLOSED_TEST_POPUP_SEEN_KEY,
-              ]);
+    setShowResetConfirm(true);
+  }, []);
 
-              try {
-                await Notifications.cancelAllScheduledNotificationsAsync();
-              } catch {
-                // ignore
-              }
+  const performReset = useCallback(async () => {
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_MARKERS,
+        STORAGE_REPEATABLE_NOTIF_DEFAULTED,
+        STORAGE_NOTIF_PREFS,
+        STORAGE_NOTIF_DEFAULTED,
+        NEXT_TIME_COUNT_KEY,
+        HELP_DIAGNOSTICS_OPTIN_KEY,
+        CLOSED_TEST_POPUP_SEEN_KEY,
+      ]);
 
-              // Reset in-memory state to fresh defaults
-              setMarkers(DEFAULT_MARKERS);
-              notifEnabledRef.current = false;
-              setNotifEnabled(false);
-              setReminderLeadSeconds(0);
-              setNextTimeCount(2);
-              setHelpIncludeDiagnostics(false);
-              setClosedTestOpen(true);
-              setWhatsNewDismissed(false);
-            } catch {
-              Alert.alert("Reset failed", "Could not reset app data on this device.");
-            }
-          },
-        },
-      ]
-    );
+      try {
+        await Notifications.cancelAllScheduledNotificationsAsync();
+      } catch {
+        // ignore
+      }
+
+      // Reset in-memory state to fresh defaults
+      setMarkers(DEFAULT_MARKERS);
+      notifEnabledRef.current = false;
+      setNotifEnabled(false);
+      setReminderLeadSeconds(0);
+      setNextTimeCount(2);
+      setHelpIncludeDiagnostics(false);
+      setClosedTestOpen(true);
+      setShowResetConfirm(false);
+    } catch {
+      Alert.alert("Reset failed", "Could not reset app data on this device.");
+    }
   }, []);
 
 // SECTION 18.3) Resync on notification TAP (not on receive)
-
 
   useEffect(() => {
     if (!hydrated || Platform.OS === "web") return;
@@ -4144,10 +4415,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     return () => sub.remove();
   }, [hydrated, resyncTimeNotifications]);
 
-
-
-
-
 // SECTION 19) UI
 
 // SECTION 19.1) UI state
@@ -4162,7 +4429,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   // Screen width (drawer sizing)
   const { width: SCREEN_W } = useWindowDimensions();
 
-  // Drawer width (keeps it cozy, not “full-screen terror”)
+  // Drawer width (keeps it cozy, not �full-screen terror�)
 
   const [textSizeMode, setTextSizeMode] = useState<TextSizeMode>("medium");
 
@@ -4181,6 +4448,29 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
   const styles = useMemo(() => makeStyles(textScale), [textScale]);
 
+  // SECTION X.1.1) Memoized fish time-of-day dot component (prevents jitter with many fish)
+  type FishTimeDotProps = {
+    label: string;
+    on: boolean;
+    keyName: keyof typeof FISH_CARD_TIME_OF_DAY_COLORS;
+  };
+
+  const FishTimeDot = useMemo(() => 
+    React.memo(function FishTimeDot({ label, on, keyName }: FishTimeDotProps) {
+      return (
+        <View
+          style={[
+            styles.fishTodDot,
+            !on && styles.fishTodDotOff,
+            on && { backgroundColor: FISH_CARD_TIME_OF_DAY_COLORS[keyName] },
+          ]}
+        >
+          <Text style={[styles.fishTodDotText, !on && styles.fishTodDotTextOff]}>{label}</Text>
+        </View>
+      );
+    })
+  , [styles]);
+
   const DRAWER_W = useMemo(() => {
     return Math.min(360, Math.max(280, Math.round(SCREEN_W * 0.8)));
   }, [SCREEN_W]);
@@ -4192,7 +4482,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   // Home screen quick notes ("Next" list). Matches the inline Notes drop used on Event Setup.
   const [expandedNextNotesId, setExpandedNextNotesId] = useState<string | null>(null);
   const [expandedNowNotesId, setExpandedNowNotesId] = useState<string | null>(null);
-
 
   useEffect(() => {
     let mounted = true;
@@ -4215,8 +4504,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     AsyncStorage.setItem(NEXT_TIME_COUNT_KEY, String(nextTimeCount)).catch(() => {});
   }, [nextTimeCount]);
 
-  // Used to “reroll” tiny decorative randomness without reworking the whole clock.
-  // If you don’t want rerolls, keep it at 0 forever.
+  // Used to �reroll� tiny decorative randomness without reworking the whole clock.
+  // If you don&apos;t want rerolls, keep it at 0 forever.
   const [starSeedSalt, setStarSeedSalt] = useState(0);
 
   const [screen, setScreen] = useState<"home" | "marker_setup">("home");
@@ -4240,7 +4529,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   }, [menuT]);
 
   const drawerX = useMemo(() => {
-    // slide in from left; a little extra so shadow doesn’t peek when closed
+    // slide in from left; a little extra so shadow doesn&apos;t peek when closed
     return menuT.interpolate({ inputRange: [0, 1], outputRange: [-DRAWER_W - 24, 0] });
   }, [menuT, DRAWER_W]);
 
@@ -4259,7 +4548,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   const [repeatableMarkersSort, setRepeatableMarkersSort] = useState<"time" | "next">("time");
   const [fishMarkersSort, setFishMarkersSort] = useState<"time" | "next">("time");
 
-
   // Event Setup: tap an event row to reveal its notes underneath (simple dropdown)
   const [expandedEventNotesId, setExpandedEventNotesId] = useState<string | null>(null);
 
@@ -4270,14 +4558,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   useEffect(() => {
     // Only pulse on Home when the *next* enabled marker is within the last minute.
     // Otherwise it turns into a needy little attention beacon.
-    if (screen !== "home" || enabledMarkers.length === 0) {
+    if (screen !== "home" || nextSectionMarkers.length === 0) {
       nextPillPulseT.stopAnimation();
       nextPillPulseT.setValue(1);
       return;
     }
 
-    const first = enabledMarkers[0];
-    const cd = Math.max(0, countdowns[first.id] ?? 0);
+    const first = nextSectionMarkers[0];
+    // Use baseId if present (for fish with expanded windows)
+    const lookupId = (first as any).baseId || first.id;
+    const cd = Math.max(0, countdowns[lookupId] ?? 0);
     const shouldPulse = cd > 0 && cd <= 60;
 
     if (!shouldPulse) {
@@ -4306,7 +4596,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
     loop.start();
     return () => loop.stop();
-  }, [screen, enabledMarkers, countdowns, nextPillPulseT]);
+  }, [screen, nextSectionMarkers, countdowns, nextPillPulseT]);
 
   // Enable LayoutAnimation on Android (old architecture only)
   // New Architecture: this is a no-op and logs a warning, so we skip it.
@@ -4362,8 +4652,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     };
   }, []);
 
-
-  // Gentle “settle” animation (list reorder, folder rows appearing, etc.)
+  // Gentle �settle� animation (list reorder, folder rows appearing, etc.)
   const softLayoutNext = useCallback(() => {
     if (Platform.OS === "web") return; // web ignores LayoutAnimation
     LayoutAnimation.configureNext({
@@ -4374,8 +4663,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     });
   }, []);
 
-  // Optional: reroll the “extra” next-slot stars when the next slot changes.
-  // Cozy “alive” feel, not chaos.
+  // Optional: reroll the �extra� next-slot stars when the next slot changes.
+  // Cozy �alive� feel, not chaos.
   useEffect(() => {
     if (!nextTimeKey) return;
     setStarSeedSalt((s) => (s + 1) % 1000000);
@@ -4443,7 +4732,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     return Math.min(720, Math.max(280, Math.floor(SCREEN_H * 0.62)));
   }, [SCREEN_H]);
 
-
   const folderBodyStyle = useCallback((t: Animated.Value) => {
     return {
       overflow: "hidden" as const,
@@ -4452,7 +4740,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
       transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }],
     };
   }, [FOLDER_BODY_MAX_H]);
-
 
   // Folder toggles: settle
   const toggleDefaultFolder = useCallback(() => {
@@ -4475,8 +4762,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     setFishMarkersOpen((v) => !v);
   }, [softLayoutNext]);
 
-
-  // Sort toggles: small “settling” animation via LayoutAnimation
+  // Sort toggles: small �settling� animation via LayoutAnimation
   const toggleDefaultSort = useCallback(() => {
     softLayoutNext();
     setDefaultMarkersSort((s) => (s === "time" ? "next" : "time"));
@@ -4497,6 +4783,61 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     setFishMarkersSort((s) => (s === "time" ? "next" : "time"));
   }, [softLayoutNext]);
 
+  // Create a Map for O(1) marker lookups instead of linear searches
+  const markerMap = useMemo(() => {
+    const m = new Map<string, Marker>();
+    for (const marker of markers) {
+      m.set(marker.id, marker);
+    }
+    return m;
+  }, [markers]);
+
+  // Create a Map for caching extracted fish fields (rarity, appears, bait) for O(1) lookups
+  const markerFieldCache = useMemo(() => {
+    const cache = new Map<string, { rarity: string; appears: string; bait: string }>();
+    for (const marker of markers) {
+      cache.set(marker.id, {
+        rarity: extractFishFieldFromNotes(marker.notes, "Rarity"),
+        appears: extractFishFieldFromNotes(marker.notes, "Appears"),
+        bait: extractFishFieldFromNotes(marker.notes, "Best bait"),
+      });
+    }
+    return cache;
+  }, [markers]);
+
+  // SECTION 15.2.X) Precompute fish card render data to speed up fish view rendering
+  type FishCardRenderData = {
+    rarityColors: { border: string; bg: string };
+    periodsFlags: { morning: boolean; day: boolean; evening: boolean; night: boolean };
+    baitShort: string;
+  };
+
+  const fishCardRenderDataCache = useMemo(() => {
+    const cache = new Map<string, FishCardRenderData>();
+    for (const marker of markers) {
+      const fields = markerFieldCache.get(marker.id);
+      if (!fields) continue;
+      
+      cache.set(marker.id, {
+        rarityColors: getRarityColors(fields.rarity),
+        periodsFlags: fishAppearsToPeriodsFlags(fields.appears),
+        baitShort: fishBestBaitShort(fields.bait),
+      });
+    }
+    return cache;
+  }, [markers, markerFieldCache]);
+
+  // Memoize fish grid pairs construction
+  const fishGridPairs = useMemo(() => {
+    const itemsToRender = nextSectionMarkers.slice(0, renderFishCount);
+    const pairs: (typeof nextSectionMarkers)[number][][] = [];
+    for (let i = 0; i < itemsToRender.length; i += 2) {
+      const a = itemsToRender[i];
+      const b = itemsToRender[i + 1];
+      pairs.push([a, ...(b ? [b] : [])]);
+    }
+    return pairs;
+  }, [nextSectionMarkers, renderFishCount]);
 
 // SECTION 19.2) Render
 
@@ -4506,10 +4847,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
       
 
-
 {/* Closed Test notice (shown once) */}
 <Modal
-  visible={closedTestOpen}
+  visible={false}
   transparent
   animationType="fade"
   statusBarTranslucent
@@ -4538,10 +4878,105 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     </View>
   </View>
 </Modal>
+
+{/* Refresh Success Modal */}
+<Modal
+  visible={showRefreshSuccess}
+  transparent
+  animationType="fade"
+  statusBarTranslucent
+  onRequestClose={() => setShowRefreshSuccess(false)}
+>
+  <View style={styles.ctBackdrop}>
+    {Platform.OS === "android" ? (
+      <BlurView experimentalBlurMethod="dimezisBlurView" intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    ) : (
+      <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    )}
+    <Pressable style={styles.ctBackdropPress} onPress={() => setShowRefreshSuccess(false)} />
+
+    <View style={styles.ctCard}>
+      <Text style={styles.ctTitle}>Refreshed</Text>
+      <Text style={styles.ctText}>Notification scheduling has been refreshed.</Text>
+
+      <View style={styles.ctBtnRow}>
+        <Pressable onPress={() => setShowRefreshSuccess(false)} style={styles.ctBtn}>
+          <Text style={styles.ctBtnText}>Got it</Text>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+</Modal>
+
+{/* Reset Confirmation Modal */}
+<Modal
+  visible={showResetConfirm}
+  transparent
+  animationType="fade"
+  statusBarTranslucent
+  onRequestClose={() => setShowResetConfirm(false)}
+>
+  <View style={styles.ctBackdrop}>
+    {Platform.OS === "android" ? (
+      <BlurView experimentalBlurMethod="dimezisBlurView" intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    ) : (
+      <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    )}
+    <Pressable style={styles.ctBackdropPress} onPress={() => setShowResetConfirm(false)} />
+
+    <View style={styles.ctCard}>
+      <Text style={styles.ctTitle}>Reset app data?</Text>
+      <Text style={styles.ctText}>This will clear your saved events, notification preferences, and settings on this device.</Text>
+
+      <View style={styles.ctBtnRow}>
+        <Pressable onPress={() => setShowResetConfirm(false)} style={[styles.ctBtn, { marginRight: 8 }]}>
+          <Text style={styles.ctBtnText}>Cancel</Text>
+        </Pressable>
+        <Pressable onPress={performReset} style={[styles.ctBtn, { backgroundColor: "rgba(255, 100, 100, 0.2)", marginLeft: 8 }]}>
+          <Text style={[styles.ctBtnText, { color: "rgba(255, 150, 150, 1)" }]}>Reset</Text>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+</Modal>
+
+{/* Notifications Off Modal */}
+<Modal
+  visible={showNotificationsOffModal}
+  transparent
+  animationType="fade"
+  statusBarTranslucent
+  onRequestClose={() => setShowNotificationsOffModal(false)}
+>
+  <View style={styles.ctBackdrop}>
+    {Platform.OS === "android" ? (
+      <BlurView experimentalBlurMethod="dimezisBlurView" intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    ) : (
+      <BlurView intensity={22} tint="dark" style={StyleSheet.absoluteFill} />
+    )}
+    <Pressable style={styles.ctBackdropPress} onPress={() => setShowNotificationsOffModal(false)} />
+
+    <View style={styles.ctCard}>
+      <Text style={styles.ctTitle}>Notifications are off</Text>
+      <Text style={styles.ctText}>Turn notifications on first, then refresh scheduling.</Text>
+
+      <View style={styles.ctBtnRow}>
+        <Pressable onPress={() => setShowNotificationsOffModal(false)} style={[styles.ctBtn, { marginRight: 8 }]}>
+          <Text style={styles.ctBtnText}>Cancel</Text>
+        </Pressable>
+        <Pressable onPress={() => { setSetupOpen(true); setShowNotificationsOffModal(false); }} style={[styles.ctBtn, { backgroundColor: "rgba(100, 150, 255, 0.2)", marginLeft: 8 }]}>
+          <Text style={[styles.ctBtnText, { color: "rgba(150, 200, 255, 1)" }]}>Go To Settings</Text>
+        </Pressable>
+      </View>
+    </View>
+  </View>
+</Modal>
+
 <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={true}
       >
 {/* SECTION 19.3) Header */}
 
@@ -4574,44 +5009,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
           </Pressable>
         </View>
 
-
 {/* SECTION 19.3.X) Home banners */}
 
         {screen === "home" ? (
           <View style={{ marginBottom: 12 }}
             pointerEvents="box-none"
           >
-            {/* What's New banner (persist dismissal across restarts) */}
-            {!whatsNewDismissed ? (
-              <View style={styles.bannerCard}>
-                <View style={styles.bannerLeft}>
-                  <Text style={styles.bannerKicker}>WHAT’S NEW</Text>
-{WHATS_NEW_ITEMS.map((t, i) => (
-  <Text key={`wn_${i}`} style={styles.bannerBullet}>
-    • {t}
-  </Text>
-))}
-<Text style={styles.bannerSubGold}>- Dismiss hides this until the next update.</Text>
-                </View>
-
-                <Pressable
-                  onPress={async () => {
-                    bannerXGuardRef.current = true;
-                    setWhatsNewDismissed(true);
-                    try {
-                      await AsyncStorage.setItem(STORAGE_WHATSNEW_DISMISSED_ID, WHATS_NEW_ID);
-                    } catch {
-                      // ignore
-                    }
-                  }}
-                  hitSlop={10}
-                  style={({ pressed }) => [styles.bannerX, pressed && { opacity: 0.75 }]}
-                >
-                  <Ionicons name="close" size={18} color={SOFT_WHITE} />
-                </Pressable>
-              </View>
-            ) : null}
-
             {/* Notifications OFF banner (session-dismiss, re-shows on reopen) */}
             {Platform.OS !== "web" && !notifEnabled && !notifBannerDismissed ? (
               <Pressable
@@ -4624,12 +5027,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 }}
                 style={({ pressed }) => [
                   styles.bannerCard,
-                  pressed && { opacity: 0.92, transform: [{ scale: 0.995 }] },
+                  pressed && PRESSED_BANNER_STYLE,
                 ]}
               >
                 <View style={styles.bannerLeft}>
                   <Text style={styles.bannerKicker}>NOTIFICATIONS</Text>
-                  <Text style={styles.bannerBullet}>Notifications are currently off. Tap to open 'Settings' to enable reminders.</Text>
+                  <Text style={styles.bannerBullet}>Notifications are currently off. Tap to open &apos;Settings&apos; to enable reminders.</Text>
                 </View>
 
                 <Pressable
@@ -4663,6 +5066,11 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               </View>
               <Text style={styles.clockLabel}>PALIAN TIME</Text>
               <View style={styles.clockLabelActions}>
+                {isRefreshingNotifications ? (
+                  <View style={{ paddingLeft: 12, marginRight: 8 }}>
+                    <ActivityIndicator size="small" color={SOFT_WHITE} />
+                  </View>
+                ) : null}
                 <Pressable
                   onPress={manualResyncNotifications}
                   disabled={refreshCoolingDown}
@@ -4677,14 +5085,13 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </Pressable>
               </View>
 
-
             </View>
 
             <View style={styles.clockWrap}>
               <PaliaClockFace
                 paliaHour={paliaTime.hour}
                 paliaMinute={paliaTime.minute}
-                markers={enabledMarkers}
+                markers={enabledMarkers.filter((m) => !m.id.startsWith("fish_"))}
                 nextTimeKey={nextTimeKey}
                 rotateClock={rotateClock}
                 starSeedSalt={starSeedSalt}
@@ -4706,18 +5113,28 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                   <Ionicons name="eye-outline" size={16} color={SOFT_WHITE} />
                 </Pressable>
 
+                {isPageLoading ? (
+                  <View style={{ marginLeft: 8, paddingRight: 12 }}>
+                    <ActivityIndicator size="small" color={SOFT_WHITE} />
+                  </View>
+                ) : null}
+
                 {clockViewOpen ? (
                   <View style={styles.clockViewOptions}>
                     {([
                       { key: "events", label: "Events" },
                       { key: "fish", label: "Fish" },
-                      { key: "bugs", label: "Bugs" },
                     ] as const).map((it) => {
                       const active = clockViewMode === it.key;
                       return (
                         <Pressable
                           key={it.key}
-                          onPress={() => setClockViewMode(it.key)}
+                          onPress={() => {
+                            // Change view immediately for instant feedback
+                            setClockViewMode(it.key);
+                            setIsPageLoading(true);
+                            setClockViewOpen(false);
+                          }}
                           style={[styles.clockViewOptionItem, active && styles.clockViewOptionItemOn]}
                           hitSlop={6}
                         >
@@ -4775,8 +5192,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
             </View>
 
             <View style={styles.nextCard}>
-              <View style={styles.nextHeaderRow}>
+              <Pressable
+                onPress={() => setNowSectionOpen(!nowSectionOpen)}
+                style={styles.nextHeaderRow}
+              >
                 <View style={styles.nextHeaderLeft}>
+                  <Ionicons
+                    name={nowSectionOpen ? "chevron-down" : "chevron-forward"}
+                    size={18}
+                    color={SOFT_WHITE_DIM}
+                  />
                   <Text style={styles.nextTitle}>Now</Text>
                   <Text style={styles.nextMeta}>
                     {nowItems.length ? `${nowItems.length} active` : "—"}
@@ -4794,9 +5219,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     </View>
                   )}
                 </View>
-              </View>
+              </Pressable>
 
-              {nowSoonest ? (
+              {nowSectionOpen && nowSoonest ? (
                 <View style={styles.nowCountdownWrap}>
                   <View style={styles.nowBarRow}>
                     <Ionicons name="star" size={14} color={ACCENT} />
@@ -4807,96 +5232,219 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </View>
               ) : null}
 
-              {nowItems.length ? (
+              {nowSectionOpen && nowItems.length ? (
                 clockViewMode === "fish" ? (
-                  <View style={styles.fishGrid}>
-                    {nowItems.map((it) => {
-                      const marker = markers.find((m) => m.id === it.id);
-                      const notesOpen = expandedNowNotesId === it.id;
+	                  <View style={styles.fishGrid}>
+	                    {(() => {
+	                      const itemsToRender = nowItems.slice(0, renderFishCount);
+	                      const pairs: (typeof nowItems)[number][][] = [];
+	                      for (let i = 0; i < itemsToRender.length; i += 2) {
+	                        const a = itemsToRender[i];
+	                        const b = itemsToRender[i + 1];
+	                        pairs.push([a, ...(b ? [b] : [])]);
+	                      }
 
-                      return (
-                        <View key={`nowfish-${it.id}`} style={styles.fishCell}>
-                          <Pressable
-                            onPress={() => {
-                              if (nextCardGuardRef.current) {
-                                nextCardGuardRef.current = false;
-                                return;
-                              }
-                              setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
-                            }}
-                            style={({ pressed }) => [
-                              styles.fishCard,
-                              pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] },
-                            ]}
-                            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
-                          >
-                            <View style={styles.fishCardInner}>
-                              <View style={styles.fishTopRow}>
-                                <View style={styles.fishImageSlot}>
-                                  {marker?.imageUrl ? (
-                                    <Image
-                                      source={marker.imageUrl ? { uri: marker.imageUrl } : undefined}
-                                      style={styles.fishImage}
-                                      resizeMode="cover"
-                                      onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
-                                    />
-                                  ) : null}
-                                </View>
+	                      return pairs.map((row, rowIdx) => {
+	                        const openId = expandedNowNotesId;
+	                        const openInRow = !!openId && row.some((x) => x.id === openId);
+	                        const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+	                        const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
 
-                                <ScalePressable
-                                  onPress={() => {
-                                    nextCardGuardRef.current = true;
-                                    if (!marker) return;
-                                    toggleNotify(marker.id);
-                                  }}
-                                  style={styles.fishBellBtn}
-                                >
-                                  <Ionicons
-                                    name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
-                                    size={16}
-                                    color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-                                  />
-                                </ScalePressable>
-                              </View>
+	                        return (
+	                          <View key={`nowfish-row-${rowIdx}`} style={styles.fishRow}>
+	                            <View style={styles.fishRowCards}>
+	                              {row.map((it) => {
+	                                const marker = markerMap.get(it.baseId ?? it.id);
+	                                const isOpen = expandedNowNotesId === it.id;
 
-                              <View style={styles.fishBottomBlock}>
-                                <Text style={styles.fishTitle} numberOfLines={2}>
-                                  {it.eventName}
-                                </Text>
+	                                return (
+	                                  <View key={`nowfish-${it.id}`} style={styles.fishCell}>
+	                                    <Pressable
+	                                      onPress={() => {
+	                                        if (nextCardGuardRef.current) {
+	                                          nextCardGuardRef.current = false;
+	                                          return;
+	                                        }
+	                                        setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
+	                                      }}
+	                                      style={({ pressed }) => [
+	                                        styles.fishCard,
+	                                        isOpen && styles.fishCardActive,
+	                                        pressed && PRESSED_FISH_CARD_STYLE,
+	                                      ]}
+	                                      android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+	                                    >
+	                                      <View style={styles.fishCardInner}>
+	                                        <View style={styles.fishTopRow}>
+	                                          <View style={{ flexDirection: "row", gap: 6 }}>
+	                                            {(() => {
+	                                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+	                                              const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+	                                              const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+	                                              return (
+	                                                <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+	                                                  {canLoadImage ? (
+	                                                    <Image
+	                                                      source={{ uri: marker.imageUrl }}
+	                                                      style={styles.fishImage}
+	                                                      resizeMode="cover"
+	                                                      onError={(e) =>
+	                                                        console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)
+	                                                      }
+	                                                    />
+	                                                  ) : null}
+	                                                </View>
+	                                              );
+	                                            })()}
 
-                                {it.location ? (
-                                  <Text style={styles.fishSub} numberOfLines={1}>
-                                    {it.location}
-                                  </Text>
-                                ) : null}
+	                                            {/* Caught checkboxes */}
+	                                            <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+	                                              <Pressable
+	                                                onPress={(e) => {
+	                                                  e.stopPropagation();
+	                                                  nextCardGuardRef.current = true;
+	                                                  toggleCaughtStandard(marker?.id ?? "");
+	                                                }}
+	                                                style={({ pressed }) => [
+	                                                  {
+	                                                    borderRadius: 16,
+	                                                    borderWidth: 1,
+	                                                    borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+	                                                    backgroundColor: "rgba(0,0,0,0.25)",
+	                                                    flex: 1,
+	                                                    alignItems: "center",
+	                                                    justifyContent: "center",
+	                                                  },
+	                                                  pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+	                                                ]}
+	                                              >
+	                                                <Ionicons
+	                                                  name="checkmark"
+	                                                  size={18}
+	                                                  color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+	                                                  style={{ opacity: 1 }}
+	                                                />
+	                                              </Pressable>
 
-                                <View style={styles.fishMetaRow}>
-                                  <Text style={styles.fishMetaText} numberOfLines={2}>
-                                    {"Ends\n"}{format12hTime(it.endHour, it.endMinute)}
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
-                          </Pressable>
+	                                              <Pressable
+	                                                onPress={(e) => {
+	                                                  e.stopPropagation();
+	                                                  nextCardGuardRef.current = true;
+	                                                  toggleCaughtStar(marker?.id ?? "");
+	                                                }}
+	                                                style={({ pressed }) => [
+	                                                  {
+	                                                    borderRadius: 16,
+	                                                    borderWidth: 1,
+	                                                    borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+	                                                    backgroundColor: "rgba(0,0,0,0.25)",
+	                                                    flex: 1,
+	                                                    alignItems: "center",
+	                                                    justifyContent: "center",
+	                                                  },
+	                                                  pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+	                                                ]}
+	                                              >
+	                                                <Ionicons
+	                                                  name="star"
+	                                                  size={14}
+	                                                  color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+	                                                  style={{ opacity: 1 }}
+	                                                />
+	                                              </Pressable>
+	                                            </View>
+	                                          </View>
+	                                          {(() => {
+	                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+	                                            const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
 
-                          {notesOpen ? (
-                            <View style={styles.eventNotesDrop}>
-                              <Text style={styles.eventNotesLabel}>Notes</Text>
-                              <Text style={styles.eventNotesText}>
-                                {String(marker?.notes ?? "").trim().length > 0
-                                  ? String(marker?.notes).trim()
-                                  : "No notes yet."}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-                      );
-                    })}
-                  </View>
+	                                            return (
+	                                              <View style={styles.fishTodRow}>
+	                                                <View style={styles.fishTodRowInner}>
+	                                                  <FishTimeDot label="M" on={f.morning} keyName="morning" />
+	                                                  <FishTimeDot label="D" on={f.day} keyName="day" />
+	                                                  <FishTimeDot label="E" on={f.evening} keyName="evening" />
+	                                                  <FishTimeDot label="N" on={f.night} keyName="night" />
+	                                                </View>
+	                                              </View>
+	                                            );
+	                                          })()}
+	                                        </View>
+
+	                                        <View style={styles.fishBottomBlock}>
+	                                          <Text style={styles.fishTitle} numberOfLines={2}>
+	                                            {it.eventName}
+	                                          </Text>
+
+	                                          {(() => {
+	                                            const loc = it.location ? `L: ${it.location}` : "";
+	                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+	                                            const bait = renderData?.baitShort ?? "";
+
+	                                            return (
+	                                              <View style={styles.fishInfoBlock}>
+	                                                {loc ? (
+	                                                  <View style={{ flexDirection: 'row', marginTop: 0 }}>
+	                                                    <Text style={styles.fishSub}>L: </Text>
+	                                                    <Text style={[styles.fishSub, { flex: 1 }]}>{it.location}</Text>
+	                                                  </View>
+	                                                ) : null}
+	                                                {bait ? (
+	                                                  <View style={{ flexDirection: 'row', marginTop: 0 }}>
+	                                                    <Text style={styles.fishSub}>B: </Text>
+	                                                    <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+	                                                  </View>
+	                                                ) : null}
+	                                              </View>
+	                                            );
+	                                          })()}
+
+	                                          <View style={styles.fishMetaRow}>
+	                                            <Text style={styles.fishMetaText} numberOfLines={1}>
+	                                              {fishAppearsIsAnyTime(marker?.notes) ? "Any Time" : `Ends ${it.endHour != null ? format12hTime(it.endHour, it.endMinute ?? 0) : "—"}`}
+	                                            </Text>
+
+	                                            <ScalePressable
+	                                              onPress={() => {
+	                                                nextCardGuardRef.current = true;
+	                                                if (!marker) return;
+	                                                toggleNotify(marker.id);
+	                                              }}
+	                                              style={styles.fishBellBtn}
+	                                            >
+	                                              <Ionicons
+	                                                name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+	                                                size={16}
+	                                                color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+	                                              />
+	                                            </ScalePressable>
+	                                          </View>
+	                                        </View>
+	                                      </View>
+	                                    </Pressable>
+	                                  </View>
+	                                );
+	                              })}
+
+	                              {row.length === 1 ? (
+	                                <View style={[styles.fishCell, styles.fishCellSpacer]} />
+	                              ) : null}
+	                            </View>
+
+	                            {openInRow ? (
+	                              <View style={styles.fishNotesRow}>
+	                                <FishNotesBox notes={openMarker?.notes} styles={styles} />
+	                              </View>
+	                            ) : null}
+	                          </View>
+	                        );
+	                      });
+	                    })()}
+	                  </View>
                 ) : (
                   <View style={styles.nextList}>
                     {nowItems.map((it) => {
-                      const marker = markers.find((m) => m.id === it.id);
+                      const marker = markers.find((m) => m.id === (it.baseId ?? it.id));
                       const notesOpen = expandedNowNotesId === it.id;
 
                       return (
@@ -4912,7 +5460,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                             }}
                             style={({ pressed }) => [
                               styles.nextRow,
-                              pressed && { opacity: 0.92, transform: [{ scale: 0.995 }] },
+                              pressed && PRESSED_LIST_ROW_STYLE,
                             ]}
                             android_ripple={{ color: "rgba(255,255,255,0.06)" }}
                           >
@@ -4960,34 +5508,35 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                           </Pressable>
 
                           {notesOpen ? (
-                            <View style={styles.eventNotesDrop}>
-                              <Text style={styles.eventNotesLabel}>Notes</Text>
-                              <Text style={styles.eventNotesText}>
-                                {String(marker?.notes ?? "").trim().length > 0
-                                  ? String(marker?.notes).trim()
-                                  : "No notes yet."}
-                              </Text>
-                            </View>
+                            <FishNotesBox notes={marker?.notes} styles={styles} />
                           ) : null}
                         </View>
                       );
                     })}
                   </View>
                 )
-              ) : (
+              ) : nowSectionOpen ? (
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No active events</Text>
-              )}
+              ) : null}
             </View>
 
             <View style={styles.nextCard}>
               <View style={styles.nextHeaderRow}>
-                <View style={styles.nextHeaderLeft}>
+                <Pressable
+                  onPress={() => setNextSectionOpen(!nextSectionOpen)}
+                  style={styles.nextHeaderLeft}
+                >
+                  <Ionicons
+                    name={nextSectionOpen ? "chevron-down" : "chevron-forward"}
+                    size={18}
+                    color={SOFT_WHITE_DIM}
+                  />
                   <Text style={styles.nextTitle}>Next</Text>
-                  <Text style={styles.nextMeta}>{nextTimeFilter ? `All ${nextTimeFilter.charAt(0).toUpperCase() + nextTimeFilter.slice(1)} events` : nextDigitalLabel}</Text>
-                </View>
+                  <Text style={styles.nextMeta}>{nextSectionMarkers.length} upcoming</Text>
+                </Pressable>
 
                                 <View style={styles.nextHeaderRight}>
-                  {!nextTimeFilter && enabledMarkers.length ? (
+                  {!nextTimeFilter && nextSectionMarkers.length ? (
                     <Animated.View style={[styles.nextPill, { opacity: nextPillPulse }]}>
                       <Text style={styles.nextPillText}>{nextCountdownLabel}</Text>
                     </Animated.View>
@@ -5019,19 +5568,29 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                       })}
                                     </View>
                                   
-                ) : null}</View>
+                ) : null}
+                </View>
               </View>
 
-              {clockViewMode === "fish" ? (
-                homeListMarkers.length ? (
-                  <View style={styles.fishGrid}>
-                    {homeListMarkers.map((m) => {
-                      const marker = markers.find((x) => x.id === m.id);
-                      const notesOpen = expandedNextNotesId === m.id;
-                      const { eventName, location } = splitName(m.name);
+              {nextSectionOpen && clockViewMode === "fish" ? (
+                nextSectionMarkers.length ? (
+	                  <View style={styles.fishGrid}>
+	                    {fishGridPairs.map((row, rowIdx) => {
+	                      const openId = expandedNextNotesId;
+	                      const openInRow = !!openId && row.some((x) => x.id === openId);
+	                      const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+	                      const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
 
-                      return (
-                        <View key={`nextfish-${m.id}`} style={styles.fishCell}>
+	                      return (
+	                        <View key={`nextfish-row-${rowIdx}`} style={styles.fishRow}>
+	                          <View style={styles.fishRowCards}>
+	                            {row.map((m) => {
+	                              const marker = markerMap.get((m as any).baseId ?? m.id);
+	                              const isOpen = expandedNextNotesId === m.id;
+	                              const { eventName, location } = splitName(m.name);
+
+	                                return (
+	                                  <View key={`nextfish-${m.id}`} style={styles.fishCell}>
                           <Pressable
                             onPress={() => {
                               if (nextCardGuardRef.current) {
@@ -5040,39 +5599,107 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               }
                               setExpandedNextNotesId((prev) => (prev === m.id ? null : m.id));
                             }}
-                            style={({ pressed }) => [
-                              styles.fishCard,
-                              pressed && { opacity: 0.92, transform: [{ scale: 0.99 }] },
-                            ]}
+	                            style={({ pressed }) => [
+	                              styles.fishCard,
+	                              isOpen && styles.fishCardActive,
+	                              pressed && PRESSED_FISH_CARD_STYLE,
+	                            ]}
                             android_ripple={{ color: "rgba(255,255,255,0.06)" }}
                           >
                             <View style={styles.fishCardInner}>
                               <View style={styles.fishTopRow}>
-                                <View style={styles.fishImageSlot}>
-                                  {marker?.imageUrl ? (
-                                    <Image
-                                      source={marker.imageUrl ? { uri: marker.imageUrl } : undefined}
-                                      style={styles.fishImage}
-                                      resizeMode="cover"
-                                      onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
-                                    />
-                                  ) : null}
-                                </View>
+                                {(() => {
+                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                  const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+                                  const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+                                  return (
+                                    <View style={{ flexDirection: "row", gap: 6 }}>
+                                      <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+                                        {canLoadImage ? (
+                                          <Image
+                                            source={{ uri: marker.imageUrl }}
+                                            style={styles.fishImage}
+                                            resizeMode="cover"
+                                            onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
+                                          />
+                                        ) : null}
+                                      </View>
 
-                                <ScalePressable
-                                  onPress={() => {
-                                    nextCardGuardRef.current = true;
-                                    if (!marker) return;
-                                    toggleNotify(marker.id);
-                                  }}
-                                  style={styles.fishBellBtn}
-                                >
-                                  <Ionicons
-                                    name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
-                                    size={16}
-                                    color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-                                  />
-                                </ScalePressable>
+                                      {/* Caught checkboxes */}
+                                      <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+                                        <Pressable
+                                          onPress={(e) => {
+                                            e.stopPropagation();
+                                            nextCardGuardRef.current = true;
+                                            toggleCaughtStandard(marker?.id ?? "");
+                                          }}
+                                          style={({ pressed }) => [
+                                            {
+                                              borderRadius: 16,
+                                              borderWidth: 1,
+                                              borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+                                              backgroundColor: "rgba(0,0,0,0.25)",
+                                              flex: 1,
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                            },
+                                            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                          ]}
+                                        >
+                                          <Ionicons
+                                            name="checkmark"
+                                            size={18}
+                                            color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+                                            style={{ opacity: 1 }}
+                                          />
+                                        </Pressable>
+
+                                        <Pressable
+                                          onPress={(e) => {
+                                            e.stopPropagation();
+                                            nextCardGuardRef.current = true;
+                                            toggleCaughtStar(marker?.id ?? "");
+                                          }}
+                                          style={({ pressed }) => [
+                                            {
+                                              borderRadius: 16,
+                                              borderWidth: 1,
+                                              borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+                                              backgroundColor: "rgba(0,0,0,0.25)",
+                                              flex: 1,
+                                              alignItems: "center",
+                                              justifyContent: "center",
+                                            },
+                                            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                          ]}
+                                        >
+                                          <Ionicons
+                                            name="star"
+                                            size={14}
+                                            color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+                                            style={{ opacity: 1 }}
+                                          />
+                                        </Pressable>
+                                      </View>
+                                    </View>
+                                  );
+                                })()}
+                                {(() => {
+                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                  const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
+
+                                  return (
+                                    <View style={styles.fishTodRow}>
+                                      <View style={styles.fishTodRowInner}>
+                                        <FishTimeDot label="M" on={f.morning} keyName="morning" />
+                                        <FishTimeDot label="D" on={f.day} keyName="day" />
+                                        <FishTimeDot label="E" on={f.evening} keyName="evening" />
+                                        <FishTimeDot label="N" on={f.night} keyName="night" />
+                                      </View>
+                                    </View>
+                                  );
+                                })()}
+
                               </View>
 
                               <View style={styles.fishBottomBlock}>
@@ -5080,48 +5707,91 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                   {eventName}
                                 </Text>
 
-                                {location ? (
-                                  <Text style={styles.fishSub} numberOfLines={1}>
-                                    {location}
-                                  </Text>
-                                ) : null}
+                                {(() => {
+                                  const loc = location ? `L: ${location}` : "";
+                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                  const bait = renderData?.baitShort ?? "";
+                                  
+                                  return (
+                                    <View style={styles.fishInfoBlock}>
+                                      {loc ? (
+                                        <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                          <Text style={styles.fishSub}>L: </Text>
+                                          <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                        </View>
+                                      ) : null}
+                                      {bait ? (
+                                        <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                          <Text style={styles.fishSub}>B: </Text>
+                                          <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+                                        </View>
+                                      ) : null}
+                                    </View>
+                                  );
+                                })()}
 
                                 <View style={styles.fishMetaRow}>
                                   <Text style={styles.fishMetaText} numberOfLines={1}>
-                                    {format12hTime(m.hour, m.minute)}
+                                    Ends {format12hTime(m.hour, m.minute)}
                                   </Text>
+
+                                  <ScalePressable
+                                    onPress={() => {
+                                      nextCardGuardRef.current = true;
+                                      if (!marker) return;
+                                      toggleNotify(marker.id);
+                                    }}
+                                    style={styles.fishBellBtn}
+                                  >
+                                    <Ionicons
+                                      name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                      size={16}
+                                      color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                    />
+                                  </ScalePressable>
                                 </View>
                               </View>
                             </View>
                           </Pressable>
 
-                          {notesOpen ? (
-                            <View style={styles.eventNotesDrop}>
-                              <Text style={styles.eventNotesLabel}>Notes</Text>
-                              <Text style={styles.eventNotesText}>
-                                {String(marker?.notes ?? "").trim().length > 0
-                                  ? String(marker?.notes).trim()
-                                  : "No notes yet."}
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
-                      );
-                    })}
+	                                  </View>
+	                                );
+	                              })}
+
+	                              {row.length === 1 ? (
+	                                <View style={[styles.fishCell, styles.fishCellSpacer]} />
+	                              ) : null}
+	                            </View>
+
+	                            {openInRow ? (
+	                              <View style={styles.fishNotesRow}>
+	                                <View style={styles.eventNotesDrop}>
+	                                  <Text style={styles.eventNotesLabel}>Notes</Text>
+	                                  <Text style={styles.eventNotesText}>
+	                                    {String(openMarker?.notes ?? "").trim().length > 0
+	                                      ? String(openMarker?.notes).trim()
+	                                      : "No notes yet."}
+	                                  </Text>
+	                                </View>
+	                              </View>
+	                            ) : null}
+	                          </View>
+	                        );
+	                    })}
                   </View>
-                ) : (
+                ) : nextSectionOpen ? (
                   <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
-                )
-              ) : nextTimeGroups.length ? (
+                ) : null
+              ) : nextSectionOpen && nextTimeGroups.length ? (
                 <View style={styles.nextList}>
                   {(nextTimeFilter ? nextTimeGroups : nextTimeGroups.slice(0, nextTimeCount)).map((group) => (
                     <View key={`ntg-${group.timeKey}`} style={styles.nextGroup}>
                       <Text style={styles.nextGroupHeader}>
-                        {group.timeLabel} · {group.items.length} event{group.items.length !== 1 ? "s" : ""}
+                        {group.timeLabel} • {group.items.length} event{group.items.length !== 1 ? "s" : ""}
                       </Text>
 
                       {group.items.map((it) => {
-                        const marker = markers.find((m) => m.id === it.id);
+                        const marker = markers.find((m) => m.id === (it.baseId ?? it.id));
                         const notesOpen = expandedNextNotesId === it.id;
 
                         return (
@@ -5137,7 +5807,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               }}
                               style={({ pressed }) => [
                                 styles.nextRow,
-                                pressed && { opacity: 0.92, transform: [{ scale: 0.995 }] },
+                                pressed && PRESSED_LIST_ROW_STYLE,
                               ]}
                               android_ripple={{ color: "rgba(255,255,255,0.06)" }}
                             >
@@ -5159,7 +5829,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                   </Text>
                                 ) : null}
                               </View>
-
 
                               <View style={styles.nextRowRight}>
                                 <ScalePressable
@@ -5195,28 +5864,250 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     </View>
                   ))}
                 </View>
-              ) : (
+              ) : nextSectionOpen ? (
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
-              )}
+              ) : null}
 
+              {nextSectionOpen && (
               <Pressable
                 onPress={() => setScreen("marker_setup")}
                 style={({ pressed }) => [
                   styles.nextSetupBtn,
-                  pressed && { opacity: 0.85, transform: [{ scale: 0.99 }] },
+                  pressed && PRESSED_BUTTON_STYLE,
                 ]}
               >
                 <Text style={styles.nextSetupBtnText}>Event Setup</Text>
               </Pressable>
+              )}
             </View>
-          </View>
-        ) : null}
 
-{/* SECTION 19.5) Real time card */}
+            {/* ALL DAY SECTION */}
+            {allDayFish.length > 0 && (
+              <View style={styles.nextCard}>
+                <Pressable
+                  onPress={() => setAllDaySectionOpen(!allDaySectionOpen)}
+                  style={styles.nextHeaderRow}
+                >
+                  <View style={styles.nextHeaderLeft}>
+                    <Ionicons
+                      name={allDaySectionOpen ? "chevron-down" : "chevron-forward"}
+                      size={18}
+                      color={SOFT_WHITE_DIM}
+                    />
+                    <Text style={styles.nextTitle}>All Day</Text>
+                    <Text style={styles.nextMeta}>{allDayFish.length} available</Text>
+                  </View>
+                </Pressable>
 
-        {screen === "home" ? (
-          <View style={[styles.card, styles.cardReal]}>
-            <RealTimeCard  textScale={textScale}/>
+                {allDaySectionOpen && (
+                <View style={styles.fishGrid}>
+                  {(() => {
+                    const pairs: typeof allDayFish[number][][] = [];
+                    for (let i = 0; i < allDayFish.length; i += 2) {
+                      const a = allDayFish[i];
+                      const b = allDayFish[i + 1];
+                      pairs.push([a, ...(b ? [b] : [])]);
+                    }
+
+                    return pairs.map((row, rowIdx) => {
+                      const openId = expandedNowNotesId;
+                      const openInRow = !!openId && row.some((x) => x.id === openId);
+                      const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+                      const openMarker = openItem ? markerMap.get(openItem.id) : undefined;
+
+                      return (
+                        <View key={`allday-row-${rowIdx}`} style={styles.fishRow}>
+                          <View style={styles.fishRowCards}>
+                            {row.map((fish) => {
+                              const marker = markerMap.get(fish.id);
+                              const isOpen = expandedNowNotesId === fish.id;
+                              const { eventName, location } = splitName(fish.name);
+
+                              return (
+                                <View key={`allday-${fish.id}`} style={styles.fishCell}>
+                                  <Pressable
+                                    onPress={() => {
+                                      if (nextCardGuardRef.current) {
+                                        nextCardGuardRef.current = false;
+                                        return;
+                                      }
+                                      setExpandedNowNotesId((prev) => (prev === fish.id ? null : fish.id));
+                                    }}
+                                    style={({ pressed }) => [
+                                      styles.fishCard,
+                                      isOpen && styles.fishCardActive,
+                                      pressed && PRESSED_FISH_CARD_STYLE,
+                                    ]}
+                                    android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                                  >
+                                    <View style={styles.fishCardInner}>
+                                      <View style={styles.fishTopRow}>
+                                        <View style={{ flexDirection: "row", gap: 6 }}>
+                                          {(() => {
+                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                            const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+                                            const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+                                            return (
+                                              <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+                                                {canLoadImage ? (
+                                                  <Image
+                                                    source={{ uri: marker.imageUrl }}
+                                                    style={styles.fishImage}
+                                                    resizeMode="cover"
+                                                    onError={(e) =>
+                                                      console.log("FISH IMG ERROR", marker?.id, marker?.imageUrl, e.nativeEvent)
+                                                    }
+                                                  />
+                                                ) : null}
+                                              </View>
+                                            );
+                                          })()}
+
+                                          {/* Caught checkboxes */}
+                                          <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+                                            <Pressable
+                                              onPress={(e) => {
+                                                e.stopPropagation();
+                                                nextCardGuardRef.current = true;
+                                                toggleCaughtStandard(marker?.id ?? "");
+                                              }}
+                                              style={({ pressed }) => [
+                                                {
+                                                  borderRadius: 16,
+                                                  borderWidth: 1,
+                                                  borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+                                                  backgroundColor: "rgba(0,0,0,0.25)",
+                                                  flex: 1,
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                },
+                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                              ]}
+                                            >
+                                              <Ionicons
+                                                name="checkmark"
+                                                size={18}
+                                                color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+                                                style={{ opacity: 1 }}
+                                              />
+                                            </Pressable>
+
+                                            <Pressable
+                                              onPress={(e) => {
+                                                e.stopPropagation();
+                                                nextCardGuardRef.current = true;
+                                                toggleCaughtStar(marker?.id ?? "");
+                                              }}
+                                              style={({ pressed }) => [
+                                                {
+                                                  borderRadius: 16,
+                                                  borderWidth: 1,
+                                                  borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+                                                  backgroundColor: "rgba(0,0,0,0.25)",
+                                                  flex: 1,
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                },
+                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                              ]}
+                                            >
+                                              <Ionicons
+                                                name="star"
+                                                size={14}
+                                                color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+                                                style={{ opacity: 1 }}
+                                              />
+                                            </Pressable>
+                                          </View>
+                                        </View>
+                                        {(() => {
+                                          const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                          const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
+
+                                          return (
+                                            <View style={styles.fishTodRow}>
+                                              <View style={styles.fishTodRowInner}>
+                                                <FishTimeDot label="M" on={f.morning} keyName="morning" />
+                                                <FishTimeDot label="D" on={f.day} keyName="day" />
+                                                <FishTimeDot label="E" on={f.evening} keyName="evening" />
+                                                <FishTimeDot label="N" on={f.night} keyName="night" />
+                                              </View>
+                                            </View>
+                                          );
+                                        })()}
+                                      </View>
+
+                                      <View style={styles.fishBottomBlock}>
+                                        <Text style={styles.fishTitle} numberOfLines={2}>
+                                          {eventName}
+                                        </Text>
+
+                                        {(() => {
+                                          const loc = location ? `L: ${location}` : "";
+                                          const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                          const bait = renderData?.baitShort ?? "";
+
+                                          return (
+                                            <View style={styles.fishInfoBlock}>
+                                              {loc ? (
+                                                <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                                  <Text style={styles.fishSub}>L: </Text>
+                                                  <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                                </View>
+                                              ) : null}
+                                              {bait ? (
+                                                <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                                  <Text style={styles.fishSub}>B: </Text>
+                                                  <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+                                                </View>
+                                              ) : null}
+                                            </View>
+                                          );
+                                        })()}
+
+                                        <View style={styles.fishMetaRow}>
+                                          <View style={{ flex: 1 }} />
+
+                                          <ScalePressable
+                                            onPress={() => {
+                                              nextCardGuardRef.current = true;
+                                              if (!marker) return;
+                                              toggleNotify(marker.id);
+                                            }}
+                                            style={{ padding: 4 }}
+                                          >
+                                            <Ionicons
+                                              name={marker?.notify ? "notifications" : "notifications-off"}
+                                              size={14}
+                                              color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                            />
+                                          </ScalePressable>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </Pressable>
+                                </View>
+                              );
+                            })}
+
+                            {row.length === 1 ? (
+                              <View style={[styles.fishCell, styles.fishCellSpacer]} />
+                            ) : null}
+                          </View>
+
+                          {openInRow ? (
+                            <View style={styles.fishNotesRow}>
+                              <FishNotesBox notes={openMarker?.notes} styles={styles} />
+                            </View>
+                          ) : null}
+                        </View>
+                      );
+                    });
+                  })()}
+                </View>
+                )}
+              </View>
+            )}
           </View>
         ) : null}
 
@@ -5809,7 +6700,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
               ) : null}
 
-
               <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Notes (optional)</Text>
               <TextInput
                 value={newNotes}
@@ -5968,16 +6858,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                         style={[styles.checkBox, m.enabled && styles.checkBoxOn]}
                         hitSlop={8}
                       >
-                        {m.enabled ? <Text style={styles.checkMark}>✓</Text> : null}
+                        {m.enabled ? <Text style={styles.checkMark}>?</Text> : null}
                       </Pressable>
 
                       <View style={styles.markerTextCol}>
-                        <Text style={[styles.markerName, disabled && styles.dimText]} numberOfLines={1}>
+                        <Text style={[styles.markerName, disabled && styles.dimText]}>
                           {eventName}
                         </Text>
 
                         {location ? (
-                          <Text style={[styles.markerLocation, disabled && styles.dimText]} numberOfLines={1}>
+                          <Text style={[styles.markerLocation, disabled && styles.dimText]}>
                             {location}
                           </Text>
                         ) : null}
@@ -6112,7 +7002,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.folderRow, defOpen && styles.folderRowOn]}
             >
               <Text style={[styles.addMarkerBtnText, defOpen && styles.addMarkerBtnTextOn]}>
-                Default Events • {defaultMarkers.length}
+                Default Events � {defaultMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -6165,7 +7055,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.addMarkerBtn, cusOpen && styles.addMarkerBtnOn]}
             >
               <Text style={[styles.addMarkerBtnText, cusOpen && styles.addMarkerBtnTextOn]}>
-                Custom Events • {customMarkers.length}
+                Custom Events � {customMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -6217,7 +7107,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.addMarkerBtn, fishOpen && styles.addMarkerBtnOn]}
             >
               <Text style={[styles.addMarkerBtnText, fishOpen && styles.addMarkerBtnTextOn]}>
-                Fish • {fishMarkers.length}
+                Fish � {fishMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -6277,7 +7167,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.folderRow, repOpen && styles.folderRowOn]}
             >
               <Text style={[styles.addMarkerBtnText, repOpen && styles.addMarkerBtnTextOn]}>
-                Repeatable Events • {repeatableMarkers.length}
+                Repeatable Events � {repeatableMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -6366,7 +7256,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               styles.drawerSheet,
               {
                 width: DRAWER_W,
-                // ✅ Physically lift the whole sheet off status + nav bars (no fake padding bars)
+                // ? Physically lift the whole sheet off status + nav bars (no fake padding bars)
                 top: Math.max(insets.top, 0) + 10,
                 bottom: Math.max(insets.bottom, 0) + 10,
                 transform: [{ translateX: drawerX }],
@@ -6480,7 +7370,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </View>
               </View>
 
-
               {/* CLOCK SETTINGS */}
               <View style={styles.modalSection}>
                 <View style={styles.modalSectionTitleRow}>
@@ -6593,7 +7482,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                         ) : webPermission === "denied" ? (
                           <View style={styles.notifHintWrap}>
                             <Text style={styles.notifHintText}>
-                              Notifications are blocked for this site. Allow them in your browser’s site settings, then toggle this on again.
+                              Notifications are blocked for this site. Allow them in your browser&apos;s site settings, then toggle this on again.
                             </Text>
                           </View>
                         ) : webPermission !== "granted" ? (
@@ -6605,18 +7494,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                         ) : null
                       ) : null}
 
-
                       {Platform.OS === "android" && Number(Platform.Version) >= 31 ? (
                         <View style={styles.notifHintWrap}>
                           <Text style={styles.notifHintText}>
-                            If alerts are late on Android, enable “Alarms and reminders” and disable battery optimizations for this app.
+                            If alerts are late on Android, enable �Alarms and reminders� and disable battery optimizations for this app.
                           </Text>
                           <Pressable onPress={() => Linking.openSettings()} style={styles.notifHintBtn}>
                             <Text style={styles.notifHintBtnText}>Open Settings</Text>
                           </Pressable>
                         </View>
                       ) : null}
-
 
                       <View style={{ marginTop: 12 }}>
                         <Text style={styles.modalHint}>Reminder (real time)</Text>
@@ -6713,36 +7600,13 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
 <Text style={styles.modalHint}>Known issues</Text>
 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
-  {CLOSED_TEST_KNOWN_ISSUES.map((t) => `• ${t}`).join("\n")}
+  {CLOSED_TEST_KNOWN_ISSUES.map((t) => `� ${t}`).join("\n")}
 </Text>
 
 <Text style={styles.modalHint}>What to test</Text>
 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-  {CLOSED_TEST_WHAT_TO_TEST.map((t) => `• ${t}`).join("\n")}
+  {CLOSED_TEST_WHAT_TO_TEST.map((t) => `� ${t}`).join("\n")}
 </Text>
-
-              </View>
-
-              {/* CHANGELOG */}
-              <View style={styles.modalSection}>
-                <View style={styles.modalSectionTitleRow}>
-                  <View style={styles.modalSectionTitleIconWrap}>
-                    <Ionicons name="document-text-outline" size={18} color={ACCENT} />
-                  </View>
-                  <Text style={styles.modalSectionTitle}>Changelog</Text>
-                </View>
-                <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
-                  See what’s changed recently.
-                </Text>
-
-                <Pressable onPress={() => setChangelogOpen(true)} style={styles.notifHintBtn}>
-                  <Text style={styles.notifHintBtnText}>Open changelog</Text>
-
-
-                </Pressable>
-
-      
-
 
               </View>
 
@@ -6781,7 +7645,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
           <View style={[styles.modalSheet, { height: Math.min(520, SCREEN_H * 0.68) }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>📌 Event Details</Text>
+              <Text style={styles.modalTitle}>?? Event Details</Text>
               <Pressable
                 onPress={() => {
                   setEventDetailsOpen(false);
@@ -6862,9 +7726,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
         </View>
       </Modal>
 
-
-
-
       {/* Roadmap modal */}
       <Modal
         visible={roadmapOpen}
@@ -6888,7 +7749,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
           <View style={[styles.modalSheet, { height: Math.min(820, SCREEN_H * 0.875) }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🌱 Roadmap</Text>
+              <Text style={styles.modalTitle}>?? Roadmap</Text>
               <Pressable onPress={() => setRoadmapOpen(false)} style={styles.modalClose} hitSlop={12}>
                 <Ionicons name="close" size={22} color={SOFT_WHITE_DIM} />
               </Pressable>
@@ -6907,70 +7768,70 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🌤️ Now</Text>
+                <Text style={styles.modalSectionTitle}>??? Now</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  • In-game time & event tracking{"\n"}• Notifications you control{"\n"}• Clean, cozy display options{"\n"}• Designed for calm, low-attention use
+                  � In-game time & event tracking{"\n"}� Notifications you control{"\n"}� Clean, cozy display options{"\n"}� Designed for calm, low-attention use
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🎨 Themes & Personalisation</Text>
+                <Text style={styles.modalSectionTitle}>?? Themes & Personalisation</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Multiple visual themes inspired by Palia{"\n"}Light, dark, and cozy mood presets{"\n"}Subtle accent colour choices{"\n\n"}Personalisation without clutter or noise{"\n"}Your app should feel like your plot.
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>❄️ Seasonal Updates</Text>
+                <Text style={styles.modalSectionTitle}>?? Seasonal Updates</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Limited-time events (Winterlights, seasonal festivals){"\n"}Event-aware reminders{"\n"}Optional seasonal visual touches
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🌙 Progression & Paths</Text>
+                <Text style={styles.modalSectionTitle}>?? Progression & Paths</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Lunar Path tracking{"\n"}Reward reminders{"\n"}Support for future paths
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🏡 Housing & Planning</Text>
+                <Text style={styles.modalSectionTitle}>?? Housing & Planning</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Decor & crafting planning tools{"\n"}Furniture sets & tint references{"\n"}Home project checklists
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🤝 Social & Story</Text>
+                <Text style={styles.modalSectionTitle}>?? Social & Story</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   NPC relationship tracking{"\n"}Friendship & story reminders{"\n"}Light group planning tools
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🗺️ Exploration</Text>
+                <Text style={styles.modalSectionTitle}>??? Exploration</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Zone-based events & activities{"\n"}Exploration checklists{"\n"}Time-sensitive highlights
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>🧘 Comfort & Accessibility</Text>
+                <Text style={styles.modalSectionTitle}>?? Comfort & Accessibility</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Adjustable text & motion{"\n"}Calm notification controls{"\n"}Designed for long, relaxed sessions
                 </Text>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>💾 Your Data, Your Control</Text>
+                <Text style={styles.modalSectionTitle}>?? Your Data, Your Control</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
                   Backup & restore options{"\n"}Multi-device safety{"\n"}Long-term reliability
                 </Text>
               </View>
 
 	              <View style={styles.modalSection}>
-	                <Text style={styles.modalSectionTitle}>💬 Player Feedback</Text>
+	                <Text style={styles.modalSectionTitle}>?? Player Feedback</Text>
 	                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
 	                  Simple ways to share ideas{"\n"}Feedback helps shape future updates
 	                </Text>
@@ -6980,21 +7841,20 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 	            {/* Outside-the-card footer line */}
 	            <View style={[styles.roadmapFooterWrap, { paddingBottom: insets.bottom + 18 }]}>
 	              <Text style={styles.roadmapFooterText}>
-	                ✨ Features arrive gradually. Nothing here is required. Everything is optional.
+	                ? Features arrive gradually. Nothing here is required. Everything is optional.
 	              </Text>
 	            </View>
           </View>
         </View>
       </Modal>
 
-
-      {/* Changelog modal */}
+      {/* Event details modal */}
       <Modal
-        visible={changelogOpen}
+        visible={eventDetailsOpen}
         transparent
         animationType="slide"
         statusBarTranslucent
-        onRequestClose={() => setChangelogOpen(false)}
+        onRequestClose={() => setEventDetailsOpen(false)}
       >
         <View style={styles.modalBackdrop}>
           {/* Blurred background behind the sheet */}
@@ -7007,7 +7867,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
           {/* Soft dim over blur */}
           <View pointerEvents="none" style={styles.backdropDimSoft} />
 
-          <Pressable style={styles.modalBackdropPress} onPress={() => setChangelogOpen(false)} />
+          <Pressable style={styles.modalBackdropPress} onPress={() => setEventDetailsOpen(false)} />
 
           <View style={[styles.modalSheet, { height: Math.min(820, SCREEN_H * 0.875) }]}>
             <View style={styles.modalHeader}>
@@ -7017,7 +7877,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </View>
                 <Text style={styles.modalTitle}>Changelog</Text>
               </View>
-              <Pressable onPress={() => setChangelogOpen(false)} style={styles.modalClose} hitSlop={12}>
+              <Pressable onPress={() => setEventDetailsOpen(false)} style={styles.modalClose} hitSlop={12}>
                 <Ionicons name="close" size={22} color={SOFT_WHITE_DIM} />
               </Pressable>
             </View>
@@ -7028,72 +7888,72 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>January 2026 – Quality of Life Update</Text>
+                <Text style={styles.modalSectionTitle}>January 2026 � Quality of Life Update</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
                   A calmer, clearer update focused on guidance and polish.
                 </Text>
 
-                <Text style={styles.modalHint}>What’s new</Text>
+                <Text style={styles.modalHint}>What&apos;s new</Text>
                 <View style={{ gap: 4, marginBottom: 10 }}>
-                  <Text style={styles.notifHintText}>• Added a 'What’s New' banner on the home screen to highlight recent changes</Text>
-                  <Text style={styles.notifHintText}>• Added a notification reminder banner if notifications are turned off</Text>
-                  <Text style={styles.notifHintText}>• Added a quick 'Event Setup' shortcut from the 'Next Events' section</Text>
+                  <Text style={styles.notifHintText}>� Added a &apos;What&apos;s New&apos; banner on the home screen to highlight recent changes</Text>
+                  <Text style={styles.notifHintText}>� Added a notification reminder banner if notifications are turned off</Text>
+                  <Text style={styles.notifHintText}>� Added a quick &apos;Event Setup&apos; shortcut from the &apos;Next Events&apos; section</Text>
                 </View>
 
                 <Text style={styles.modalHint}>Improvements</Text>
                 <View style={{ gap: 4 }}>
-                  <Text style={styles.notifHintText}>• Unified banner styling with a darker, softer design</Text>
-                  <Text style={styles.notifHintText}>• Reduced visual clutter and improved text hierarchy</Text>
-                  <Text style={styles.notifHintText}>• Removed the clock rotation button from the home screen (still available in 'Settings')</Text>
+                  <Text style={styles.notifHintText}>� Unified banner styling with a darker, softer design</Text>
+                  <Text style={styles.notifHintText}>� Reduced visual clutter and improved text hierarchy</Text>
+                  <Text style={styles.notifHintText}>� Removed the clock rotation button from the home screen (still available in &apos;Settings&apos;)</Text>
                 </View>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>January 2026 – Visual Polish &amp; Stability</Text>
+                <Text style={styles.modalSectionTitle}>January 2026 � Visual Polish &amp; Stability</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
                   This update focused on making the app feel smoother and more consistent.
                 </Text>
 
                 <Text style={styles.modalHint}>Improvements</Text>
                 <View style={{ gap: 4 }}>
-                  <Text style={styles.notifHintText}>• Refined the home screen layout so the clock feels like the main focus</Text>
-                  <Text style={styles.notifHintText}>• Improved animations for a calmer, more “cosy” feel</Text>
-                  <Text style={styles.notifHintText}>• Cleaned up event lists and spacing for better readability</Text>
+                  <Text style={styles.notifHintText}>� Refined the home screen layout so the clock feels like the main focus</Text>
+                  <Text style={styles.notifHintText}>� Improved animations for a calmer, more �cosy� feel</Text>
+                  <Text style={styles.notifHintText}>� Cleaned up event lists and spacing for better readability</Text>
                 </View>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>January 2026 – Notifications &amp; Platform Improvements</Text>
+                <Text style={styles.modalSectionTitle}>January 2026 � Notifications &amp; Platform Improvements</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
                   Behind-the-scenes work to make reminders behave properly.
                 </Text>
 
-                <Text style={styles.modalHint}>What’s new</Text>
+                <Text style={styles.modalHint}>What&apos;s new</Text>
                 <View style={{ gap: 4, marginBottom: 10 }}>
-                  <Text style={styles.notifHintText}>• Added further support for event notifications</Text>
-                  <Text style={styles.notifHintText}>• Notifications are now off by default and only request permission when enabled</Text>
+                  <Text style={styles.notifHintText}>� Added further support for event notifications</Text>
+                  <Text style={styles.notifHintText}>� Notifications are now off by default and only request permission when enabled</Text>
                 </View>
 
                 <Text style={styles.modalHint}>Fixes &amp; improvements</Text>
                 <View style={{ gap: 4 }}>
-                  <Text style={styles.notifHintText}>• Improved Android notification reliability</Text>
-                  <Text style={styles.notifHintText}>• Fixed navigation bar and layout issues on Android</Text>
-                  <Text style={styles.notifHintText}>• Improved handling of alarms and reminders</Text>
+                  <Text style={styles.notifHintText}>� Improved Android notification reliability</Text>
+                  <Text style={styles.notifHintText}>� Fixed navigation bar and layout issues on Android</Text>
+                  <Text style={styles.notifHintText}>� Improved handling of alarms and reminders</Text>
                 </View>
               </View>
 
               <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>December 2025 – Core Features</Text>
+                <Text style={styles.modalSectionTitle}>December 2025 � Core Features</Text>
                 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
                   The foundation of the app.
                 </Text>
 
-                <Text style={styles.modalHint}>What’s new</Text>
+                <Text style={styles.modalHint}>What&apos;s new</Text>
                 <View style={{ gap: 4 }}>
-                  <Text style={styles.notifHintText}>• Added the in-game Palia clock with day, evening, and night phases</Text>
-                  <Text style={styles.notifHintText}>• Added event tracking and countdowns</Text>
-                  <Text style={styles.notifHintText}>• Added the 'Next Events' list to the home screen to show what’s coming up next</Text>
-                  <Text style={styles.notifHintText}>• Added custom events</Text>
+                  <Text style={styles.notifHintText}>� Added the in-game Palia clock with day, evening, and night phases</Text>
+                  <Text style={styles.notifHintText}>� Added event tracking and countdowns</Text>
+                  <Text style={styles.notifHintText}>� Added the &apos;Next Events&apos; list to the home screen to show what&apos;s coming up next</Text>
+                  <Text style={styles.notifHintText}>� Added custom events</Text>
                 </View>
               </View>
 
@@ -7104,15 +7964,14 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </Text>
 
                 <View style={{ gap: 4 }}>
-                  <Text style={styles.notifHintText}>• Initial release of the Palia Event Tracker</Text>
-                  <Text style={styles.notifHintText}>• Focused on accuracy, timing, and core functionality</Text>
+                  <Text style={styles.notifHintText}>� Initial release of the Palia Event Tracker</Text>
+                  <Text style={styles.notifHintText}>� Focused on accuracy, timing, and core functionality</Text>
                 </View>
               </View>
-</ScrollView>
+            </ScrollView>
           </View>
         </View>
       </Modal>
-
 
 {/* SECTION 19.10) Status bar */}
 
@@ -7120,10 +7979,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     </View>
   );
 }
-
-
-
-
 
 // SECTION 20) STYLES
 
@@ -7264,7 +8119,6 @@ const makeStyles = (scale: number) => {
     lineHeight: t(15),
     fontFamily: FONT_ROUNDED,
   },
-
 
   bannerBullet: {
     marginTop: 4,
@@ -7460,7 +8314,7 @@ const makeStyles = (scale: number) => {
   nextHeaderLeft: {
     flexDirection: "row",
     alignItems: "baseline",
-    gap: 8,
+    gap: 6,
     flex: 1,
     paddingRight: 10,
   },
@@ -7473,7 +8327,7 @@ const makeStyles = (scale: number) => {
 
   nextTitle: { color: SOFT_WHITE, fontWeight: "900", fontSize: t(14), fontFamily: FONT_ROUNDED },
 
-  // Warm accent “key label”
+  // Warm accent �key label�
   nextMeta: { color: ACCENT, fontWeight: "900", fontSize: t(13), fontFamily: FONT_ROUNDED, opacity: 0.95 },
 
   nextPill: {
@@ -7495,31 +8349,50 @@ const makeStyles = (scale: number) => {
 
   nextList: { marginTop: 10 },
 
-  // Fish view: 3-column grid cards (used in both Now + Next)
+  // Fish view: 2-column grid cards (used in both Now + Next)
   fishGrid: {
     marginTop: 10,
-    flexDirection: "row",
-    flexWrap: "wrap",
     marginHorizontal: -4,
   },
 
+  fishRow: {
+    width: "100%",
+  },
+  fishRowCards: {
+    width: "100%",
+    flexDirection: "row",
+  },
+
   fishCell: {
-    width: "33.3333%",
+    width: "50%",
+    paddingHorizontal: 4,
+    paddingBottom: 8,
+  },
+
+  fishCellSpacer: {
+    opacity: 0,
+  },
+
+  // Notes row should span BOTH columns (full row width)
+  fishNotesRow: {
+    width: "100%",
     paddingHorizontal: 4,
     paddingBottom: 8,
   },
 
   fishCard: {
-    // +50% vertical height (was 92)
-    minHeight: 138,
+    // Fixed card height
+    height: 235,
     borderRadius: 12,
-    padding: 10,
+    padding: 8,
     backgroundColor: "rgba(255,255,255,0.050)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.06)",
-    overflow: "hidden",
   },
 
+  fishCardActive: {
+    borderColor: ACCENT,
+  },
 
   fishCardInner: {
     flex: 1,
@@ -7527,29 +8400,67 @@ const makeStyles = (scale: number) => {
   },
 
   fishImageSlot: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 70,
+    height: 70,
+    borderRadius: 14,
     backgroundColor: "rgba(255,255,255,0.055)",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.08)",
     overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   fishImage: {
-    width: "100%",
-    height: "100%",
+    width: "90%",
+    height: "90%",
     resizeMode: "cover",
+    alignSelf: "center",
+  },
+
+  fishTodRow: {
+    width: "100%",
+    marginTop: 6,
+    alignItems: "center",
+  },
+  fishTodRowInner: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+  },
+  fishTodDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.10)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.16)",
+  },
+  fishTodDotOff: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+  fishTodDotText: {
+    color: "rgba(10,12,11,0.88)",
+    fontSize: t(10),
+    fontWeight: "900",
+    letterSpacing: 0.3,
+  },
+  fishTodDotTextOff: {
+    color: "rgba(255,255,255,0.35)",
   },
 
   fishBottomBlock: {
     marginTop: 8,
   },
   fishTopRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: 8,
+    flexDirection: "column",
+    alignItems: "stretch",
+    justifyContent: "flex-start",
+    marginBottom: 6,
   },
 
   fishTitle: {
@@ -7574,12 +8485,24 @@ const makeStyles = (scale: number) => {
     color: SOFT_WHITE_FAINT,
     fontWeight: "800",
     fontSize: t(10.5),
-    lineHeight: t(13),
+    lineHeight: t(12),
     fontFamily: FONT_ROUNDED,
+  },
+  fishInfoBlock: {
+    marginTop: 4,
+    gap: 0,
+  },
+
+  fishInfoLine: {
+    marginTop: 0,
   },
 
   fishMetaRow: {
     marginTop: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 0,
   },
 
   fishMetaText: {
@@ -7692,7 +8615,6 @@ const makeStyles = (scale: number) => {
   },
   nowEndTime: { color: SOFT_WHITE, fontWeight: "900", fontSize: t(12), fontFamily: FONT_ROUNDED },
 
-
   nowCountdownWrap: { marginTop: 10, marginBottom: 4 },
   nowBarRow: { flexDirection: "row", alignItems: "center", gap: 8 },
 
@@ -7728,7 +8650,6 @@ const makeStyles = (scale: number) => {
     fontFamily: FONT_ROUNDED,
   },
 
-
   nextSetupBtn: {
     marginTop: 10,
     alignSelf: "flex-start",
@@ -7747,7 +8668,6 @@ const makeStyles = (scale: number) => {
     letterSpacing: t(0.3),
     fontFamily: FONT_ROUNDED,
   },
-
 
 // SECTION 20.10) Editing state pill
 
@@ -7795,7 +8715,7 @@ const makeStyles = (scale: number) => {
     marginTop: 12,
     marginBottom: 10,
 
-    // Keep wrapping tidy without visual “stair-steps”
+    // Keep wrapping tidy without visual �stair-steps�
     marginRight: -8,
   },
 
@@ -7803,7 +8723,7 @@ const makeStyles = (scale: number) => {
   folderBulkRight: { marginLeft: "auto" },
   folderBulkBtn: { marginRight: 8, marginBottom: 8 },
 
-  // Cozy folder action chips (lighter than “control panel” buttons)
+  // Cozy folder action chips (lighter than �control panel� buttons)
   actionChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -7831,8 +8751,6 @@ const makeStyles = (scale: number) => {
     paddingBottom: 2,
     backgroundColor: "transparent",
   },
-
-
 
 // SECTION 20.13) Inputs
 
@@ -8135,7 +9053,7 @@ const makeStyles = (scale: number) => {
     paddingVertical: 12,
     paddingHorizontal: 14,
 
-    // Cozy “pill card” (no Android blue glass)
+    // Cozy �pill card� (no Android blue glass)
     backgroundColor: "rgba(255,255,255,0.045)",
     borderWidth: 0,
 borderRadius: 14,
@@ -8198,9 +9116,9 @@ borderRadius: 14,
   },
   checkMark: { color: ACCENT, fontWeight: "900", fontSize: t(14), includeFontPadding: false },
 
-  markerTextCol: { flex: 1, marginLeft: 10, marginRight: 10 },
-  markerName: { color: SOFT_WHITE, fontWeight: "900", fontSize: t(14), lineHeight: t(18), fontFamily: FONT_ROUNDED },
-  markerLocation: { color: SOFT_WHITE_FAINT, fontSize: t(11), marginTop: 2, lineHeight: t(14), fontFamily: FONT_ROUNDED },
+  markerTextCol: { flex: 1, marginLeft: 10, marginRight: 10, flexShrink: 1 },
+  markerName: { color: SOFT_WHITE, fontWeight: "900", fontSize: t(14), lineHeight: t(18), fontFamily: FONT_ROUNDED, flexWrap: "wrap" },
+  markerLocation: { color: SOFT_WHITE_FAINT, fontSize: t(11), marginTop: 2, lineHeight: t(14), fontFamily: FONT_ROUNDED, flexWrap: "wrap" },
   dimText: { opacity: 0.6 },
 
   markerTimeRow: { flexDirection: "row", alignItems: "center", marginTop: 6, gap: 8 },
@@ -8234,7 +9152,7 @@ borderRadius: 14,
     justifyContent: "center",
   },
 
-  // Notify uses the same base size, just different “on” tint
+  // Notify uses the same base size, just different �on� tint
   notifyIconChip: {},
   notifyIconChipOn: { backgroundColor: `rgba(${ACCENT_RGB},0.18)` },
   notifyIconChipOff: { backgroundColor: "rgba(255,255,255,0.045)" },
@@ -8309,7 +9227,7 @@ borderRadius: 14,
   },
 
   drawerSheet: {
-    // ✅ Use absolute top/bottom (set inline) instead of % height + margins
+    // ? Use absolute top/bottom (set inline) instead of % height + margins
     position: "absolute",
     left: 8,
     borderRadius: 22,
@@ -8370,7 +9288,7 @@ borderRadius: 14,
 
   drawerFooter: {
     paddingTop: 15,
-    paddingBottom: 20, // ✅ bottom clearance is handled by sheet bottom inset now
+    paddingBottom: 20, // ? bottom clearance is handled by sheet bottom inset now
     paddingHorizontal: 14,
     borderTopWidth: 1,
     borderTopColor: "rgba(255,255,255,0.08)",
@@ -8598,7 +9516,6 @@ modalSectionTitle: {
     fontFamily: FONT_ROUNDED,
   },
 
-
 // Clock Settings (sub-cards inside the Settings modal)
 clockSettingsCard: {
   borderRadius: 14,
@@ -8617,7 +9534,6 @@ clockSettingsSubTitle: {
   fontFamily: FONT_ROUNDED,
   letterSpacing: t(0.2),
 },
-
 
   modalHint: {
     color: SOFT_WHITE_DIM,
@@ -8781,7 +9697,6 @@ clockSettingsSubTitle: {
   viewModeSegmentTextOn: {
     color: ACCENT,
   },
-
 
   nextCountSegmentItem: {
     paddingHorizontal: 8,

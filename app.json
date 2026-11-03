@@ -2,6 +2,7 @@
   "expo": {
     "name": "Palia Time Tracker",
     "slug": "palia-time-tracker",
+    "scheme": "palia-time-tracker",
     "android": {
       "package": "com.daleowen.paliatimetracker"
     },
