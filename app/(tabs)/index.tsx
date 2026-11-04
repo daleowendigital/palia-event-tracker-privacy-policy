@@ -2579,6 +2579,766 @@ const FishNotesBox = React.memo(function FishNotesBox({ notes, styles }: { notes
   );
 });
 
+// Keep picker visibility local so opening it does not re-render the fish lists.
+const ModePicker = React.memo(function ModePicker({
+  clockViewMode, isPageLoading, styles, onModeChange,
+}: {
+  clockViewMode: "events" | "fish";
+  isPageLoading: boolean;
+  styles: ReturnType<typeof makeStyles>;
+  onModeChange: (mode: "events" | "fish") => void;
+}) {
+  const [clockViewOpen, setClockViewOpen] = useState(false);
+
+  return (
+    <View style={styles.clockViewRow}>
+      <View style={[styles.clockViewGroup, clockViewOpen && styles.clockViewGroupOpen]}>
+        <Pressable
+          onPress={() => setClockViewOpen((v) => !v)}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.clockViewEyeBtn,
+            clockViewOpen && styles.clockViewEyeBtnOpen,
+            pressed && { opacity: 0.78 },
+          ]}
+        >
+          <Ionicons name="eye-outline" size={16} color={SOFT_WHITE} />
+        </Pressable>
+
+        {isPageLoading ? (
+          <View style={{ marginLeft: 8, paddingRight: 12 }}>
+            <ActivityIndicator size="small" color={SOFT_WHITE} />
+          </View>
+        ) : null}
+
+        {clockViewOpen ? (
+          <View style={styles.clockViewOptions}>
+            {([
+              { key: "events", label: "Events" },
+              { key: "fish", label: "Fish" },
+            ] as const).map((it) => {
+              const active = clockViewMode === it.key;
+              return (
+                <Pressable
+                  key={it.key}
+                  onPress={() => {
+                    if (active) {
+                      setClockViewOpen(false);
+                      return;
+                    }
+
+                    setClockViewOpen(false);
+                    onModeChange(it.key);
+                  }}
+                  style={[styles.clockViewOptionItem, active && styles.clockViewOptionItemOn]}
+                  hitSlop={6}
+                >
+                  <Text
+                    style={[styles.clockViewOptionText, active && styles.clockViewOptionTextOn]}
+                  >
+                    {it.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : null}
+      </View>
+    </View>
+  );
+});
+
+type NowItem = {
+  id: string;
+  baseId?: string;
+  eventName: string;
+  location: string;
+  // Range times (used for Ends In + progress)
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
+  totalRangeMins: number;
+
+  endsInMins: number;
+  endLabel: string;
+};
+
+type FishTimeDotProps = {
+  label: string;
+  on: boolean;
+  keyName: keyof typeof FISH_CARD_TIME_OF_DAY_COLORS;
+};
+
+type FishCardRenderData = {
+  rarityColors: { border: string; bg: string };
+  periodsFlags: { morning: boolean; day: boolean; evening: boolean; night: boolean };
+  baitShort: string;
+};
+
+type FishGridDisplayProps = {
+  styles: ReturnType<typeof makeStyles>;
+  markerMap: Map<string, Marker>;
+  fishCardRenderDataCache: Map<string, FishCardRenderData>;
+  shouldLoadFishImages: boolean;
+  caughtFish: Record<string, { standard: boolean; star: boolean }>;
+  FishTimeDot: React.ComponentType<FishTimeDotProps>;
+  nextCardGuardRef: { current: boolean };
+  toggleCaughtStandard: (fishId: string) => void;
+  toggleCaughtStar: (fishId: string) => void;
+  toggleNotify: (fishId: string) => void;
+};
+
+const NowFishGrid = React.memo(function NowFishGrid({
+  styles, markerMap, fishCardRenderDataCache, shouldLoadFishImages, caughtFish, FishTimeDot, nextCardGuardRef, toggleCaughtStandard, toggleCaughtStar, toggleNotify,
+  nowItems, renderFishCount, expandedNowNotesId, setExpandedNowNotesId,
+}: FishGridDisplayProps & {
+  nowItems: NowItem[];
+  renderFishCount: number;
+  expandedNowNotesId: string | null;
+  setExpandedNowNotesId: React.Dispatch<React.SetStateAction<string | null>>;
+}) {
+  return (
+    <View style={styles.fishGrid}>
+      {(() => {
+        const itemsToRender = nowItems.slice(0, renderFishCount);
+        const pairs: (typeof nowItems)[number][][] = [];
+        for (let i = 0; i < itemsToRender.length; i += 2) {
+          const a = itemsToRender[i];
+          const b = itemsToRender[i + 1];
+          pairs.push([a, ...(b ? [b] : [])]);
+        }
+
+        return pairs.map((row, rowIdx) => {
+          const openId = expandedNowNotesId;
+          const openInRow = !!openId && row.some((x) => x.id === openId);
+          const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+          const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
+
+          return (
+            <View key={`nowfish-row-${rowIdx}`} style={styles.fishRow}>
+              <View style={styles.fishRowCards}>
+                {row.map((it) => {
+                  const marker = markerMap.get(it.baseId ?? it.id);
+                  const isOpen = expandedNowNotesId === it.id;
+
+                  return (
+                    <View key={`nowfish-${it.id}`} style={styles.fishCell}>
+                      <Pressable
+                        onPress={() => {
+                          if (nextCardGuardRef.current) {
+                            nextCardGuardRef.current = false;
+                            return;
+                          }
+                          setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
+                        }}
+                        style={({ pressed }) => [
+                          styles.fishCard,
+                          isOpen && styles.fishCardActive,
+                          pressed && PRESSED_FISH_CARD_STYLE,
+                        ]}
+                        android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                      >
+                        <View style={styles.fishCardInner}>
+                          <View style={styles.fishTopRow}>
+                            <View style={{ flexDirection: "row", gap: 6 }}>
+                              {(() => {
+                                const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+                                const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+                                return (
+                                  <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+                                    {canLoadImage ? (
+                                      <Image
+                                        source={{ uri: marker.imageUrl }}
+                                        style={styles.fishImage}
+                                        resizeMode="cover"
+                                        onError={(e) =>
+                                          console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)
+                                        }
+                                      />
+                                    ) : null}
+                                  </View>
+                                );
+                              })()}
+
+                              {/* Caught checkboxes */}
+                              <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+                                <Pressable
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    toggleCaughtStandard(marker?.id ?? "");
+                                  }}
+                                  style={({ pressed }) => [
+                                    {
+                                      borderRadius: 16,
+                                      borderWidth: 1,
+                                      borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+                                      backgroundColor: "rgba(0,0,0,0.25)",
+                                      flex: 1,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    },
+                                    pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                  ]}
+                                >
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={18}
+                                    color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+                                    style={{ opacity: 1 }}
+                                  />
+                                </Pressable>
+
+                                <Pressable
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    toggleCaughtStar(marker?.id ?? "");
+                                  }}
+                                  style={({ pressed }) => [
+                                    {
+                                      borderRadius: 16,
+                                      borderWidth: 1,
+                                      borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+                                      backgroundColor: "rgba(0,0,0,0.25)",
+                                      flex: 1,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    },
+                                    pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                  ]}
+                                >
+                                  <Ionicons
+                                    name="star"
+                                    size={14}
+                                    color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+                                    style={{ opacity: 1 }}
+                                  />
+                                </Pressable>
+                              </View>
+                            </View>
+                            {(() => {
+                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                              const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
+
+                              return (
+                                <View style={styles.fishTodRow}>
+                                  <View style={styles.fishTodRowInner}>
+                                    <FishTimeDot label="M" on={f.morning} keyName="morning" />
+                                    <FishTimeDot label="D" on={f.day} keyName="day" />
+                                    <FishTimeDot label="E" on={f.evening} keyName="evening" />
+                                    <FishTimeDot label="N" on={f.night} keyName="night" />
+                                  </View>
+                                </View>
+                              );
+                            })()}
+                          </View>
+
+                          <View style={styles.fishBottomBlock}>
+                            <Text style={styles.fishTitle} numberOfLines={2}>
+                              {it.eventName}
+                            </Text>
+
+                            {(() => {
+                              const loc = it.location ? `L: ${it.location}` : "";
+                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                              const bait = renderData?.baitShort ?? "";
+
+                              return (
+                                <View style={styles.fishInfoBlock}>
+                                  {loc ? (
+                                    <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                      <Text style={styles.fishSub}>L: </Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{it.location}</Text>
+                                    </View>
+                                  ) : null}
+                                  {bait ? (
+                                    <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                      <Text style={styles.fishSub}>B: </Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+                                    </View>
+                                  ) : null}
+                                </View>
+                              );
+                            })()}
+
+                            <View style={styles.fishMetaRow}>
+                              <Text style={styles.fishMetaText} numberOfLines={1}>
+                                {fishAppearsIsAnyTime(marker?.notes) ? "Any Time" : `Ends ${it.endHour != null ? format12hTime(it.endHour, it.endMinute ?? 0) : "—"}`}
+                              </Text>
+
+                              <ScalePressable
+                                onPress={() => {
+                                  if (!marker) return;
+                                  toggleNotify(marker.id);
+                                }}
+                                style={styles.fishBellBtn}
+                              >
+                                <Ionicons
+                                  name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                  size={16}
+                                  color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                />
+                              </ScalePressable>
+                            </View>
+                          </View>
+                        </View>
+                      </Pressable>
+                    </View>
+                  );
+                })}
+
+                {row.length === 1 ? (
+                  <View style={[styles.fishCell, styles.fishCellSpacer]} />
+                ) : null}
+              </View>
+
+              {openInRow ? (
+                <View style={styles.fishNotesRow}>
+                  <FishNotesBox notes={openMarker?.notes} styles={styles} />
+                </View>
+              ) : null}
+            </View>
+          );
+        });
+      })()}
+    </View>
+  );
+});
+
+const NextFishGrid = React.memo(function NextFishGrid({
+  styles, markerMap, fishCardRenderDataCache, shouldLoadFishImages, caughtFish, FishTimeDot, nextCardGuardRef, toggleCaughtStandard, toggleCaughtStar, toggleNotify,
+  fishGridPairs, filteredFishMode, expandedNextNotesId, setExpandedNextNotesId, splitName,
+}: FishGridDisplayProps & {
+  fishGridPairs: HomeMarker[][];
+  filteredFishMode: boolean;
+  expandedNextNotesId: string | null;
+  setExpandedNextNotesId: React.Dispatch<React.SetStateAction<string | null>>;
+  splitName: (name: string) => { eventName: string; location: string };
+}) {
+  return (
+    <View style={styles.fishGrid}>
+      {fishGridPairs.map((row, rowIdx) => {
+        const openId = expandedNextNotesId;
+        const openInRow = !!openId && row.some((x) => x.id === openId);
+        const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+        const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
+
+        return (
+          <View key={`nextfish-row-${rowIdx}`} style={styles.fishRow}>
+            <View style={styles.fishRowCards}>
+              {row.map((m) => {
+                const marker = markerMap.get((m as any).baseId ?? m.id);
+                const isOpen = expandedNextNotesId === m.id;
+                const { eventName, location } = splitName(m.name);
+
+                  return (
+                    <View key={`nextfish-${m.id}`} style={styles.fishCell}>
+                              <Pressable
+                                onPress={() => {
+                                  if (nextCardGuardRef.current) {
+                                    nextCardGuardRef.current = false;
+                                    return;
+                                  }
+                                  setExpandedNextNotesId((prev) => (prev === m.id ? null : m.id));
+                                }}
+              style={({ pressed }) => [
+                styles.fishCard,
+                isOpen && styles.fishCardActive,
+                pressed && PRESSED_FISH_CARD_STYLE,
+              ]}
+                                android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                              >
+                                <View style={styles.fishCardInner}>
+                                  <View style={styles.fishTopRow}>
+                                    {(() => {
+                                      const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                      const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+                                      const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+                                      return (
+                                        <View style={{ flexDirection: "row", gap: 6 }}>
+                                          <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+                                            {canLoadImage ? (
+                                              <Image
+                                                source={{ uri: marker.imageUrl }}
+                                                style={styles.fishImage}
+                                                resizeMode="cover"
+                                                onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
+                                              />
+                                            ) : null}
+                                          </View>
+
+                                          {/* Caught checkboxes */}
+                                          <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+                                            <Pressable
+                                              onPress={(e) => {
+                                                e.stopPropagation();
+                                                toggleCaughtStandard(marker?.id ?? "");
+                                              }}
+                                              style={({ pressed }) => [
+                                                {
+                                                  borderRadius: 16,
+                                                  borderWidth: 1,
+                                                  borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+                                                  backgroundColor: "rgba(0,0,0,0.25)",
+                                                  flex: 1,
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                },
+                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                              ]}
+                                            >
+                                              <Ionicons
+                                                name="checkmark"
+                                                size={18}
+                                                color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+                                                style={{ opacity: 1 }}
+                                              />
+                                            </Pressable>
+
+                                            <Pressable
+                                              onPress={(e) => {
+                                                e.stopPropagation();
+                                                toggleCaughtStar(marker?.id ?? "");
+                                              }}
+                                              style={({ pressed }) => [
+                                                {
+                                                  borderRadius: 16,
+                                                  borderWidth: 1,
+                                                  borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+                                                  backgroundColor: "rgba(0,0,0,0.25)",
+                                                  flex: 1,
+                                                  alignItems: "center",
+                                                  justifyContent: "center",
+                                                },
+                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                              ]}
+                                            >
+                                              <Ionicons
+                                                name="star"
+                                                size={14}
+                                                color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+                                                style={{ opacity: 1 }}
+                                              />
+                                            </Pressable>
+                                          </View>
+                                        </View>
+                                      );
+                                    })()}
+                                    {(() => {
+                                      const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                      const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
+
+                                      return (
+                                        <View style={styles.fishTodRow}>
+                                          <View style={styles.fishTodRowInner}>
+                                            <FishTimeDot label="M" on={f.morning} keyName="morning" />
+                                            <FishTimeDot label="D" on={f.day} keyName="day" />
+                                            <FishTimeDot label="E" on={f.evening} keyName="evening" />
+                                            <FishTimeDot label="N" on={f.night} keyName="night" />
+                                          </View>
+                                        </View>
+                                      );
+                                    })()}
+
+                                  </View>
+
+                                  <View style={styles.fishBottomBlock}>
+                                    <Text style={styles.fishTitle} numberOfLines={2}>
+                                      {eventName}
+                                    </Text>
+
+                                    {(() => {
+                                      const loc = location ? `L: ${location}` : "";
+                                      const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                      const bait = renderData?.baitShort ?? "";
+
+                                      return (
+                                        <View style={styles.fishInfoBlock}>
+                                          {loc ? (
+                                            <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                              <Text style={styles.fishSub}>L: </Text>
+                                              <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                            </View>
+                                          ) : null}
+                                          {bait ? (
+                                            <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                              <Text style={styles.fishSub}>B: </Text>
+                                              <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+                                            </View>
+                                          ) : null}
+                                        </View>
+                                      );
+                                    })()}
+
+                                    <View style={styles.fishMetaRow}>
+                                      {filteredFishMode ? <View style={{ flex: 1 }} /> : (
+                                        <Text style={styles.fishMetaText} numberOfLines={1}>
+                                          Ends {format12hTime(m.hour, m.minute)}
+                                        </Text>
+                                      )}
+
+                                      <ScalePressable
+                                        onPress={() => {
+                                          if (!marker) return;
+                                          toggleNotify(marker.id);
+                                        }}
+                                        style={styles.fishBellBtn}
+                                      >
+                                        <Ionicons
+                                          name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
+                                          size={16}
+                                          color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                        />
+                                      </ScalePressable>
+                                    </View>
+                                  </View>
+                                </View>
+                              </Pressable>
+
+                    </View>
+                  );
+                })}
+
+                {row.length === 1 ? (
+                  <View style={[styles.fishCell, styles.fishCellSpacer]} />
+                ) : null}
+              </View>
+
+              {openInRow ? (
+                <View style={styles.fishNotesRow}>
+                  <View style={styles.eventNotesDrop}>
+                    <Text style={styles.eventNotesLabel}>Notes</Text>
+                    <Text style={styles.eventNotesText}>
+                      {String(openMarker?.notes ?? "").trim().length > 0
+                        ? String(openMarker?.notes).trim()
+                        : "No notes yet."}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          );
+      })}
+                      </View>
+  );
+});
+
+const AllDayFishGrid = React.memo(function AllDayFishGrid({
+  styles, markerMap, fishCardRenderDataCache, shouldLoadFishImages, caughtFish, FishTimeDot, nextCardGuardRef, toggleCaughtStandard, toggleCaughtStar, toggleNotify,
+  displayedAllDayFish, expandedNowNotesId, setExpandedNowNotesId, splitName,
+}: FishGridDisplayProps & {
+  displayedAllDayFish: HomeMarker[];
+  expandedNowNotesId: string | null;
+  setExpandedNowNotesId: React.Dispatch<React.SetStateAction<string | null>>;
+  splitName: (name: string) => { eventName: string; location: string };
+}) {
+  return (
+    <View style={styles.fishGrid}>
+      {(() => {
+        const pairs: typeof displayedAllDayFish[number][][] = [];
+        for (let i = 0; i < displayedAllDayFish.length; i += 2) {
+          const a = displayedAllDayFish[i];
+          const b = displayedAllDayFish[i + 1];
+          pairs.push([a, ...(b ? [b] : [])]);
+        }
+
+        return pairs.map((row, rowIdx) => {
+          const openId = expandedNowNotesId;
+          const openInRow = !!openId && row.some((x) => x.id === openId);
+          const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
+          const openMarker = openItem ? markerMap.get(openItem.id) : undefined;
+
+          return (
+            <View key={`allday-row-${rowIdx}`} style={styles.fishRow}>
+              <View style={styles.fishRowCards}>
+                {row.map((fish) => {
+                  const marker = markerMap.get(fish.id);
+                  const isOpen = expandedNowNotesId === fish.id;
+                  const { eventName, location } = splitName(fish.name);
+
+                  return (
+                    <View key={`allday-${fish.id}`} style={styles.fishCell}>
+                      <Pressable
+                        onPress={() => {
+                          if (nextCardGuardRef.current) {
+                            nextCardGuardRef.current = false;
+                            return;
+                          }
+                          setExpandedNowNotesId((prev) => (prev === fish.id ? null : fish.id));
+                        }}
+                        style={({ pressed }) => [
+                          styles.fishCard,
+                          isOpen && styles.fishCardActive,
+                          pressed && PRESSED_FISH_CARD_STYLE,
+                        ]}
+                        android_ripple={{ color: "rgba(255,255,255,0.06)" }}
+                      >
+                        <View style={styles.fishCardInner}>
+                          <View style={styles.fishTopRow}>
+                            <View style={{ flexDirection: "row", gap: 6 }}>
+                              {(() => {
+                                const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                                const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
+                                const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
+                                return (
+                                  <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
+                                    {canLoadImage ? (
+                                      <Image
+                                        source={{ uri: marker.imageUrl }}
+                                        style={styles.fishImage}
+                                        resizeMode="cover"
+                                        onError={(e) =>
+                                          console.log("FISH IMG ERROR", marker?.id, marker?.imageUrl, e.nativeEvent)
+                                        }
+                                      />
+                                    ) : null}
+                                  </View>
+                                );
+                              })()}
+
+                              {/* Caught checkboxes */}
+                              <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
+                                <Pressable
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    toggleCaughtStandard(marker?.id ?? "");
+                                  }}
+                                  style={({ pressed }) => [
+                                    {
+                                      borderRadius: 16,
+                                      borderWidth: 1,
+                                      borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
+                                      backgroundColor: "rgba(0,0,0,0.25)",
+                                      flex: 1,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    },
+                                    pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                  ]}
+                                >
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={18}
+                                    color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
+                                    style={{ opacity: 1 }}
+                                  />
+                                </Pressable>
+
+                                <Pressable
+                                  onPress={(e) => {
+                                    e.stopPropagation();
+                                    toggleCaughtStar(marker?.id ?? "");
+                                  }}
+                                  style={({ pressed }) => [
+                                    {
+                                      borderRadius: 16,
+                                      borderWidth: 1,
+                                      borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
+                                      backgroundColor: "rgba(0,0,0,0.25)",
+                                      flex: 1,
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                    },
+                                    pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+                                  ]}
+                                >
+                                  <Ionicons
+                                    name="star"
+                                    size={14}
+                                    color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
+                                    style={{ opacity: 1 }}
+                                  />
+                                </Pressable>
+                              </View>
+                            </View>
+                            {(() => {
+                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                              const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
+
+                              return (
+                                <View style={styles.fishTodRow}>
+                                  <View style={styles.fishTodRowInner}>
+                                    <FishTimeDot label="M" on={f.morning} keyName="morning" />
+                                    <FishTimeDot label="D" on={f.day} keyName="day" />
+                                    <FishTimeDot label="E" on={f.evening} keyName="evening" />
+                                    <FishTimeDot label="N" on={f.night} keyName="night" />
+                                  </View>
+                                </View>
+                              );
+                            })()}
+                          </View>
+
+                          <View style={styles.fishBottomBlock}>
+                            <Text style={styles.fishTitle} numberOfLines={2}>
+                              {eventName}
+                            </Text>
+
+                            {(() => {
+                              const loc = location ? `L: ${location}` : "";
+                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
+                              const bait = renderData?.baitShort ?? "";
+
+                              return (
+                                <View style={styles.fishInfoBlock}>
+                                  {loc ? (
+                                    <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                      <Text style={styles.fishSub}>L: </Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                    </View>
+                                  ) : null}
+                                  {bait ? (
+                                    <View style={{ flexDirection: 'row', marginTop: 0 }}>
+                                      <Text style={styles.fishSub}>B: </Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
+                                    </View>
+                                  ) : null}
+                                </View>
+                              );
+                            })()}
+
+                            <View style={styles.fishMetaRow}>
+                              <View style={{ flex: 1 }} />
+
+                              <ScalePressable
+                                onPress={() => {
+                                  if (!marker) return;
+                                  toggleNotify(marker.id);
+                                }}
+                                style={{ padding: 4 }}
+                              >
+                                <Ionicons
+                                  name={marker?.notify ? "notifications" : "notifications-off"}
+                                  size={14}
+                                  color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
+                                />
+                              </ScalePressable>
+                            </View>
+                          </View>
+                        </View>
+                      </Pressable>
+                    </View>
+                  );
+                })}
+
+                {row.length === 1 ? (
+                  <View style={[styles.fishCell, styles.fishCellSpacer]} />
+                ) : null}
+              </View>
+
+              {openInRow ? (
+                <View style={styles.fishNotesRow}>
+                  <FishNotesBox notes={openMarker?.notes} styles={styles} />
+                </View>
+              ) : null}
+            </View>
+          );
+        });
+      })()}
+    </View>
+  );
+});
+
 export default function App() {
   Platform.OS !== "web" && useKeepAwake();
 
@@ -2596,9 +3356,13 @@ export default function App() {
   const [hydrated, setHydrated] = useState(false);
 
   // Home list mode (Events/Fish/Bugs)
-  const [clockViewOpen, setClockViewOpen] = useState(false);
   const [clockViewMode, setClockViewMode] = useState<"events" | "fish">("events");
   const [isPageLoading, setIsPageLoading] = useState(false);
+  const changeClockViewMode = useCallback((mode: "events" | "fish") => {
+    if (mode === clockViewMode) return;
+    setClockViewMode(mode);
+    setIsPageLoading(true);
+  }, [clockViewMode]);
 
   // Defer image loading until user switches to fish view (prevents network congestion on initial render)
   const [shouldLoadFishImages, setShouldLoadFishImages] = useState(false);
@@ -3430,21 +4194,6 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     return now >= start || now < end;
   }, []);
 
-  type NowItem = {
-    id: string;
-    baseId?: string;
-    eventName: string;
-    location: string;
-    // Range times (used for Ends In + progress)
-    startHour: number;
-    startMinute: number;
-    endHour: number;
-    endMinute: number;
-    totalRangeMins: number;
-
-    endsInMins: number;
-    endLabel: string;
-  };
 
   const nowItems = useMemo<NowItem[]>(() => {
     if (!homeListMarkers.length) return [];
@@ -4600,11 +5349,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   const styles = useMemo(() => makeStyles(textScale), [textScale]);
 
   // SECTION X.1.1) Memoized fish time-of-day dot component (prevents jitter with many fish)
-  type FishTimeDotProps = {
-    label: string;
-    on: boolean;
-    keyName: keyof typeof FISH_CARD_TIME_OF_DAY_COLORS;
-  };
 
   const FishTimeDot = useMemo(() => 
     React.memo(function FishTimeDot({ label, on, keyName }: FishTimeDotProps) {
@@ -4957,11 +5701,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   }, [markers]);
 
   // SECTION 15.2.X) Precompute fish card render data to speed up fish view rendering
-  type FishCardRenderData = {
-    rarityColors: { border: string; bg: string };
-    periodsFlags: { morning: boolean; day: boolean; evening: boolean; night: boolean };
-    baitShort: string;
-  };
 
   const fishCardRenderDataCache = useMemo(() => {
     const cache = new Map<string, FishCardRenderData>();
@@ -5250,62 +5989,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
             </View>
 
             {/* Clock view switcher (sits under the clock, not on top of it) */}
-            <View style={styles.clockViewRow}>
-              <View style={[styles.clockViewGroup, clockViewOpen && styles.clockViewGroupOpen]}>
-                <Pressable
-                  onPress={() => setClockViewOpen((v) => !v)}
-                  hitSlop={10}
-                  style={({ pressed }) => [
-                    styles.clockViewEyeBtn,
-                    clockViewOpen && styles.clockViewEyeBtnOpen,
-                    pressed && { opacity: 0.78 },
-                  ]}
-                >
-                  <Ionicons name="eye-outline" size={16} color={SOFT_WHITE} />
-                </Pressable>
-
-                {isPageLoading ? (
-                  <View style={{ marginLeft: 8, paddingRight: 12 }}>
-                    <ActivityIndicator size="small" color={SOFT_WHITE} />
-                  </View>
-                ) : null}
-
-                {clockViewOpen ? (
-                  <View style={styles.clockViewOptions}>
-                    {([
-                      { key: "events", label: "Events" },
-                      { key: "fish", label: "Fish" },
-                    ] as const).map((it) => {
-                      const active = clockViewMode === it.key;
-                      return (
-                        <Pressable
-                          key={it.key}
-                          onPress={() => {
-                            if (active) {
-                              setClockViewOpen(false);
-                              return;
-                            }
-
-                            // Change view immediately for instant feedback
-                            setClockViewMode(it.key);
-                            setIsPageLoading(true);
-                            setClockViewOpen(false);
-                          }}
-                          style={[styles.clockViewOptionItem, active && styles.clockViewOptionItemOn]}
-                          hitSlop={6}
-                        >
-                          <Text
-                            style={[styles.clockViewOptionText, active && styles.clockViewOptionTextOn]}
-                          >
-                            {it.label}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                ) : null}
-              </View>
-            </View>
+            <ModePicker
+              clockViewMode={clockViewMode}
+              isPageLoading={isPageLoading}
+              styles={styles}
+              onModeChange={changeClockViewMode}
+            />
 
             <View style={styles.timeOfDayRow}>
               {([
@@ -5391,210 +6080,22 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
               {nowSectionOpen && nowItems.length ? (
                 clockViewMode === "fish" ? (
-	                  <View style={styles.fishGrid}>
-	                    {(() => {
-	                      const itemsToRender = nowItems.slice(0, renderFishCount);
-	                      const pairs: (typeof nowItems)[number][][] = [];
-	                      for (let i = 0; i < itemsToRender.length; i += 2) {
-	                        const a = itemsToRender[i];
-	                        const b = itemsToRender[i + 1];
-	                        pairs.push([a, ...(b ? [b] : [])]);
-	                      }
-
-	                      return pairs.map((row, rowIdx) => {
-	                        const openId = expandedNowNotesId;
-	                        const openInRow = !!openId && row.some((x) => x.id === openId);
-	                        const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
-	                        const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
-
-	                        return (
-	                          <View key={`nowfish-row-${rowIdx}`} style={styles.fishRow}>
-	                            <View style={styles.fishRowCards}>
-	                              {row.map((it) => {
-	                                const marker = markerMap.get(it.baseId ?? it.id);
-	                                const isOpen = expandedNowNotesId === it.id;
-
-	                                return (
-	                                  <View key={`nowfish-${it.id}`} style={styles.fishCell}>
-	                                    <Pressable
-	                                      onPress={() => {
-	                                        if (nextCardGuardRef.current) {
-	                                          nextCardGuardRef.current = false;
-	                                          return;
-	                                        }
-	                                        setExpandedNowNotesId((prev) => (prev === it.id ? null : it.id));
-	                                      }}
-	                                      style={({ pressed }) => [
-	                                        styles.fishCard,
-	                                        isOpen && styles.fishCardActive,
-	                                        pressed && PRESSED_FISH_CARD_STYLE,
-	                                      ]}
-	                                      android_ripple={{ color: "rgba(255,255,255,0.06)" }}
-	                                    >
-	                                      <View style={styles.fishCardInner}>
-	                                        <View style={styles.fishTopRow}>
-	                                          <View style={{ flexDirection: "row", gap: 6 }}>
-	                                            {(() => {
-	                                              const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-	                                              const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
-	                                              const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
-	                                              return (
-	                                                <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
-	                                                  {canLoadImage ? (
-	                                                    <Image
-	                                                      source={{ uri: marker.imageUrl }}
-	                                                      style={styles.fishImage}
-	                                                      resizeMode="cover"
-	                                                      onError={(e) =>
-	                                                        console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)
-	                                                      }
-	                                                    />
-	                                                  ) : null}
-	                                                </View>
-	                                              );
-	                                            })()}
-
-	                                            {/* Caught checkboxes */}
-	                                            <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
-	                                              <Pressable
-	                                                onPress={(e) => {
-	                                                  e.stopPropagation();
-	                                                  toggleCaughtStandard(marker?.id ?? "");
-	                                                }}
-	                                                style={({ pressed }) => [
-	                                                  {
-	                                                    borderRadius: 16,
-	                                                    borderWidth: 1,
-	                                                    borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
-	                                                    backgroundColor: "rgba(0,0,0,0.25)",
-	                                                    flex: 1,
-	                                                    alignItems: "center",
-	                                                    justifyContent: "center",
-	                                                  },
-	                                                  pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-	                                                ]}
-	                                              >
-	                                                <Ionicons
-	                                                  name="checkmark"
-	                                                  size={18}
-	                                                  color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
-	                                                  style={{ opacity: 1 }}
-	                                                />
-	                                              </Pressable>
-
-	                                              <Pressable
-	                                                onPress={(e) => {
-	                                                  e.stopPropagation();
-	                                                  toggleCaughtStar(marker?.id ?? "");
-	                                                }}
-	                                                style={({ pressed }) => [
-	                                                  {
-	                                                    borderRadius: 16,
-	                                                    borderWidth: 1,
-	                                                    borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
-	                                                    backgroundColor: "rgba(0,0,0,0.25)",
-	                                                    flex: 1,
-	                                                    alignItems: "center",
-	                                                    justifyContent: "center",
-	                                                  },
-	                                                  pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-	                                                ]}
-	                                              >
-	                                                <Ionicons
-	                                                  name="star"
-	                                                  size={14}
-	                                                  color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
-	                                                  style={{ opacity: 1 }}
-	                                                />
-	                                              </Pressable>
-	                                            </View>
-	                                          </View>
-	                                          {(() => {
-	                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-	                                            const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
-
-	                                            return (
-	                                              <View style={styles.fishTodRow}>
-	                                                <View style={styles.fishTodRowInner}>
-	                                                  <FishTimeDot label="M" on={f.morning} keyName="morning" />
-	                                                  <FishTimeDot label="D" on={f.day} keyName="day" />
-	                                                  <FishTimeDot label="E" on={f.evening} keyName="evening" />
-	                                                  <FishTimeDot label="N" on={f.night} keyName="night" />
-	                                                </View>
-	                                              </View>
-	                                            );
-	                                          })()}
-	                                        </View>
-
-	                                        <View style={styles.fishBottomBlock}>
-	                                          <Text style={styles.fishTitle} numberOfLines={2}>
-	                                            {it.eventName}
-	                                          </Text>
-
-	                                          {(() => {
-	                                            const loc = it.location ? `L: ${it.location}` : "";
-	                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-	                                            const bait = renderData?.baitShort ?? "";
-
-	                                            return (
-	                                              <View style={styles.fishInfoBlock}>
-	                                                {loc ? (
-	                                                  <View style={{ flexDirection: 'row', marginTop: 0 }}>
-	                                                    <Text style={styles.fishSub}>L: </Text>
-	                                                    <Text style={[styles.fishSub, { flex: 1 }]}>{it.location}</Text>
-	                                                  </View>
-	                                                ) : null}
-	                                                {bait ? (
-	                                                  <View style={{ flexDirection: 'row', marginTop: 0 }}>
-	                                                    <Text style={styles.fishSub}>B: </Text>
-	                                                    <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
-	                                                  </View>
-	                                                ) : null}
-	                                              </View>
-	                                            );
-	                                          })()}
-
-	                                          <View style={styles.fishMetaRow}>
-	                                            <Text style={styles.fishMetaText} numberOfLines={1}>
-	                                              {fishAppearsIsAnyTime(marker?.notes) ? "Any Time" : `Ends ${it.endHour != null ? format12hTime(it.endHour, it.endMinute ?? 0) : "—"}`}
-	                                            </Text>
-
-	                                            <ScalePressable
-	                                              onPress={() => {
-	                                                if (!marker) return;
-	                                                toggleNotify(marker.id);
-	                                              }}
-	                                              style={styles.fishBellBtn}
-	                                            >
-	                                              <Ionicons
-	                                                name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
-	                                                size={16}
-	                                                color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-	                                              />
-	                                            </ScalePressable>
-	                                          </View>
-	                                        </View>
-	                                      </View>
-	                                    </Pressable>
-	                                  </View>
-	                                );
-	                              })}
-
-	                              {row.length === 1 ? (
-	                                <View style={[styles.fishCell, styles.fishCellSpacer]} />
-	                              ) : null}
-	                            </View>
-
-	                            {openInRow ? (
-	                              <View style={styles.fishNotesRow}>
-	                                <FishNotesBox notes={openMarker?.notes} styles={styles} />
-	                              </View>
-	                            ) : null}
-	                          </View>
-	                        );
-	                      });
-	                    })()}
-	                  </View>
+	                  <NowFishGrid
+	                    styles={styles}
+	                    markerMap={markerMap}
+	                    fishCardRenderDataCache={fishCardRenderDataCache}
+	                    shouldLoadFishImages={shouldLoadFishImages}
+	                    caughtFish={caughtFish}
+	                    FishTimeDot={FishTimeDot}
+	                    nextCardGuardRef={nextCardGuardRef}
+	                    toggleCaughtStandard={toggleCaughtStandard}
+	                    toggleCaughtStar={toggleCaughtStar}
+	                    toggleNotify={toggleNotify}
+	                    nowItems={nowItems}
+	                    renderFishCount={renderFishCount}
+	                    expandedNowNotesId={expandedNowNotesId}
+	                    setExpandedNowNotesId={setExpandedNowNotesId}
+	                  />
                 ) : (
                   <View style={styles.nextList}>
                     {nowItems.map((it) => {
@@ -5729,210 +6230,23 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
               {nextSectionOpen && clockViewMode === "fish" ? (
                 displayedNextFish.length ? (
-	                  <View style={styles.fishGrid}>
-	                    {fishGridPairs.map((row, rowIdx) => {
-	                      const openId = expandedNextNotesId;
-	                      const openInRow = !!openId && row.some((x) => x.id === openId);
-	                      const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
-	                      const openMarker = openItem ? markerMap.get((openItem as any).baseId ?? openItem.id) : undefined;
-
-	                      return (
-	                        <View key={`nextfish-row-${rowIdx}`} style={styles.fishRow}>
-	                          <View style={styles.fishRowCards}>
-	                            {row.map((m) => {
-	                              const marker = markerMap.get((m as any).baseId ?? m.id);
-	                              const isOpen = expandedNextNotesId === m.id;
-	                              const { eventName, location } = splitName(m.name);
-
-	                                return (
-	                                  <View key={`nextfish-${m.id}`} style={styles.fishCell}>
-                          <Pressable
-                            onPress={() => {
-                              if (nextCardGuardRef.current) {
-                                nextCardGuardRef.current = false;
-                                return;
-                              }
-                              setExpandedNextNotesId((prev) => (prev === m.id ? null : m.id));
-                            }}
-	                            style={({ pressed }) => [
-	                              styles.fishCard,
-	                              isOpen && styles.fishCardActive,
-	                              pressed && PRESSED_FISH_CARD_STYLE,
-	                            ]}
-                            android_ripple={{ color: "rgba(255,255,255,0.06)" }}
-                          >
-                            <View style={styles.fishCardInner}>
-                              <View style={styles.fishTopRow}>
-                                {(() => {
-                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                  const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
-                                  const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
-                                  return (
-                                    <View style={{ flexDirection: "row", gap: 6 }}>
-                                      <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
-                                        {canLoadImage ? (
-                                          <Image
-                                            source={{ uri: marker.imageUrl }}
-                                            style={styles.fishImage}
-                                            resizeMode="cover"
-                                            onError={(e) => console.log("FISH IMG ERROR", marker.id, marker.imageUrl, e.nativeEvent)}
-                                          />
-                                        ) : null}
-                                      </View>
-
-                                      {/* Caught checkboxes */}
-                                      <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
-                                        <Pressable
-                                          onPress={(e) => {
-                                            e.stopPropagation();
-                                            toggleCaughtStandard(marker?.id ?? "");
-                                          }}
-                                          style={({ pressed }) => [
-                                            {
-                                              borderRadius: 16,
-                                              borderWidth: 1,
-                                              borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
-                                              backgroundColor: "rgba(0,0,0,0.25)",
-                                              flex: 1,
-                                              alignItems: "center",
-                                              justifyContent: "center",
-                                            },
-                                            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-                                          ]}
-                                        >
-                                          <Ionicons
-                                            name="checkmark"
-                                            size={18}
-                                            color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
-                                            style={{ opacity: 1 }}
-                                          />
-                                        </Pressable>
-
-                                        <Pressable
-                                          onPress={(e) => {
-                                            e.stopPropagation();
-                                            toggleCaughtStar(marker?.id ?? "");
-                                          }}
-                                          style={({ pressed }) => [
-                                            {
-                                              borderRadius: 16,
-                                              borderWidth: 1,
-                                              borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
-                                              backgroundColor: "rgba(0,0,0,0.25)",
-                                              flex: 1,
-                                              alignItems: "center",
-                                              justifyContent: "center",
-                                            },
-                                            pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-                                          ]}
-                                        >
-                                          <Ionicons
-                                            name="star"
-                                            size={14}
-                                            color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
-                                            style={{ opacity: 1 }}
-                                          />
-                                        </Pressable>
-                                      </View>
-                                    </View>
-                                  );
-                                })()}
-                                {(() => {
-                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                  const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
-
-                                  return (
-                                    <View style={styles.fishTodRow}>
-                                      <View style={styles.fishTodRowInner}>
-                                        <FishTimeDot label="M" on={f.morning} keyName="morning" />
-                                        <FishTimeDot label="D" on={f.day} keyName="day" />
-                                        <FishTimeDot label="E" on={f.evening} keyName="evening" />
-                                        <FishTimeDot label="N" on={f.night} keyName="night" />
-                                      </View>
-                                    </View>
-                                  );
-                                })()}
-
-                              </View>
-
-                              <View style={styles.fishBottomBlock}>
-                                <Text style={styles.fishTitle} numberOfLines={2}>
-                                  {eventName}
-                                </Text>
-
-                                {(() => {
-                                  const loc = location ? `L: ${location}` : "";
-                                  const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                  const bait = renderData?.baitShort ?? "";
-                                  
-                                  return (
-                                    <View style={styles.fishInfoBlock}>
-                                      {loc ? (
-                                        <View style={{ flexDirection: 'row', marginTop: 0 }}>
-                                          <Text style={styles.fishSub}>L: </Text>
-                                          <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
-                                        </View>
-                                      ) : null}
-                                      {bait ? (
-                                        <View style={{ flexDirection: 'row', marginTop: 0 }}>
-                                          <Text style={styles.fishSub}>B: </Text>
-                                          <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
-                                        </View>
-                                      ) : null}
-                                    </View>
-                                  );
-                                })()}
-
-                                <View style={styles.fishMetaRow}>
-                                  {filteredFishMode ? <View style={{ flex: 1 }} /> : (
-                                    <Text style={styles.fishMetaText} numberOfLines={1}>
-                                      Ends {format12hTime(m.hour, m.minute)}
-                                    </Text>
-                                  )}
-
-                                  <ScalePressable
-                                    onPress={() => {
-                                      if (!marker) return;
-                                      toggleNotify(marker.id);
-                                    }}
-                                    style={styles.fishBellBtn}
-                                  >
-                                    <Ionicons
-                                      name={marker?.notify ? "notifications-outline" : "notifications-off-outline"}
-                                      size={16}
-                                      color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-                                    />
-                                  </ScalePressable>
-                                </View>
-                              </View>
-                            </View>
-                          </Pressable>
-
-	                                  </View>
-	                                );
-	                              })}
-
-	                              {row.length === 1 ? (
-	                                <View style={[styles.fishCell, styles.fishCellSpacer]} />
-	                              ) : null}
-	                            </View>
-
-	                            {openInRow ? (
-	                              <View style={styles.fishNotesRow}>
-	                                <View style={styles.eventNotesDrop}>
-	                                  <Text style={styles.eventNotesLabel}>Notes</Text>
-	                                  <Text style={styles.eventNotesText}>
-	                                    {String(openMarker?.notes ?? "").trim().length > 0
-	                                      ? String(openMarker?.notes).trim()
-	                                      : "No notes yet."}
-	                                  </Text>
-	                                </View>
-	                              </View>
-	                            ) : null}
-	                          </View>
-	                        );
-	                    })}
-                  </View>
+	                  <NextFishGrid
+	                    styles={styles}
+	                    markerMap={markerMap}
+	                    fishCardRenderDataCache={fishCardRenderDataCache}
+	                    shouldLoadFishImages={shouldLoadFishImages}
+	                    caughtFish={caughtFish}
+	                    FishTimeDot={FishTimeDot}
+	                    nextCardGuardRef={nextCardGuardRef}
+	                    toggleCaughtStandard={toggleCaughtStandard}
+	                    toggleCaughtStar={toggleCaughtStar}
+	                    toggleNotify={toggleNotify}
+	                    fishGridPairs={fishGridPairs}
+	                    filteredFishMode={filteredFishMode}
+	                    expandedNextNotesId={expandedNextNotesId}
+	                    setExpandedNextNotesId={setExpandedNextNotesId}
+	                    splitName={splitName}
+	                  />
                 ) : nextSectionOpen ? (
                   <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
                 ) : null
@@ -6060,208 +6374,22 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </Pressable>
 
                 {allDaySectionOpen && (
-                <View style={styles.fishGrid}>
-                  {(() => {
-                    const pairs: typeof displayedAllDayFish[number][][] = [];
-                    for (let i = 0; i < displayedAllDayFish.length; i += 2) {
-                      const a = displayedAllDayFish[i];
-                      const b = displayedAllDayFish[i + 1];
-                      pairs.push([a, ...(b ? [b] : [])]);
-                    }
-
-                    return pairs.map((row, rowIdx) => {
-                      const openId = expandedNowNotesId;
-                      const openInRow = !!openId && row.some((x) => x.id === openId);
-                      const openItem = openInRow ? row.find((x) => x.id === openId) : undefined;
-                      const openMarker = openItem ? markerMap.get(openItem.id) : undefined;
-
-                      return (
-                        <View key={`allday-row-${rowIdx}`} style={styles.fishRow}>
-                          <View style={styles.fishRowCards}>
-                            {row.map((fish) => {
-                              const marker = markerMap.get(fish.id);
-                              const isOpen = expandedNowNotesId === fish.id;
-                              const { eventName, location } = splitName(fish.name);
-
-                              return (
-                                <View key={`allday-${fish.id}`} style={styles.fishCell}>
-                                  <Pressable
-                                    onPress={() => {
-                                      if (nextCardGuardRef.current) {
-                                        nextCardGuardRef.current = false;
-                                        return;
-                                      }
-                                      setExpandedNowNotesId((prev) => (prev === fish.id ? null : fish.id));
-                                    }}
-                                    style={({ pressed }) => [
-                                      styles.fishCard,
-                                      isOpen && styles.fishCardActive,
-                                      pressed && PRESSED_FISH_CARD_STYLE,
-                                    ]}
-                                    android_ripple={{ color: "rgba(255,255,255,0.06)" }}
-                                  >
-                                    <View style={styles.fishCardInner}>
-                                      <View style={styles.fishTopRow}>
-                                        <View style={{ flexDirection: "row", gap: 6 }}>
-                                          {(() => {
-                                            const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                            const { border, bg } = renderData?.rarityColors ?? { border: "rgba(255,255,255,0.08)", bg: "rgba(255,255,255,0.02)" };
-                                            const canLoadImage = marker?.imageUrl && shouldLoadFishImages;
-                                            return (
-                                              <View style={[styles.fishImageSlot, { borderColor: border, backgroundColor: bg }]}>
-                                                {canLoadImage ? (
-                                                  <Image
-                                                    source={{ uri: marker.imageUrl }}
-                                                    style={styles.fishImage}
-                                                    resizeMode="cover"
-                                                    onError={(e) =>
-                                                      console.log("FISH IMG ERROR", marker?.id, marker?.imageUrl, e.nativeEvent)
-                                                    }
-                                                  />
-                                                ) : null}
-                                              </View>
-                                            );
-                                          })()}
-
-                                          {/* Caught checkboxes */}
-                                          <View style={{ flexDirection: "column", gap: 6, justifyContent: "space-between", flex: 1, marginLeft: 1, marginRight: 0 }}>
-                                            <Pressable
-                                              onPress={(e) => {
-                                                e.stopPropagation();
-                                                toggleCaughtStandard(marker?.id ?? "");
-                                              }}
-                                              style={({ pressed }) => [
-                                                {
-                                                  borderRadius: 16,
-                                                  borderWidth: 1,
-                                                  borderColor: caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.25)",
-                                                  backgroundColor: "rgba(0,0,0,0.25)",
-                                                  flex: 1,
-                                                  alignItems: "center",
-                                                  justifyContent: "center",
-                                                },
-                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-                                              ]}
-                                            >
-                                              <Ionicons
-                                                name="checkmark"
-                                                size={18}
-                                                color={caughtFish[marker?.id ?? ""]?.standard ? ACCENT : "rgba(255,255,255,0.3)"}
-                                                style={{ opacity: 1 }}
-                                              />
-                                            </Pressable>
-
-                                            <Pressable
-                                              onPress={(e) => {
-                                                e.stopPropagation();
-                                                toggleCaughtStar(marker?.id ?? "");
-                                              }}
-                                              style={({ pressed }) => [
-                                                {
-                                                  borderRadius: 16,
-                                                  borderWidth: 1,
-                                                  borderColor: caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.25)",
-                                                  backgroundColor: "rgba(0,0,0,0.25)",
-                                                  flex: 1,
-                                                  alignItems: "center",
-                                                  justifyContent: "center",
-                                                },
-                                                pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-                                              ]}
-                                            >
-                                              <Ionicons
-                                                name="star"
-                                                size={14}
-                                                color={caughtFish[marker?.id ?? ""]?.star ? ACCENT : "rgba(255,255,255,0.3)"}
-                                                style={{ opacity: 1 }}
-                                              />
-                                            </Pressable>
-                                          </View>
-                                        </View>
-                                        {(() => {
-                                          const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                          const f = renderData?.periodsFlags ?? { morning: false, day: false, evening: false, night: false };
-
-                                          return (
-                                            <View style={styles.fishTodRow}>
-                                              <View style={styles.fishTodRowInner}>
-                                                <FishTimeDot label="M" on={f.morning} keyName="morning" />
-                                                <FishTimeDot label="D" on={f.day} keyName="day" />
-                                                <FishTimeDot label="E" on={f.evening} keyName="evening" />
-                                                <FishTimeDot label="N" on={f.night} keyName="night" />
-                                              </View>
-                                            </View>
-                                          );
-                                        })()}
-                                      </View>
-
-                                      <View style={styles.fishBottomBlock}>
-                                        <Text style={styles.fishTitle} numberOfLines={2}>
-                                          {eventName}
-                                        </Text>
-
-                                        {(() => {
-                                          const loc = location ? `L: ${location}` : "";
-                                          const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
-                                          const bait = renderData?.baitShort ?? "";
-
-                                          return (
-                                            <View style={styles.fishInfoBlock}>
-                                              {loc ? (
-                                                <View style={{ flexDirection: 'row', marginTop: 0 }}>
-                                                  <Text style={styles.fishSub}>L: </Text>
-                                                  <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
-                                                </View>
-                                              ) : null}
-                                              {bait ? (
-                                                <View style={{ flexDirection: 'row', marginTop: 0 }}>
-                                                  <Text style={styles.fishSub}>B: </Text>
-                                                  <Text style={[styles.fishSub, { flex: 1 }]}>{bait}</Text>
-                                                </View>
-                                              ) : null}
-                                            </View>
-                                          );
-                                        })()}
-
-                                        <View style={styles.fishMetaRow}>
-                                          <View style={{ flex: 1 }} />
-
-                                          <ScalePressable
-                                            onPress={() => {
-                                              if (!marker) return;
-                                              toggleNotify(marker.id);
-                                            }}
-                                            style={{ padding: 4 }}
-                                          >
-                                            <Ionicons
-                                              name={marker?.notify ? "notifications" : "notifications-off"}
-                                              size={14}
-                                              color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
-                                            />
-                                          </ScalePressable>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </Pressable>
-                                </View>
-                              );
-                            })}
-
-                            {row.length === 1 ? (
-                              <View style={[styles.fishCell, styles.fishCellSpacer]} />
-                            ) : null}
-                          </View>
-
-                          {openInRow ? (
-                            <View style={styles.fishNotesRow}>
-                              <FishNotesBox notes={openMarker?.notes} styles={styles} />
-                            </View>
-                          ) : null}
-                        </View>
-                      );
-                    });
-                  })()}
-                </View>
+                <AllDayFishGrid
+                  styles={styles}
+                  markerMap={markerMap}
+                  fishCardRenderDataCache={fishCardRenderDataCache}
+                  shouldLoadFishImages={shouldLoadFishImages}
+                  caughtFish={caughtFish}
+                  FishTimeDot={FishTimeDot}
+                  nextCardGuardRef={nextCardGuardRef}
+                  toggleCaughtStandard={toggleCaughtStandard}
+                  toggleCaughtStar={toggleCaughtStar}
+                  toggleNotify={toggleNotify}
+                  displayedAllDayFish={displayedAllDayFish}
+                  expandedNowNotesId={expandedNowNotesId}
+                  setExpandedNowNotesId={setExpandedNowNotesId}
+                  splitName={splitName}
+                />
                 )}
               </View>
             )}
