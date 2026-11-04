@@ -378,6 +378,11 @@ function fishAppearsIsAnyTime(appearsRaw: any): boolean {
   return !!(f.morning && f.day && f.evening && f.night);
 }
 
+function fishAppearsInPeriod(marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean {
+  const appears = extractFishFieldFromNotes(marker.notes, "Appears");
+  return fishAppearsToPeriodsFlags(appears)[period];
+}
+
 function fishBestBaitShort(baitRaw: any): string {
   const s = String(baitRaw ?? "").trim();
   if (!s) return "";
@@ -3633,12 +3638,27 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     return period.charAt(0).toUpperCase() + period.slice(1);
   };
 
-  // Check if a fish appears in a given period
-  const fishAppearsInPeriod = (marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean => {
-    const appears = extractFishFieldFromNotes(marker.notes, "Appears");
-    const flags = fishAppearsToPeriodsFlags(appears);
-    return flags[period];
-  };
+  const filteredFishMode = clockViewMode === "fish" && nextTimeFilter !== null;
+  const filteredFishLists = useMemo(() => {
+    const specific: HomeMarker[] = [];
+    const allDay: HomeMarker[] = [];
+    if (!filteredFishMode || !nextTimeFilter) return { specific, allDay };
+
+    const seen = new Set<string>();
+    for (const marker of enabledMarkers) {
+      if (!String(marker.id).startsWith("fish_") || seen.has(marker.id)) continue;
+      seen.add(marker.id);
+      const appears = extractFishFieldFromNotes(marker.notes, "Appears");
+      if (fishAppearsIsAnyTime(appears)) allDay.push(marker);
+      else if (fishAppearsInPeriod(marker, nextTimeFilter)) specific.push(marker);
+    }
+    const byName = (a: Marker, b: Marker) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+    specific.sort(byName);
+    allDay.sort(byName);
+    return { specific, allDay };
+  }, [enabledMarkers, filteredFishMode, nextTimeFilter]);
+  const displayedNextFish = filteredFishMode ? filteredFishLists.specific : nextSectionMarkers;
+  const displayedAllDayFish = filteredFishMode ? filteredFishLists.allDay : allDayFish;
 
   const nextTimeGroups = useMemo<NextTimeGroup[]>(() => {
     if (!nextSectionMarkers.length) return [];
@@ -4960,15 +4980,15 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
   // Memoize fish grid pairs construction
   const fishGridPairs = useMemo(() => {
-    const itemsToRender = nextSectionMarkers.slice(0, renderFishCount);
-    const pairs: (typeof nextSectionMarkers)[number][][] = [];
+    const itemsToRender = displayedNextFish.slice(0, renderFishCount);
+    const pairs: (typeof displayedNextFish)[number][][] = [];
     for (let i = 0; i < itemsToRender.length; i += 2) {
       const a = itemsToRender[i];
       const b = itemsToRender[i + 1];
       pairs.push([a, ...(b ? [b] : [])]);
     }
     return pairs;
-  }, [nextSectionMarkers, renderFishCount]);
+  }, [displayedNextFish, renderFishCount]);
 
 // SECTION 19.2) Render
 
@@ -5261,6 +5281,11 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                         <Pressable
                           key={it.key}
                           onPress={() => {
+                            if (active) {
+                              setClockViewOpen(false);
+                              return;
+                            }
+
                             // Change view immediately for instant feedback
                             setClockViewMode(it.key);
                             setIsPageLoading(true);
@@ -5322,6 +5347,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               })}
             </View>
 
+            {!filteredFishMode && (
             <View style={styles.nextCard}>
               <Pressable
                 onPress={() => setNowSectionOpen(!nowSectionOpen)}
@@ -5646,7 +5672,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No active events</Text>
               ) : null}
             </View>
+            )}
 
+            {(!filteredFishMode || displayedNextFish.length > 0) && (
             <View style={styles.nextCard}>
               <View style={styles.nextHeaderRow}>
                 <Pressable
@@ -5658,8 +5686,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     size={18}
                     color={SOFT_WHITE_DIM}
                   />
-                  <Text style={styles.nextTitle}>Next</Text>
-                  <Text style={styles.nextMeta}>{nextSectionMarkers.length} upcoming</Text>
+                  <Text style={styles.nextTitle}>{filteredFishMode ? getPeriodLabel(nextTimeFilter!) + " Fish" : "Next"}</Text>
+                  <Text style={styles.nextMeta}>{filteredFishMode ? displayedNextFish.length + " available" : nextSectionMarkers.length + " upcoming"}</Text>
                 </Pressable>
 
                                 <View style={styles.nextHeaderRight}>
@@ -5669,7 +5697,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     </Animated.View>
                   ) : null}
 
-                  {!nextTimeFilter ? (
+                  {clockViewMode === "events" && !nextTimeFilter ? (
                   <View style={styles.nextCountSegment}>
                                       {[1, 2, 3].map((n) => {
                                         const active = nextTimeCount === n;
@@ -5700,7 +5728,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               </View>
 
               {nextSectionOpen && clockViewMode === "fish" ? (
-                nextSectionMarkers.length ? (
+                displayedNextFish.length ? (
 	                  <View style={styles.fishGrid}>
 	                    {fishGridPairs.map((row, rowIdx) => {
 	                      const openId = expandedNextNotesId;
@@ -5856,9 +5884,11 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                 })()}
 
                                 <View style={styles.fishMetaRow}>
-                                  <Text style={styles.fishMetaText} numberOfLines={1}>
-                                    Ends {format12hTime(m.hour, m.minute)}
-                                  </Text>
+                                  {filteredFishMode ? <View style={{ flex: 1 }} /> : (
+                                    <Text style={styles.fishMetaText} numberOfLines={1}>
+                                      Ends {format12hTime(m.hour, m.minute)}
+                                    </Text>
+                                  )}
 
                                   <ScalePressable
                                     onPress={() => {
@@ -5991,7 +6021,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
               ) : null}
 
-              {nextSectionOpen && (
+              {nextSectionOpen && !filteredFishMode && (
               <Pressable
                 onPress={() => setScreen("marker_setup")}
                 style={({ pressed }) => [
@@ -6003,9 +6033,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               </Pressable>
               )}
             </View>
+            )}
+
+            {filteredFishMode && displayedNextFish.length === 0 && displayedAllDayFish.length === 0 ? (
+              <Text style={[styles.nextEmpty, { marginTop: 8 }]}>
+                {"No enabled fish are available during " + getPeriodLabel(nextTimeFilter!) + "."}
+              </Text>
+            ) : null}
 
             {/* ALL DAY SECTION */}
-            {allDayFish.length > 0 && (
+            {displayedAllDayFish.length > 0 && (
               <View style={styles.nextCard}>
                 <Pressable
                   onPress={() => setAllDaySectionOpen(!allDaySectionOpen)}
@@ -6017,18 +6054,18 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                       size={18}
                       color={SOFT_WHITE_DIM}
                     />
-                    <Text style={styles.nextTitle}>All Day</Text>
-                    <Text style={styles.nextMeta}>{allDayFish.length} available</Text>
+                    <Text style={styles.nextTitle}>{filteredFishMode ? "All Day Fish" : "All Day"}</Text>
+                    <Text style={styles.nextMeta}>{displayedAllDayFish.length} available</Text>
                   </View>
                 </Pressable>
 
                 {allDaySectionOpen && (
                 <View style={styles.fishGrid}>
                   {(() => {
-                    const pairs: typeof allDayFish[number][][] = [];
-                    for (let i = 0; i < allDayFish.length; i += 2) {
-                      const a = allDayFish[i];
-                      const b = allDayFish[i + 1];
+                    const pairs: typeof displayedAllDayFish[number][][] = [];
+                    for (let i = 0; i < displayedAllDayFish.length; i += 2) {
+                      const a = displayedAllDayFish[i];
+                      const b = displayedAllDayFish[i + 1];
                       pairs.push([a, ...(b ? [b] : [])]);
                     }
 
