@@ -2682,6 +2682,7 @@ const wheelLastSnapIdxRef = useRef({ hour: 0, minute: 0, endHour: 0, endMinute: 
 
   // Track whether user has actually interacted with the time (for "ghost" placeholders)
   const [timeTouched, setTimeTouched] = useState(false);
+  const [showRequiredErrors, setShowRequiredErrors] = useState(false);
 
   // Track whether user has actually picked a location (for ghost placeholder)
   const [locationTouched, setLocationTouched] = useState(false);
@@ -3710,6 +3711,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 // SECTION 16.1) Form helpers
 
   function resetForm() {
+    setShowRequiredErrors(false);
     setEditingId(null);
     setAddMarkerOpen(false);
 
@@ -3741,6 +3743,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   }
 
   function openAddMarker() {
+    setShowRequiredErrors(false);
     // Fresh form, then open the dropdown
     setEditingId(null);
 
@@ -3779,6 +3782,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
   function startEdit(marker: Marker) {
     if (isProtectedMarkerId(marker.id)) return;
+    setShowRequiredErrors(false);
     setEditingId(marker.id);
 
     // Split "Event - Location" back into fields (best-effort)
@@ -3860,7 +3864,8 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   }
 
   function addOrSave() {
-    const eventName = newName.trim() || "Event";
+    const eventName = newName.trim();
+    if (!eventName) return;
     const loc = newLocation.trim();
     const notes = newNotes.trim();
 
@@ -3927,12 +3932,15 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
 // SECTION 17.1) Resync gate
 
-  const resyncGateRef = useRef({ inFlight: false, queued: false, lastAt: 0 });
+  const resyncGateRef = useRef({
+    inFlight: false, queued: false, lastAt: 0,
+    completion: null as Promise<boolean> | null,
+  });
 
 // SECTION 17.2) Resync scheduler
 
   const resyncTimeNotifications = useCallback(async () => {
-    if (!notifEnabledRef.current) return;
+    if (Platform.OS === "web" && !notifEnabledRef.current) return;
 
     // ---- Web: schedule in-memory timeouts (desktop notifications) ----
     if (Platform.OS === "web") {
@@ -3998,114 +4006,130 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
     const gate = resyncGateRef.current;
     gate.queued = true;
-    if (gate.inFlight) return;
+    // All callers await the same drain, including queued OFF cancellation.
+    if (gate.inFlight) return gate.completion!;
 
     gate.inFlight = true;
-    try {
-      while (gate.queued) {
-        gate.queued = false;
-        if (!notifEnabledRef.current) return;
-
-        const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify);
-
-        // We schedule notifications PER PALIA TIME (HH:MM)
-        const groups = groupEnabledMarkersByTime(enabledForNotif);
-
-        if (__DEV__) {
-          console.log(
-            `[notif] resync: enabledForNotif=${enabledForNotif.length} groups=${groups.length} lead=${reminderRef.current}s`
-          );
-        }
-
-        // Always ensure permissions + android channel before scheduling
-        const perm = await ensurePermission(false);
-        if (!perm.ok) return;
-
-        // Clear existing scheduled notifications.
-        // NOTE: Android doesn't always reliably round-trip `content.data` in getAllScheduledNotificationsAsync.
-        // So: try targeted cancel; if that yields 0 but there are scheduled notifs, fall back to cancelAll.
-        try {
-          const existing = await Notifications.getAllScheduledNotificationsAsync();
-
-          const idsToCancel = existing
-            .filter((n: any) => {
-              const data = n?.content?.data;
-              return data && typeof data === "object" && data.type === "time_group";
-            })
-            .map((n: any) => n.identifier)
-            .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
-
-          if (idsToCancel.length > 0) {
-            for (const id of idsToCancel) {
-              await Notifications.cancelScheduledNotificationAsync(id);
+    const drain = async () => {
+      let failed = false;
+      try {
+        while (gate.queued) {
+          gate.queued = false;
+          let phase = "permission check";
+          try {
+            if (!notifEnabledRef.current) {
+              phase = "master-off cancellation";
+              await Notifications.cancelAllScheduledNotificationsAsync();
+              gate.lastAt = Date.now();
+              continue;
             }
-            if (__DEV__) console.log(`[notif] cancelled ${idsToCancel.length} existing time_group notifications`);
-          } else if (existing.length > 0) {
-            await Notifications.cancelAllScheduledNotificationsAsync();
-            if (__DEV__) console.log(`[notif] cancelled ALL scheduled notifications (fallback). count=${existing.length}`);
+
+            const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify);
+
+            // We schedule notifications PER PALIA TIME (HH:MM)
+            const groups = groupEnabledMarkersByTime(enabledForNotif);
+
+            if (__DEV__) {
+              console.log(
+                `[notif] resync: enabledForNotif=${enabledForNotif.length} groups=${groups.length} lead=${reminderRef.current}s`
+              );
+            }
+
+            // Always ensure permissions + android channel before scheduling
+            const perm = await ensurePermission(false);
+            if (!perm.ok) throw new Error("Notification permission is not granted; rebuild skipped.");
+
+            // Clear existing scheduled notifications.
+            // NOTE: Android doesn't always reliably round-trip `content.data` in getAllScheduledNotificationsAsync.
+            // So: try targeted cancel; if that yields 0 but there are scheduled notifs, fall back to cancelAll.
+            phase = "cancel existing";
+            {
+              const existing = await Notifications.getAllScheduledNotificationsAsync();
+
+              const idsToCancel = existing
+                .filter((n: any) => {
+                  const data = n?.content?.data;
+                  return data && typeof data === "object" && data.type === "time_group";
+                })
+                .map((n: any) => n.identifier)
+                .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
+
+              if (idsToCancel.length > 0) {
+                for (const id of idsToCancel) {
+                  await Notifications.cancelScheduledNotificationAsync(id);
+                }
+                if (__DEV__) console.log(`[notif] cancelled ${idsToCancel.length} existing time_group notifications`);
+              } else if (existing.length > 0) {
+                await Notifications.cancelAllScheduledNotificationsAsync();
+                if (__DEV__) console.log(`[notif] cancelled ALL scheduled notifications (fallback). count=${existing.length}`);
+              }
+            }
+
+            // If nothing is enabled for notifications, we're done.
+            if (groups.length === 0) {
+              gate.lastAt = Date.now();
+              continue;
+            }
+
+            // iOS practical limit is 64 scheduled notifications.
+            // Android: keep the horizon modest to avoid OEM throttling.
+            const IOS_MAX_TOTAL = 64;
+            const ANDROID_TARGET_OCC_PER_GROUP = 6; // 6 hours ahead per time-group (cycle repeats hourly).
+
+            const MAX_TOTAL =
+              Platform.OS === "ios"
+                ? IOS_MAX_TOTAL
+                : Math.min(720, groups.length * ANDROID_TARGET_OCC_PER_GROUP);
+
+            const perTime =
+              Platform.OS === "ios"
+                ? Math.min(ANDROID_TARGET_OCC_PER_GROUP, Math.max(1, Math.floor(MAX_TOTAL / groups.length)))
+                : Math.min(ANDROID_TARGET_OCC_PER_GROUP, Math.max(1, Math.floor(MAX_TOTAL / groups.length)));
+
+            let totalScheduled = 0;
+
+            phase = "schedule";
+            for (const group of groups) {
+              if (!notifEnabledRef.current) break;
+              const remaining = MAX_TOTAL - totalScheduled;
+              if (remaining <= 0) break;
+
+              const occurrences = Math.min(perTime, remaining);
+
+              const ids = await scheduleTimeGroupOccurrences({
+                group,
+                reminderLeadSeconds: reminderRef.current,
+                occurrences,
+              });
+
+              totalScheduled += ids.length;
+            }
+
+            // Reconcile newer settings before reporting completion.
+            if (!notifEnabledRef.current || gate.queued) continue;
+            gate.lastAt = Date.now();
+
+            phase = "inspect scheduled requests";
+            if (__DEV__) {
+              const after = await Notifications.getAllScheduledNotificationsAsync();
+              if (!notifEnabledRef.current || gate.queued) continue;
+              console.log(
+                `[notif] scheduled total=${totalScheduled} (platformCap=${MAX_TOTAL}) scheduledNow=${after.length}`
+              );
+            }
+          } catch (e) {
+            failed = true;
+            console.warn(`[notif] ${phase} failed:`, errMsg(e));
+            // Newer queued preferences still run after a failed pass.
           }
-        } catch (e) {
-          if (__DEV__) console.warn("[notif] cancel existing failed:", errMsg(e));
         }
-
-        // If nothing is enabled for notifications, we're done.
-        if (groups.length === 0) {
-          gate.lastAt = Date.now();
-          return;
-        }
-
-        // iOS practical limit is 64 scheduled notifications.
-        // Android: keep the horizon modest to avoid OEM throttling.
-        const IOS_MAX_TOTAL = 64;
-        const ANDROID_TARGET_OCC_PER_GROUP = 6; // 6 hours ahead per time-group (cycle repeats hourly).
-
-        const MAX_TOTAL =
-          Platform.OS === "ios"
-            ? IOS_MAX_TOTAL
-            : Math.min(720, groups.length * ANDROID_TARGET_OCC_PER_GROUP);
-
-        const perTime =
-          Platform.OS === "ios"
-            ? Math.min(ANDROID_TARGET_OCC_PER_GROUP, Math.max(1, Math.floor(MAX_TOTAL / groups.length)))
-            : Math.min(ANDROID_TARGET_OCC_PER_GROUP, Math.max(1, Math.floor(MAX_TOTAL / groups.length)));
-
-        let totalScheduled = 0;
-
-        for (const group of groups) {
-          const remaining = MAX_TOTAL - totalScheduled;
-          if (remaining <= 0) break;
-
-          const occurrences = Math.min(perTime, remaining);
-
-          const ids = await scheduleTimeGroupOccurrences({
-            group,
-            reminderLeadSeconds: reminderRef.current,
-            occurrences,
-          });
-
-          totalScheduled += ids.length;
-        }
-
-        gate.lastAt = Date.now();
-
-        if (__DEV__) {
-          const after = await Notifications.getAllScheduledNotificationsAsync();
-          console.log(
-            `[notif] scheduled total=${totalScheduled} (platformCap=${MAX_TOTAL}) scheduledNow=${after.length}`
-          );
-        }
+        return !failed;
+      } finally {
+        gate.inFlight = false;
       }
-    } catch (e) {
-      if (__DEV__) console.warn("[notif] resync failed:", errMsg(e));
-    } finally {
-      gate.inFlight = false;
-
-      if (gate.queued && notifEnabledRef.current) {
-        setTimeout(() => {
-          resyncTimeNotifications().catch(() => {});
-        }, 0);
-      }
-    }
+    };
+    gate.completion = drain();
+    return gate.completion;
   }, []);
 
 // SECTION 17.3) Toggle notifications
@@ -4151,8 +4175,6 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     setNotifEnabled(false);
     setReminderLeadSeconds(0);
 
-    resyncGateRef.current.queued = false;
-
     // Web: clear in-memory timers
     if (Platform.OS === "web") {
       for (const t of webTimerIdsRef.current) {
@@ -4164,11 +4186,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
       return;
     }
 
-    try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-    } catch (e) {
-      console.warn("[notif] cancel failed:", errMsg(e));
-    }
+    await resyncTimeNotifications();
   }, [resyncTimeNotifications]);
 
 // SECTION 17.4) Hard cancel when notifications are turned OFF (Settings toggle safety)
@@ -4179,9 +4197,6 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     // When the user turns notifications off, cancel anything already scheduled.
     if (notifEnabled) return;
 
-    // Stop any queued resync loop.
-    resyncGateRef.current.queued = false;
-
     // Web: clear in-memory timers
     if (Platform.OS === "web") {
       for (const t of webTimerIdsRef.current) {
@@ -4193,9 +4208,9 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
       return;
     }
 
-    // Native: cancel scheduled OS notifications
-    Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
-  }, [notifEnabled, hydrated]);
+    // Native: cancel after active scheduling through the same gate.
+    void resyncTimeNotifications();
+  }, [notifEnabled, hydrated, resyncTimeNotifications]);
 
   // SECTION 17.3) Manual refresh (UI button)
 
@@ -4240,7 +4255,11 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     startRefreshCooldown();
 
     try {
-      await resyncTimeNotifications();
+      const completed = await resyncTimeNotifications();
+      if (completed === false || (Platform.OS !== "web" && !notifEnabledRef.current)) {
+        if (completed === false) Alert.alert("Refresh failed", "Notification scheduling did not complete. See notification logs for details.");
+        return;
+      }
       setShowRefreshSuccess(true);
       setTimeout(() => setShowRefreshSuccess(false), 5000);
     } catch (e) {
@@ -4361,6 +4380,118 @@ const CLOSED_TEST_WHAT_TO_TEST = [
       Alert.alert("Share failed", "Could not share diagnostics from this device.");
     }
   }, [buildDiagnostics]);
+
+  // Development-only inspection: never refreshes or changes notification state.
+  const captureNotificationSnapshot = async () => {
+    if (!__DEV__ || Platform.OS !== "android") return;
+    const startedAt = new Date().toISOString();
+    const readState = () => ({
+      masterEnabled: notifEnabledRef.current,
+      reminderLeadSeconds: reminderRef.current,
+      inFlight: resyncGateRef.current.inFlight,
+      queued: resyncGateRef.current.queued,
+      lastResyncAt: resyncGateRef.current.lastAt,
+    });
+    const beforeState = readState();
+    const beforeMarkers = markersRef.current;
+    try {
+      const [requests, permission] = await Promise.all([
+        Notifications.getAllScheduledNotificationsAsync(),
+        Notifications.getPermissionsAsync(),
+      ]);
+      const afterState = readState();
+      const transitional = beforeMarkers !== markersRef.current ||
+        JSON.stringify(beforeState) !== JSON.stringify(afterState) ||
+        beforeState.inFlight || beforeState.queued || afterState.inFlight || afterState.queued;
+      const expected = new Map(groupEnabledMarkersByTime(
+        markersRef.current.filter((m) => m.enabled && m.notify)
+      ).map((group) => [group.timeKey, group.markers.map((m) => m.id).sort()]));
+      const groups = new Map<string, { requests: number; members: Set<string>; times: number[] }>();
+      const seen = new Set<string>();
+      const issues: Record<string, number> = {};
+      const examples: { issue: string; identifier: string; timeKey: string | null }[] = [];
+      const uncertainExamples: { identifier: string; type: unknown }[] = [];
+      let schedulerOwned = 0;
+      let uncertainOwnership = 0;
+      const flag = (issue: string, identifier: string, timeKey: string | null) => {
+        issues[issue] = (issues[issue] ?? 0) + 1;
+        if (examples.length < 5) examples.push({ issue, identifier, timeKey });
+      };
+      const toEpoch = (value: unknown): number | null => {
+        const ms = typeof value === "number" ? value : value instanceof Date ? value.getTime() :
+          typeof value === "string" ? Date.parse(value) : NaN;
+        return Number.isFinite(ms) && ms > 0 && ms <= 8.64e15 ? ms : null;
+      };
+      for (const request of requests) {
+        const data = request.content.data;
+        // Explicit scheduler tag establishes ownership; channel/title alone do not.
+        if (data?.type !== "time_group") {
+          uncertainOwnership += 1;
+          if (uncertainExamples.length < 3) uncertainExamples.push({
+            identifier: request.identifier, type: typeof data?.type === "string" ? data.type : null,
+          });
+          continue;
+        }
+        schedulerOwned += 1;
+        const key = typeof data.timeKey === "string" ? data.timeKey : null;
+        const members = Array.isArray(data.markerIds) && data.markerIds.every((id) => typeof id === "string")
+          ? [...data.markerIds as string[]].sort() : null;
+        const trigger = request.trigger as unknown as { type?: string; value?: unknown; date?: unknown } | null;
+        // Android's returned DATE trigger uses epoch milliseconds in 'value'.
+        const triggerMs = trigger?.type === "date" ? toEpoch(trigger.value ?? trigger.date) : null;
+        const intendedMs = toEpoch(data.scheduledForEpochMs);
+        if (triggerMs === null) flag("unreadableDateTrigger", request.identifier, key);
+        if (triggerMs !== null && intendedMs !== null && Math.abs(triggerMs - intendedMs) > 1000)
+          flag("triggerMetadataMismatch", request.identifier, key);
+        if (!key || !members) flag("incompleteSchedulerMetadata", request.identifier, key);
+        if (!afterState.masterEnabled) flag("pendingWhileMasterOff", request.identifier, key);
+        if (data.reminderLeadSeconds !== afterState.reminderLeadSeconds)
+          flag("leadMismatch", request.identifier, key);
+        if (key && members) {
+          const wanted = expected.get(key);
+          if (!wanted || JSON.stringify(wanted) !== JSON.stringify(members))
+            flag("membershipMismatch", request.identifier, key);
+          const group = groups.get(key) ?? { requests: 0, members: new Set<string>(), times: [] };
+          group.requests += 1;
+          members.forEach((id) => group.members.add(id));
+          if (triggerMs !== null) group.times.push(triggerMs);
+          groups.set(key, group);
+          if (triggerMs !== null) {
+            const signature = JSON.stringify([key, members, triggerMs]);
+            if (seen.has(signature)) flag("potentialDuplicate", request.identifier, key);
+            seen.add(signature);
+          }
+        }
+      }
+      const missingGroups = afterState.masterEnabled
+        ? [...expected.keys()].filter((key) => !groups.has(key)) : [];
+      const markerNames = new Map(markersRef.current.map((m) => [m.id, m.name]));
+      const groupRows = [...groups].sort(([a], [b]) => a.localeCompare(b)).slice(0, 10).map(([timeKey, group]) => ({
+        timeKey, requests: group.requests, memberCount: group.members.size,
+        members: [...group.members].slice(0, 5).map((id) => ({ id, name: markerNames.get(id) ?? null })),
+        membersOmitted: Math.max(0, group.members.size - 5),
+        earliestTrigger: group.times.length ? new Date(Math.min(...group.times)).toISOString() : null,
+        latestTrigger: group.times.length ? new Date(Math.max(...group.times)).toISOString() : null,
+        triggerSample: group.times.sort((a, b) => a - b).slice(0, 2).map((ms) => new Date(ms).toISOString()),
+      }));
+      console.log("[Notification Snapshot] " + startedAt + " " + JSON.stringify({
+        startedAt, completedAt: new Date().toISOString(),
+        status: transitional ? "transitional: repeat after scheduler settles" : "observed idle; not an atomic snapshot",
+        before: beforeState, after: afterState, permission: permission.status,
+        pendingCount: requests.length, schedulerOwned, uncertainOwnership,
+        ownershipNote: "Only data.type=time_group is classified as this scheduler. Other requests remain uncertain, not assumed unrelated.",
+        expectedGroupCount: expected.size, observedGroupCount: groups.size,
+        groups: groupRows, groupsOmitted: Math.max(0, groups.size - groupRows.length),
+        potentialIssues: issues, issueExamples: examples, uncertainExamples,
+        missingExpectedGroups: missingGroups.slice(0, 10), missingExpectedGroupCount: missingGroups.length,
+        caveat: "Flags need review; caps, unreadable metadata and concurrent changes can explain missing groups. Duplicate checks use identical group/members/trigger only.",
+      }, null, 2));
+    } catch (error) {
+      console.warn("[Notification Snapshot] " + startedAt + " " + JSON.stringify({
+        error: errMsg(error), before: beforeState, after: readState(),
+      }));
+    }
+  };
 
   const resetAppData = useCallback(() => {
     setShowResetConfirm(true);
@@ -5302,7 +5433,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 	                                              <Pressable
 	                                                onPress={(e) => {
 	                                                  e.stopPropagation();
-	                                                  nextCardGuardRef.current = true;
 	                                                  toggleCaughtStandard(marker?.id ?? "");
 	                                                }}
 	                                                style={({ pressed }) => [
@@ -5329,7 +5459,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 	                                              <Pressable
 	                                                onPress={(e) => {
 	                                                  e.stopPropagation();
-	                                                  nextCardGuardRef.current = true;
 	                                                  toggleCaughtStar(marker?.id ?? "");
 	                                                }}
 	                                                style={({ pressed }) => [
@@ -5406,7 +5535,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
 	                                            <ScalePressable
 	                                              onPress={() => {
-	                                                nextCardGuardRef.current = true;
 	                                                if (!marker) return;
 	                                                toggleNotify(marker.id);
 	                                              }}
@@ -5492,7 +5620,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                             <View style={styles.nowRightRow}>
                               <ScalePressable
                                 onPress={() => {
-                                  nextCardGuardRef.current = true;
                                   if (!marker) return;
                                   toggleNotify(marker.id);
                                 }}
@@ -5630,7 +5757,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                         <Pressable
                                           onPress={(e) => {
                                             e.stopPropagation();
-                                            nextCardGuardRef.current = true;
                                             toggleCaughtStandard(marker?.id ?? "");
                                           }}
                                           style={({ pressed }) => [
@@ -5657,7 +5783,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                         <Pressable
                                           onPress={(e) => {
                                             e.stopPropagation();
-                                            nextCardGuardRef.current = true;
                                             toggleCaughtStar(marker?.id ?? "");
                                           }}
                                           style={({ pressed }) => [
@@ -5737,7 +5862,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
                                   <ScalePressable
                                     onPress={() => {
-                                      nextCardGuardRef.current = true;
                                       if (!marker) return;
                                       toggleNotify(marker.id);
                                     }}
@@ -5833,7 +5957,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               <View style={styles.nextRowRight}>
                                 <ScalePressable
                                   onPress={() => {
-                                    nextCardGuardRef.current = true;
                                     if (!marker) return;
                                     toggleNotify(marker.id);
                                   }}
@@ -5968,7 +6091,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                             <Pressable
                                               onPress={(e) => {
                                                 e.stopPropagation();
-                                                nextCardGuardRef.current = true;
                                                 toggleCaughtStandard(marker?.id ?? "");
                                               }}
                                               style={({ pressed }) => [
@@ -5995,7 +6117,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                             <Pressable
                                               onPress={(e) => {
                                                 e.stopPropagation();
-                                                nextCardGuardRef.current = true;
                                                 toggleCaughtStar(marker?.id ?? "");
                                               }}
                                               style={({ pressed }) => [
@@ -6070,7 +6191,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
                                           <ScalePressable
                                             onPress={() => {
-                                              nextCardGuardRef.current = true;
                                               if (!marker) return;
                                               toggleNotify(marker.id);
                                             }}
@@ -6525,6 +6645,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
       const nameOk = !!newName.trim();
       const timeOk = timeTouched;
       const locationOk = allowBlankLocation ? locationTouched : locationTouched && !!newLocation.trim();
+      const endTimeOk = !newHasRange || endTimeTouched;
+      const canSave = nameOk && locationOk && timeOk && endTimeOk;
 
       return (
         <>
@@ -6570,14 +6692,17 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 onChangeText={setNewName}
                 placeholder="e.g. Flow Tree Grove"
                 placeholderTextColor="rgba(252,248,240,0.45)"
-                style={styles.input}
+                style={[styles.input, showRequiredErrors && !nameOk && styles.requiredFieldError]}
               />
+              {showRequiredErrors && !nameOk ? (
+                <Text style={styles.requiredFieldErrorText} accessibilityLiveRegion="polite">Enter an event name.</Text>
+              ) : null}
 
               <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Event Location</Text>
 
               <Pressable
                 onPress={toggleLocationPicker}
-                style={[styles.locationBox, locationPickerOpen && styles.locationBoxOn]}
+                style={[styles.locationBox, locationPickerOpen && styles.locationBoxOn, showRequiredErrors && !locationOk && styles.requiredFieldError]}
                 android_ripple={{ color: "rgba(255,255,255,0.06)" }}
               >
                 <Text style={styles.timeBoxLabel}>Location</Text>
@@ -6586,13 +6711,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </Text>
               </Pressable>
 
+              {showRequiredErrors && !locationOk ? (
+                <Text style={styles.requiredFieldErrorText} accessibilityLiveRegion="polite">Select a location.</Text>
+              ) : null}
               {locationPickerOpen ? <View style={{ marginTop: 8 }}>{renderLocationWheel()}</View> : null}
 
               <Text style={[styles.fieldLabel, { marginTop: 10 }]}>Event Time</Text>
 
               <Pressable
                 onPress={toggleTimePickers}
-                style={[styles.timeBox, (hourPickerOpen || minutePickerOpen) && styles.timeBoxOn]}
+                style={[styles.timeBox, (hourPickerOpen || minutePickerOpen) && styles.timeBoxOn, showRequiredErrors && !timeOk && styles.requiredFieldError]}
                 android_ripple={{ color: "rgba(255,255,255,0.06)" }}
               >
                 <Text style={styles.timeBoxLabel}>Time</Text>
@@ -6611,6 +6739,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 </View>
               </Pressable>
 
+              {showRequiredErrors && !timeOk ? (
+                <Text style={styles.requiredFieldErrorText} accessibilityLiveRegion="polite">Select an event time.</Text>
+              ) : null}
               {hourPickerOpen || minutePickerOpen ? (
                 <View style={styles.timePickersWrap}>
                   {renderWheel("hour", HOURS, parseInt(newHour, 10), onPickHour, !timeTouched, hourWheelRef)}
@@ -6670,7 +6801,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
                   <Pressable
                     onPress={toggleEndTimePickers}
-                    style={[styles.timeBox, (endHourPickerOpen || endMinutePickerOpen) && styles.timeBoxOn]}
+                    style={[styles.timeBox, (endHourPickerOpen || endMinutePickerOpen) && styles.timeBoxOn, showRequiredErrors && !endTimeOk && styles.requiredFieldError]}
                     android_ripple={{ color: "rgba(255,255,255,0.06)" }}
                   >
                     <Text style={styles.timeBoxLabel}>End</Text>
@@ -6688,6 +6819,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     </View>
                   </Pressable>
 
+                  {showRequiredErrors && !endTimeOk ? (
+                    <Text style={styles.requiredFieldErrorText} accessibilityLiveRegion="polite">Select an end time.</Text>
+                  ) : null}
                   {endHourPickerOpen || endMinutePickerOpen ? (
                     <View style={styles.timePickersWrap}>
                       {renderWheel("endHour", HOURS, parseInt(newEndHour, 10), onPickEndHour, !endTimeTouched, endHourWheelRef)}
@@ -6714,13 +6848,14 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               <TouchableOpacity
                 activeOpacity={0.85}
                 onPress={() => {
-                  if (!isDefaultEdit && !newLocation.trim()) return;
-                  if (!timeTouched) return;
-                  if (newHasRange && !endTimeTouched) return;
+                  setShowRequiredErrors(true);
+                  if (!canSave) return;
 
                   addOrSave();
                 }}
-                style={[styles.saveMarkerBtn, (!nameOk || !timeOk || !locationOk || (newHasRange && !endTimeTouched)) && styles.saveMarkerBtnDisabled]}
+                accessibilityRole="button"
+                accessibilityHint={canSave ? undefined : "Complete the required fields. Press to show missing fields."}
+                style={[styles.saveMarkerBtn, !canSave && styles.saveMarkerBtnDisabled]}
               >
                 <Text style={styles.saveMarkerBtnText}>{editingId ? "Save Changes" : "Save Event"}</Text>
               </TouchableOpacity>
@@ -7285,17 +7420,19 @@ const CLOSED_TEST_WHAT_TO_TEST = [
             <View style={styles.drawerFooter}>
               <Text style={styles.drawerFooterText}>More Coming Soon...</Text>
 
-              <Pressable
-                onPress={() => {
-                  closeMenu();
-                  setRoadmapOpen(true);
-                }}
-                style={[styles.drawerItem, { marginTop: 12 }]}
-                android_ripple={{ color: "rgba(255,255,255,0.08)" }}
-              >
-                <Ionicons name="map-outline" size={18} color={SOFT_WHITE} />
-                <Text style={styles.drawerItemText}>Roadmap</Text>
-              </Pressable>
+                {false && (
+                  <Pressable
+                    onPress={() => {
+                      closeMenu();
+                      setRoadmapOpen(true);
+                    }}
+                    style={[styles.drawerItem, { marginTop: 12 }]}
+                    android_ripple={{ color: "rgba(255,255,255,0.08)" }}
+                  >
+                    <Ionicons name="map-outline" size={18} color={SOFT_WHITE} />
+                    <Text style={styles.drawerItemText}>Roadmap</Text>
+                  </Pressable>
+                )}
             </View>
           </Animated.View>
         </View>
@@ -7595,6 +7732,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     <Text style={styles.notifHintBtnText}>Reset data</Text>
                   </Pressable>
                 </View>
+
+                {__DEV__ && Platform.OS === "android" ? (
+                  <Pressable onPress={captureNotificationSnapshot} style={styles.notifHintBtn}>
+                    <Text style={styles.ctBtnText}>Notification snapshot (dev)</Text>
+                  </Pressable>
+                ) : null}
 
 <View style={{ height: 12 }} />
 
@@ -8773,6 +8916,11 @@ const makeStyles = (scale: number) => {
   },
   inputLabel: { color: SOFT_WHITE_DIM, fontWeight: "900", marginTop: 10, marginBottom: 14, fontFamily: FONT_ROUNDED },
   fieldLabel: { color: SOFT_WHITE_DIM, fontWeight: "900", fontSize: t(11), marginBottom: 14, fontFamily: FONT_ROUNDED },
+  requiredFieldError: { borderColor: "rgb(255,100,100)" },
+  requiredFieldErrorText: {
+    color: "rgb(255,100,100)", fontSize: t(11), fontWeight: "800",
+    fontFamily: FONT_ROUNDED, marginTop: 4,
+  },
 
   // Folder row in setup
   folderRow: {
