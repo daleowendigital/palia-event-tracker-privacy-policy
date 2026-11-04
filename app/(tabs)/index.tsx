@@ -693,6 +693,33 @@ function isProtectedMarkerId(id: string) {
   return s.startsWith("default_") || s.startsWith("repeat_") || s.startsWith("fish_");
 }
 
+// Equal or incomplete endpoints are not a full-day duration.
+function getEventWindowEnd(marker: Marker): number | null {
+  const { endHour, endMinute } = marker;
+  if (!marker.hasRange || typeof endHour !== "number" || typeof endMinute !== "number" ||
+      !Number.isInteger(endHour) || !Number.isInteger(endMinute) ||
+      endHour < 0 || endHour > 23 || endMinute < 0 || endMinute > 59) return null;
+  const end = endHour * 60 + endMinute;
+  return end === marker.hour * 60 + marker.minute ? null : end;
+}
+
+function eventOccursInPeriod(marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean {
+  const periods: [number, number][] = period === "morning" ? [[180, 360]] :
+    period === "day" ? [[360, 1080]] : period === "evening" ? [[1080, 1260]] : [[1260, 1440], [0, 180]];
+  const start = marker.hour * 60 + marker.minute;
+  const end = getEventWindowEnd(marker);
+  if (end === null) return periods.some(([from, to]) => start >= from && start < to);
+  const windows: [number, number][] = end > start ? [[start, end]] : [[start, 1440], [0, end]];
+  return windows.some(([from, to]) => periods.some(([periodStart, periodEnd]) =>
+    Math.max(from, periodStart) < Math.min(to, periodEnd)));
+}
+
+function formatEventSchedule(marker: Marker): string {
+  const start = format12hTime(marker.hour, marker.minute);
+  return getEventWindowEnd(marker) === null ? start :
+    start + " \u2013 " + format12hTime(marker.endHour!, marker.endMinute!);
+}
+
 function clampTimeInputs(hourStr: string, minuteStr: string) {
   let h = parseInt(hourStr, 10);
   let m = parseInt(minuteStr, 10);
@@ -4409,8 +4436,24 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   const displayedNextFish = filteredFishMode ? filteredFishLists.specific : nextSectionMarkers;
   const displayedAllDayFish = filteredFishMode ? filteredFishLists.allDay : allDayFish;
 
+  const filteredEventMode = clockViewMode === "events" && nextTimeFilter !== null;
+  const eventPlanningMarkers = useMemo(() => {
+    if (!filteredEventMode || !nextTimeFilter) return [] as Marker[];
+    const seen = new Set<string>();
+    return enabledMarkers.filter((marker) => {
+      if (String(marker.id).startsWith("fish_") || seen.has(marker.id)) return false;
+      seen.add(marker.id);
+      return eventOccursInPeriod(marker, nextTimeFilter);
+    }).sort((a, b) => {
+      const difference = sortKeyForTimeOfDay(a.hour * 60 + a.minute, nextTimeFilter) -
+        sortKeyForTimeOfDay(b.hour * 60 + b.minute, nextTimeFilter);
+      return difference || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
+    });
+  }, [enabledMarkers, filteredEventMode, nextTimeFilter]);
+
   const nextTimeGroups = useMemo<NextTimeGroup[]>(() => {
-    if (!nextSectionMarkers.length) return [];
+    const groupSource = filteredEventMode ? eventPlanningMarkers : nextSectionMarkers;
+    if (!groupSource.length) return [];
 
     const filtering = nextTimeFilter != null;
 
@@ -4421,7 +4464,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     const MAX_GROUPS = filtering || noCap ? 9999 : 3; // distinct time headers
     const MAX_ITEMS = filtering || noCap ? 9999 : 8;  // total rows across all groups
 
-    const source = filtering
+    const source = filteredEventMode ? eventPlanningMarkers : filtering
       ? nextSectionMarkers
           .filter((m) => isMinuteInTimeOfDay(m.hour * 60 + m.minute, nextTimeFilter!))
           .slice()
@@ -4459,7 +4502,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
         id: m.id,
         eventName,
         location,
-        countdownSec: Math.max(0, countdowns[lookupId] ?? 0),
+        countdownSec: filteredEventMode ? 0 : Math.max(0, countdowns[lookupId] ?? 0),
       };
 
       if (existingIdx == null) {
@@ -4473,7 +4516,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     }
 
     return groups;
-  }, [nextSectionMarkers, nextTimeFilter, clockViewMode]); // Don't depend on countdowns to avoid jitter
+  }, [nextSectionMarkers, nextTimeFilter, clockViewMode, filteredEventMode, eventPlanningMarkers]); // Don't depend on countdowns to avoid jitter
 
 // SECTION 16) MARKER ACTIONS
 
@@ -6036,7 +6079,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               })}
             </View>
 
-            {!filteredFishMode && (
+            {!filteredFishMode && !filteredEventMode && (
             <View style={styles.nextCard}>
               <Pressable
                 onPress={() => setNowSectionOpen(!nowSectionOpen)}
@@ -6142,6 +6185,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                   {it.location}
                                 </Text>
                               ) : null}
+                              {marker ? <Text style={styles.nextRowSub}>{formatEventSchedule(marker)}</Text> : null}
                             </View>
 
                             <View style={styles.nowRightRow}>
@@ -6177,6 +6221,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
             {(!filteredFishMode || displayedNextFish.length > 0) && (
             <View style={styles.nextCard}>
+              {(!filteredEventMode || eventPlanningMarkers.length > 0) && (
               <View style={styles.nextHeaderRow}>
                 <Pressable
                   onPress={() => setNextSectionOpen(!nextSectionOpen)}
@@ -6187,8 +6232,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     size={18}
                     color={SOFT_WHITE_DIM}
                   />
-                  <Text style={styles.nextTitle}>{filteredFishMode ? getPeriodLabel(nextTimeFilter!) + " Fish" : "Next"}</Text>
-                  <Text style={styles.nextMeta}>{filteredFishMode ? displayedNextFish.length + " available" : nextSectionMarkers.length + " upcoming"}</Text>
+                  <Text style={styles.nextTitle}>{filteredFishMode ? getPeriodLabel(nextTimeFilter!) + " Fish" : filteredEventMode ? getPeriodLabel(nextTimeFilter!) + " Events" : "Next"}</Text>
+                  <Text style={styles.nextMeta}>{filteredFishMode ? displayedNextFish.length + " available" : filteredEventMode ? eventPlanningMarkers.length + " available" : nextSectionMarkers.length + " upcoming"}</Text>
                 </Pressable>
 
                                 <View style={styles.nextHeaderRight}>
@@ -6227,6 +6272,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                 ) : null}
                 </View>
               </View>
+              )}
 
               {nextSectionOpen && clockViewMode === "fish" ? (
                 displayedNextFish.length ? (
@@ -6296,6 +6342,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                     {it.location}
                                   </Text>
                                 ) : null}
+                                {marker ? <Text style={styles.nextRowSub}>{formatEventSchedule(marker)}</Text> : null}
                               </View>
 
                               <View style={styles.nextRowRight}>
@@ -6331,6 +6378,10 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     </View>
                   ))}
                 </View>
+              ) : filteredEventMode && eventPlanningMarkers.length === 0 ? (
+                <Text style={[styles.nextEmpty, { marginTop: 8 }]}>
+                  {"No enabled events are available during " + getPeriodLabel(nextTimeFilter!) + "."}
+                </Text>
               ) : nextSectionOpen ? (
                 <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
               ) : null}
@@ -6356,7 +6407,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
             ) : null}
 
             {/* ALL DAY SECTION */}
-            {displayedAllDayFish.length > 0 && (
+            {!filteredEventMode && displayedAllDayFish.length > 0 && (
               <View style={styles.nextCard}>
                 <Pressable
                   onPress={() => setAllDaySectionOpen(!allDaySectionOpen)}
