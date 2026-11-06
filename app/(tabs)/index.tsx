@@ -3467,7 +3467,6 @@ const wheelLastSnapIdxRef = useRef({ hour: 0, minute: 0, endHour: 0, endMinute: 
     if (!eventDetailsId) return null;
     return markers.find((m) => m.id === eventDetailsId) ?? null;
   }, [markers, eventDetailsId]);
-  const [roadmapOpen, setRoadmapOpen] = useState(false);
 
   // Section collapse states
   const [nowSectionOpen, setNowSectionOpen] = useState(true);
@@ -7742,19 +7741,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
             <View style={styles.drawerFooter}>
               <Text style={styles.drawerFooterText}>More Coming Soon...</Text>
 
-                {false && (
-                  <Pressable
-                    onPress={() => {
-                      closeMenu();
-                      setRoadmapOpen(true);
-                    }}
-                    style={[styles.drawerItem, { marginTop: 12 }]}
-                    android_ripple={{ color: "rgba(255,255,255,0.08)" }}
-                  >
-                    <Ionicons name="map-outline" size={18} color={SOFT_WHITE} />
-                    <Text style={styles.drawerItemText}>Roadmap</Text>
-                  </Pressable>
-                )}
             </View>
           </Animated.View>
         </View>
@@ -8191,127 +8177,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
         </View>
       </Modal>
 
-      {/* Roadmap modal */}
-      <Modal
-        visible={roadmapOpen}
-        transparent
-        animationType="slide"
-        statusBarTranslucent
-        onRequestClose={() => setRoadmapOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          {/* Blurred background behind the sheet */}
-          <BlurView
-            tint="dark"
-            intensity={BACKDROP_BLUR_INTENSITY}
-            experimentalBlurMethod={Platform.OS === "android" ? "dimezisBlurView" : "none"}
-            style={StyleSheet.absoluteFillObject}
-          />
-          {/* Soft dim over blur */}
-          <View pointerEvents="none" style={styles.backdropDimSoft} />
-
-          <Pressable style={styles.modalBackdropPress} onPress={() => setRoadmapOpen(false)} />
-
-          <View style={[styles.modalSheet, { height: Math.min(820, SCREEN_H * 0.875) }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>?? Roadmap</Text>
-              <Pressable onPress={() => setRoadmapOpen(false)} style={styles.modalClose} hitSlop={12}>
-                <Ionicons name="close" size={22} color={SOFT_WHITE_DIM} />
-              </Pressable>
-            </View>
-
-	            <ScrollView
-	              style={{ flex: 1 }}
-	              contentContainerStyle={[styles.modalContent, { paddingBottom: 12 }]}
-	              showsVerticalScrollIndicator={false}
-	            >
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Growing with Palia</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  This app grows alongside Palia. Features roll out gradually, shaped by game updates and how players actually play.
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>??? Now</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  � In-game time & event tracking{"\n"}� Notifications you control{"\n"}� Clean, cozy display options{"\n"}� Designed for calm, low-attention use
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Themes & Personalisation</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Multiple visual themes inspired by Palia{"\n"}Light, dark, and cozy mood presets{"\n"}Subtle accent colour choices{"\n\n"}Personalisation without clutter or noise{"\n"}Your app should feel like your plot.
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Seasonal Updates</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Limited-time events (Winterlights, seasonal festivals){"\n"}Event-aware reminders{"\n"}Optional seasonal visual touches
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Progression & Paths</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Lunar Path tracking{"\n"}Reward reminders{"\n"}Support for future paths
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Housing & Planning</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Decor & crafting planning tools{"\n"}Furniture sets & tint references{"\n"}Home project checklists
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Social & Story</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  NPC relationship tracking{"\n"}Friendship & story reminders{"\n"}Light group planning tools
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>??? Exploration</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Zone-based events & activities{"\n"}Exploration checklists{"\n"}Time-sensitive highlights
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Comfort & Accessibility</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Adjustable text & motion{"\n"}Calm notification controls{"\n"}Designed for long, relaxed sessions
-                </Text>
-              </View>
-
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>?? Your Data, Your Control</Text>
-                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-                  Backup & restore options{"\n"}Multi-device safety{"\n"}Long-term reliability
-                </Text>
-              </View>
-
-	              <View style={styles.modalSection}>
-	                <Text style={styles.modalSectionTitle}>?? Player Feedback</Text>
-	                <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-	                  Simple ways to share ideas{"\n"}Feedback helps shape future updates
-	                </Text>
-	              </View>
-            </ScrollView>
-
-	            {/* Outside-the-card footer line */}
-	            <View style={[styles.roadmapFooterWrap, { paddingBottom: insets.bottom + 18 }]}>
-	              <Text style={styles.roadmapFooterText}>
-	                ? Features arrive gradually. Nothing here is required. Everything is optional.
-	              </Text>
-	            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Event details modal */}
       <Modal
@@ -9933,20 +9798,6 @@ modalTitle: {
 
   modalContent: { padding: 14, paddingBottom: 28 },
 
-  // Roadmap footer (outside the cards)
-  roadmapFooterWrap: {
-    paddingHorizontal: 14,
-    paddingTop: 6,
-  },
-
-  roadmapFooterText: {
-    color: "rgba(255,255,255,0.40)",
-    fontSize: t(12),
-    fontWeight: "800",
-    fontFamily: FONT_ROUNDED,
-    textAlign: "center",
-    lineHeight: t(16),
-  },
 
   modalSection: {
     borderRadius: 16,
