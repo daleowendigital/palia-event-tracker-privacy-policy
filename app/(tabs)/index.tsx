@@ -7,12 +7,14 @@ import { useKeepAwake } from "expo-keep-awake";
 import * as NavigationBar from "expo-navigation-bar";
 import * as Notifications from "expo-notifications";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Animated,
   AppState,
+  BackHandler,
   Easing,
   Image,
   LayoutAnimation,
@@ -5750,6 +5752,36 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     closeMenu();
     requestAnimationFrame(() => setScreen("home"));
   }, [closeMenu]);
+
+  const androidBackActionRef = useRef<() => boolean>(() => false);
+  useLayoutEffect(() => {
+    androidBackActionRef.current = () => {
+      if (screen !== "marker_setup") return false;
+      if (hourPickerOpen || minutePickerOpen || endHourPickerOpen || endMinutePickerOpen ||
+          locationPickerOpen || folderPickerOpen) {
+        setHourPickerOpen(false);
+        setMinutePickerOpen(false);
+        setEndHourPickerOpen(false);
+        setEndMinutePickerOpen(false);
+        setLocationPickerOpen(false);
+        setFolderPickerOpen(false);
+        return true;
+      }
+      if (addMarkerOpen || editingId) {
+        resetForm();
+        return true;
+      }
+      goToHome();
+      return true;
+    };
+  });
+
+  useFocusEffect(useCallback(() => {
+    if (Platform.OS !== "android") return;
+    // Native Modals retain their own onRequestClose handling.
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => androidBackActionRef.current());
+    return () => subscription.remove();
+  }, []));
 
   // Folder open/close: slow-ish ease + slight fade/slide (cozy)
   const animateFolder = useCallback((t: Animated.Value, open: boolean) => {
