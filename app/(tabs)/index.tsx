@@ -388,20 +388,6 @@ function normaliseFishNotification(marker: Marker): Marker {
   return isAllDayFish(marker) && marker.notify ? { ...marker, notify: false } : marker;
 }
 
-function eventNotesMatchLegacyAllDay(notes: string | undefined): boolean {
-  // Preserve the pre-existing Event display rule, including its permissive text matching.
-  const lower = String(notes ?? "").trim().toLowerCase();
-  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
-  return lower.includes("any") || lower.includes("all day") || tokens.includes("all") ||
-    ["morning", "day", "evening", "night"].every((period) => tokens.includes(period));
-}
-
-function isAllDayListMarker(marker: Marker): boolean {
-  return String(marker.id).startsWith("fish_")
-    ? isAllDayFish(marker)
-    : eventNotesMatchLegacyAllDay(marker.notes);
-}
-
 function fishAppearsInPeriod(marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean {
   const appears = extractFishFieldFromNotes(marker.notes, "Appears");
   return fishAppearsToPeriodsFlags(appears)[period];
@@ -4288,7 +4274,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
       if (!isActiveNow(m, paliaTime.hour, paliaTime.minute)) continue;
 
       // Skip "Any Time" fish - they'll show in a separate All Day section
-      if (isAllDayListMarker(m)) continue;
+      if (isAllDayFish(m)) continue;
 
       const { eventName, location } = splitName(m.name);
       const eh = (m.endHour as number) ?? m.hour;
@@ -4319,7 +4305,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   // All Day fish (active "Any Time", shown in a separate section at the bottom)
   const allDayFish = useMemo(() => {
     if (!homeListMarkers.length) return [];
-    return homeListMarkers.filter(m => isAllDayListMarker(m)).sort((a, b) => {
+    return homeListMarkers.filter(m => isAllDayFish(m)).sort((a, b) => {
       const nameA = (a.name ?? "").toLowerCase();
       const nameB = (b.name ?? "").toLowerCase();
       return nameA.localeCompare(nameB);

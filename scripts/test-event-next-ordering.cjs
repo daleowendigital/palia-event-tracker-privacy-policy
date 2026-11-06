@@ -33,7 +33,7 @@ function evaluate(name) {
   vm.runInContext(ts.transpile(text, { target: ts.ScriptTarget.ES2020 }), c);
   return c[name];
 }
-for (const name of ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'eventNotesMatchLegacyAllDay', 'isAllDayListMarker', 'minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
+for (const name of ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker', 'minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
 function render(markers, hour, minute) {
   c.markers = markers; c.paliaTime = { hour, minute };
   c.countdowns = Object.fromEntries(markers.map(m => [m.id, c.minutesUntil(hour, minute, m.hour, m.minute) * 2.5]));
@@ -90,17 +90,36 @@ render(markers, 5, 59);
 assert.deepEqual(render(markers, 10, 0), ['after-resume', 'before-resume']);
 console.log('PASS: automatic Event rotation, next-cycle wrap, bell independence, equal-time stability, Now/overnight boundaries, disabled Events, group/row caps, planning and Fish ordering, resumed clock values');
 
-// Preserve historical Event-note classification without applying it to Fish descriptions.
-for (const notes of ['Bring all bait', 'Use any bait', 'Many locations', 'Available all day', 'Morning Day Evening Night']) {
-  markers = [event('custom_legacy', 6, 0, { hasRange: true, endHour: 8, endMinute: 0, notes }), event('custom_plain', 9)];
-  assert.deepEqual(render(markers, 7, 0), ['custom_plain']);
-  assert.equal(c.nowItems.length, 0);
-  assert.deepEqual(Array.from(c.allDayFish, m => m.id), ['custom_legacy']);
-  // Planning still uses Event schedules, not the legacy live-display note rule.
-  c.nextTimeFilter = 'day'; c.filteredEventMode = true;
-  render(markers, 7, 0);
-  assert.deepEqual(Array.from(c.eventPlanningMarkers, m => m.id), ['custom_legacy', 'custom_plain']);
+// Event notes never determine live availability, including the reported midnight case.
+for (const notes of ['Test all', 'Test any', 'Ordinary notes', 'Many locations', 'Available all day', 'Morning Day Evening Night']) {
+  markers = [event('custom_midnight', 0, 0, { notes }), event('custom_later', 1)];
+  assert.deepEqual(render(markers, 23, 59), ['custom_midnight', 'custom_later']);
+  assert.equal(c.nowItems.length, 0); assert.equal(c.allDayFish.length, 0);
+  assert.deepEqual(render(markers, 0, 0), ['custom_later', 'custom_midnight']);
+  assert.deepEqual(render(markers, 0, 1), ['custom_later', 'custom_midnight']);
+  assert.equal(c.canNotifyMarker(markers[0]), true);
+  c.nextTimeFilter = 'night'; c.filteredEventMode = true;
+  render(markers, 12, 0);
+  assert.deepEqual(Array.from(c.eventPlanningMarkers, m => m.id), ['custom_midnight', 'custom_later']);
   c.nextTimeFilter = null; c.filteredEventMode = false;
+
+  markers = [event('custom_range', 6, 0, { hasRange: true, endHour: 8, endMinute: 0, notes }), event('custom_plain', 9)];
+  render(markers, 6, 0);
+  assert.deepEqual(Array.from(c.nowItems, m => m.id), ['custom_range']);
+  assert.equal(c.allDayFish.length, 0);
+  assert.deepEqual(Array.from(c.nextSectionMarkers, m => m.id), ['custom_plain']);
+  assert.deepEqual(render(markers, 8, 0), ['custom_plain', 'custom_range']);
+  c.nextTimeFilter = 'day'; c.filteredEventMode = true; render(markers, 7, 0);
+  assert.deepEqual(Array.from(c.eventPlanningMarkers, m => m.id), ['custom_range', 'custom_plain']);
+  c.nextTimeFilter = null; c.filteredEventMode = false;
+
+  markers = [event('custom_overnight', 22, 0, { hasRange: true, endHour: 2, endMinute: 0, notes })];
+  for (const [hour, minute, active] of [[21, 59, false], [22, 0, true], [0, 0, true], [1, 59, true], [2, 0, false]]) {
+    render(markers, hour, minute);
+    assert.equal(c.nowItems.length, active ? 1 : 0);
+    assert.equal(c.nextSectionMarkers.length, active ? 0 : 1);
+    assert.equal(c.allDayFish.length, 0);
+  }
 }
 c.clockViewMode = 'fish';
 markers = [event('fish_timed', 6, 0, { hasRange: true, endHour: 8, endMinute: 0, notes: 'Bring all bait, use any bait\nAppears: Morning' })];
@@ -108,4 +127,8 @@ c.expandedFishMarkers = markers;
 render(markers, 7, 0);
 assert.deepEqual(Array.from(c.nowItems, m => m.id), ['fish_timed']);
 assert.equal(c.allDayFish.length, 0);
-console.log('PASS: legacy all/any Event display membership and planning preserved; timed Fish descriptions cannot override extracted availability');
+markers = [event('fish_all_day', 0, 0, { notes: 'Appears: Any Time' })];
+c.expandedFishMarkers = markers; render(markers, 7, 0);
+assert.deepEqual(Array.from(c.allDayFish, m => m.id), ['fish_all_day']);
+assert.equal(c.canNotifyMarker(markers[0]), false);
+console.log('PASS: Event notes cannot create All Day membership; midnight wrapping, ranges, overnight and planning preserved; Fish classification/eligibility unchanged');
