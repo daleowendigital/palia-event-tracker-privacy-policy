@@ -3427,6 +3427,19 @@ export default function App() {
 const markersRef = useRef<Marker[]>(DEFAULT_MARKERS);
 const notifEnabledRef = useRef(false);
 const reminderRef = useRef<ReminderLeadSeconds>(0);
+const resetInProgressRef = useRef(false);
+const caughtFishWriteRef = useRef<Promise<void>>(Promise.resolve());
+const markersWriteRef = useRef<Promise<void>>(Promise.resolve());
+const notificationPrefsWriteRef = useRef<Promise<void>>(Promise.resolve());
+const nextCountWriteRef = useRef<Promise<void>>(Promise.resolve());
+const diagnosticsWriteRef = useRef<Promise<void>>(Promise.resolve());
+const nextCountLoadGenerationRef = useRef(0);
+const resetMarkersRef = useRef<{
+  target: Marker[] | null;
+  resolve: () => void;
+  reject: (error: unknown) => void;
+} | null>(null);
+const notificationRequestGenerationRef = useRef(0);
 
 // Web: in-memory timers for desktop notifications (works while tab is open)
 const webTimerIdsRef = useRef<any[]>([]);
@@ -3934,29 +3947,46 @@ useEffect(() => {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_MARKERS, JSON.stringify(markers)).catch(() => {});
+    const resetWrite = resetMarkersRef.current;
+    const value = JSON.stringify(markers);
+    const write = markersWriteRef.current.then(() => AsyncStorage.setItem(STORAGE_MARKERS, value));
+    markersWriteRef.current = write.catch(() => {});
+    // A catalogue update may be batched after reset's updater. Persist that
+    // committed result too, rather than waiting for an intermediate array.
+    if (resetWrite && resetWrite.target !== null) {
+      resetMarkersRef.current = null;
+      void write.then(resetWrite.resolve, resetWrite.reject);
+    }
   }, [hydrated, markers]);
 
 // SECTION 13.2) Persist caught fish
 
   useEffect(() => {
-    if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_CAUGHT_FISH, JSON.stringify(caughtFish)).catch(() => {});
+    if (!hydrated || resetInProgressRef.current) return;
+    const value = JSON.stringify(caughtFish);
+    caughtFishWriteRef.current = caughtFishWriteRef.current
+      .then(() => AsyncStorage.setItem(STORAGE_CAUGHT_FISH, value))
+      .catch(() => {});
   }, [hydrated, caughtFish]);
 
 // SECTION 13.3) Persist notification prefs
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || resetInProgressRef.current) return;
     const prefs: NotifPrefs = { enabled: notifEnabled, reminderLeadSeconds };
-    AsyncStorage.setItem(STORAGE_NOTIF_PREFS, JSON.stringify(prefs)).catch(() => {});
+    notificationPrefsWriteRef.current = notificationPrefsWriteRef.current
+      .then(() => AsyncStorage.setItem(STORAGE_NOTIF_PREFS, JSON.stringify(prefs)))
+      .catch(() => {});
   }, [hydrated, notifEnabled, reminderLeadSeconds]);
 
   // SECTION 13.4) Persist �Want to help?� diagnostics opt-in
 
   useEffect(() => {
-    if (!hydrated) return;
-    AsyncStorage.setItem(HELP_DIAGNOSTICS_OPTIN_KEY, helpIncludeDiagnostics ? "1" : "0").catch(() => {});
+    if (!hydrated || resetInProgressRef.current) return;
+    const value = helpIncludeDiagnostics ? "1" : "0";
+    diagnosticsWriteRef.current = diagnosticsWriteRef.current
+      .then(() => AsyncStorage.setItem(HELP_DIAGNOSTICS_OPTIN_KEY, value))
+      .catch(() => {});
   }, [hydrated, helpIncludeDiagnostics]);
 
 // SECTION 14) COUNTDOWN TICKER
@@ -4645,6 +4675,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
   // Fish caught tracking toggles
   const toggleCaughtStandard = useCallback((fishId: string) => {
+    if (resetInProgressRef.current) return;
     setCaughtFish((prev) => ({
       ...prev,
       [fishId]: {
@@ -4655,6 +4686,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   }, []);
 
   const toggleCaughtStar = useCallback((fishId: string) => {
+    if (resetInProgressRef.current) return;
     setCaughtFish((prev) => ({
       ...prev,
       [fishId]: {
@@ -4831,7 +4863,9 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
           try {
             if (!notifEnabledRef.current) {
               phase = "master-off cancellation";
+              if (__DEV__) console.log("[notif] master-off cancellation requested");
               await Notifications.cancelAllScheduledNotificationsAsync();
+              if (__DEV__) console.log("[notif] master-off cancellation completed");
               gate.lastAt = Date.now();
               continue;
             }
@@ -4931,7 +4965,11 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
             }
           } catch (e) {
             failed = true;
-            console.warn(`[notif] ${phase} failed:`, errMsg(e));
+            if (phase === "master-off cancellation") {
+              if (__DEV__) console.warn("[notif] master-off cancellation failed");
+            } else {
+              console.warn(`[notif] ${phase} failed:`, errMsg(e));
+            }
             // Newer queued preferences still run after a failed pass.
           }
         }
@@ -4947,11 +4985,14 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 // SECTION 17.3) Toggle notifications
 
   const toggleNotifications = useCallback(async () => {
+    if (resetInProgressRef.current) return;
+    const requestGeneration = notificationRequestGenerationRef.current;
     // Turning ON
     if (!notifEnabledRef.current) {
       // Web: request browser permission
       if (Platform.OS === "web") {
         const perm = await ensureWebNotificationPermission();
+        if (resetInProgressRef.current || requestGeneration !== notificationRequestGenerationRef.current) return;
         if (!perm.ok) return;
 
         notifEnabledRef.current = true;
@@ -4963,6 +5004,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
       // Native: request OS permission
       const perm = await ensurePermission(true);
+      if (resetInProgressRef.current || requestGeneration !== notificationRequestGenerationRef.current) return;
       if (!perm.ok) {
         Alert.alert(
           "Notifications not enabled",
@@ -5310,36 +5352,91 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   }, []);
 
   const performReset = useCallback(async () => {
+    if (resetInProgressRef.current) return;
+    if (!hydrated) {
+      Alert.alert("Please wait", "Saved data is still loading. Please try Reset data again shortly.");
+      return;
+    }
+    resetInProgressRef.current = true;
+    nextCountLoadGenerationRef.current += 1;
+    notificationRequestGenerationRef.current += 1;
+    notifEnabledRef.current = false;
+    setNotifEnabled(false);
+    setReminderLeadSeconds(0);
     try {
+      // Drain active scheduling, then cancel through the shared master-OFF gate.
+      // Web OFF cleanup uses timers rather than the native scheduler.
+      if (Platform.OS === "web") {
+        for (const timer of webTimerIdsRef.current) clearTimeout(timer);
+        webTimerIdsRef.current = [];
+      }
+      const cleanedUp = await resyncTimeNotifications();
+      await notificationPrefsWriteRef.current;
+      await AsyncStorage.setItem(STORAGE_NOTIF_PREFS, JSON.stringify({ enabled: false, reminderLeadSeconds: 0 }));
+      if (cleanedUp === false) {
+        throw new Error("Notification cleanup failed. Notifications remain off. Please retry Reset data.");
+      }
+
       await AsyncStorage.multiRemove([
-        STORAGE_MARKERS,
-        STORAGE_REPEATABLE_NOTIF_DEFAULTED,
-        STORAGE_NOTIF_PREFS,
-        STORAGE_NOTIF_DEFAULTED,
-        NEXT_TIME_COUNT_KEY,
         HELP_DIAGNOSTICS_OPTIN_KEY,
         CLOSED_TEST_POPUP_SEEN_KEY,
       ]);
 
-      try {
-        await Notifications.cancelAllScheduledNotificationsAsync();
-      } catch {
-        // ignore
-      }
+      // Do not rely on the fire-and-forget persistence effect for reset success.
+      await AsyncStorage.setItem(STORAGE_NOTIF_PREFS, JSON.stringify({ enabled: false, reminderLeadSeconds: 0 }));
+      // Reset is an explicit choice, not a request to rerun first-launch defaults.
+      await AsyncStorage.setItem(STORAGE_REPEATABLE_NOTIF_DEFAULTED, "1");
+      await AsyncStorage.setItem(STORAGE_NOTIF_DEFAULTED, "1");
+      await nextCountWriteRef.current;
+      await AsyncStorage.setItem(NEXT_TIME_COUNT_KEY, "1");
+      await diagnosticsWriteRef.current;
+      await AsyncStorage.setItem(HELP_DIAGNOSTICS_OPTIN_KEY, "0");
 
       // Reset in-memory state to fresh defaults
-      setMarkers(DEFAULT_MARKERS);
+      await caughtFishWriteRef.current;
+      const caughtResetWrite = AsyncStorage.setItem(STORAGE_CAUGHT_FISH, JSON.stringify({}));
+      // Keep the tail usable after a failed reset; await the original to expose failure.
+      caughtFishWriteRef.current = caughtResetWrite.catch(() => {});
+      await caughtResetWrite;
+      setCaughtFish({});
+      // Persist the committed functional update, including Fish arriving during reset.
+      await new Promise<void>((resolve, reject) => {
+        const request = { target: null as Marker[] | null, resolve, reject };
+        resetMarkersRef.current = request;
+        setMarkers((prev) => {
+          const next = [
+            ...DEFAULT_MARKERS.map((m) => ({ ...m, notify: false })),
+            ...prev.filter((m) => String(m.id).startsWith("fish_")).map((m) => ({ ...m, notify: false })),
+          ];
+          request.target = next;
+          return next;
+        });
+      });
       notifEnabledRef.current = false;
       setNotifEnabled(false);
       setReminderLeadSeconds(0);
-      setNextTimeCount(2);
+      setNextTimeCount(1);
+      setClockViewMode("events");
+      setNextTimeFilter(null);
+      setNowSectionOpen(true);
+      setNextSectionOpen(true);
+      setAllDaySectionOpen(true);
+      setDefaultMarkersOpen(false);
+      setCustomMarkersOpen(false);
+      setRepeatableMarkersOpen(false);
+      setFishMarkersOpen(false);
+      setExpandedNextNotesId(null);
+      setExpandedNowNotesId(null);
+      setExpandedEventNotesId(null);
       setHelpIncludeDiagnostics(false);
       setClosedTestOpen(true);
       setShowResetConfirm(false);
-    } catch {
-      Alert.alert("Reset failed", "Could not reset app data on this device.");
+    } catch (error) {
+      Alert.alert("Reset failed", `Notifications remain off. Could not finish resetting app data. Please retry. ${errMsg(error)}`);
+    } finally {
+      resetInProgressRef.current = false;
     }
-  }, []);
+  }, [hydrated, resyncTimeNotifications]);
 
 // SECTION 18.3) Resync on notification TAP (not on receive)
 
@@ -5423,10 +5520,11 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
   useEffect(() => {
     let mounted = true;
+    const loadGeneration = nextCountLoadGenerationRef.current;
     (async () => {
       try {
         const v = await AsyncStorage.getItem(NEXT_TIME_COUNT_KEY);
-        if (!mounted) return;
+        if (!mounted || resetInProgressRef.current || loadGeneration !== nextCountLoadGenerationRef.current) return;
         const n = Number(v);
         if (n === 1 || n === 2 || n === 3) {
           setNextTimeCount(n);
@@ -5439,7 +5537,11 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem(NEXT_TIME_COUNT_KEY, String(nextTimeCount)).catch(() => {});
+    if (resetInProgressRef.current) return;
+    const value = String(nextTimeCount);
+    nextCountWriteRef.current = nextCountWriteRef.current
+      .then(() => AsyncStorage.setItem(NEXT_TIME_COUNT_KEY, value))
+      .catch(() => {});
   }, [nextTimeCount]);
 
   // Used to �reroll� tiny decorative randomness without reworking the whole clock.
@@ -5858,8 +5960,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     <Pressable style={styles.ctBackdropPress} onPress={() => setShowResetConfirm(false)} />
 
     <View style={styles.ctCard}>
-      <Text style={styles.ctTitle}>Reset app data?</Text>
-      <Text style={styles.ctText}>This will clear your saved events, notification preferences, and settings on this device.</Text>
+      <Text style={styles.ctTitle}>Reset Data?</Text>
+      <Text style={styles.ctText}>{"This will clear caught Fish progress, remove custom Events, restore default Events, mute all Fish and Event reminders, and cancel scheduled notifications.\n\nYour view will return to Events with one upcoming group, expanded tracker sections and collapsed Event Setup folders.\n\nYour Fish catalogue, Fish visibility preferences and text size will be kept.\n\nThis cannot be undone."}</Text>
 
       <View style={styles.ctBtnRow}>
         <Pressable onPress={() => setShowResetConfirm(false)} style={[styles.ctBtn, { marginRight: 8 }]}>
