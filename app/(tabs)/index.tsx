@@ -7459,7 +7459,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.folderRow, defOpen && styles.folderRowOn]}
             >
               <Text style={[styles.addMarkerBtnText, defOpen && styles.addMarkerBtnTextOn]}>
-                Default Events � {defaultMarkers.length}
+                Default Events - {defaultMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -7512,7 +7512,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.addMarkerBtn, cusOpen && styles.addMarkerBtnOn]}
             >
               <Text style={[styles.addMarkerBtnText, cusOpen && styles.addMarkerBtnTextOn]}>
-                Custom Events � {customMarkers.length}
+                Custom Events - {customMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -7564,7 +7564,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.addMarkerBtn, fishOpen && styles.addMarkerBtnOn]}
             >
               <Text style={[styles.addMarkerBtnText, fishOpen && styles.addMarkerBtnTextOn]}>
-                Fish � {fishMarkers.length}
+                Fish - {fishMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -7624,7 +7624,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
               style={[styles.folderRow, repOpen && styles.folderRowOn]}
             >
               <Text style={[styles.addMarkerBtnText, repOpen && styles.addMarkerBtnTextOn]}>
-                Repeatable Events � {repeatableMarkers.length}
+                Repeatable Events - {repeatableMarkers.length}
               </Text>
 
               <View style={{ position: "absolute", right: 14, top: 0, bottom: 0, justifyContent: "center" }}>
@@ -7956,7 +7956,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                       {Platform.OS === "android" && Number(Platform.Version) >= 31 ? (
                         <View style={styles.notifHintWrap}>
                           <Text style={styles.notifHintText}>
-                            If alerts are late on Android, enable �Alarms and reminders� and disable battery optimizations for this app.
+                            If alerts are late on Android, enable "Alarms and reminders" and disable battery optimizations for this app.
                           </Text>
                           <Pressable onPress={() => Linking.openSettings()} style={styles.notifHintBtn}>
                             <Text style={styles.notifHintBtnText}>Open Settings</Text>
@@ -8065,12 +8065,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
 <Text style={styles.modalHint}>Known issues</Text>
 <Text style={[styles.notifHintText, { marginBottom: 10 }]}>
-  {CLOSED_TEST_KNOWN_ISSUES.map((t) => `� ${t}`).join("\n")}
+  {CLOSED_TEST_KNOWN_ISSUES.map((t) => `- ${t}`).join("\n")}
 </Text>
 
 <Text style={styles.modalHint}>What to test</Text>
 <Text style={[styles.notifHintText, { marginBottom: 0 }]}>
-  {CLOSED_TEST_WHAT_TO_TEST.map((t) => `� ${t}`).join("\n")}
+  {CLOSED_TEST_WHAT_TO_TEST.map((t) => `- ${t}`).join("\n")}
 </Text>
 
               </View>
