@@ -33,7 +33,7 @@ function evaluate(name) {
   vm.runInContext(ts.transpile(text, { target: ts.ScriptTarget.ES2020 }), c);
   return c[name];
 }
-for (const name of ['minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
+for (const name of ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'eventNotesMatchLegacyAllDay', 'isAllDayListMarker', 'minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
 function render(markers, hour, minute) {
   c.markers = markers; c.paliaTime = { hour, minute };
   c.countdowns = Object.fromEntries(markers.map(m => [m.id, c.minutesUntil(hour, minute, m.hour, m.minute) * 2.5]));
@@ -89,3 +89,23 @@ render(markers, 5, 59);
 // Once the existing Palia clock publishes resumed time, ordering needs no marker mutation.
 assert.deepEqual(render(markers, 10, 0), ['after-resume', 'before-resume']);
 console.log('PASS: automatic Event rotation, next-cycle wrap, bell independence, equal-time stability, Now/overnight boundaries, disabled Events, group/row caps, planning and Fish ordering, resumed clock values');
+
+// Preserve historical Event-note classification without applying it to Fish descriptions.
+for (const notes of ['Bring all bait', 'Use any bait', 'Many locations', 'Available all day', 'Morning Day Evening Night']) {
+  markers = [event('custom_legacy', 6, 0, { hasRange: true, endHour: 8, endMinute: 0, notes }), event('custom_plain', 9)];
+  assert.deepEqual(render(markers, 7, 0), ['custom_plain']);
+  assert.equal(c.nowItems.length, 0);
+  assert.deepEqual(Array.from(c.allDayFish, m => m.id), ['custom_legacy']);
+  // Planning still uses Event schedules, not the legacy live-display note rule.
+  c.nextTimeFilter = 'day'; c.filteredEventMode = true;
+  render(markers, 7, 0);
+  assert.deepEqual(Array.from(c.eventPlanningMarkers, m => m.id), ['custom_legacy', 'custom_plain']);
+  c.nextTimeFilter = null; c.filteredEventMode = false;
+}
+c.clockViewMode = 'fish';
+markers = [event('fish_timed', 6, 0, { hasRange: true, endHour: 8, endMinute: 0, notes: 'Bring all bait, use any bait\nAppears: Morning' })];
+c.expandedFishMarkers = markers;
+render(markers, 7, 0);
+assert.deepEqual(Array.from(c.nowItems, m => m.id), ['fish_timed']);
+assert.equal(c.allDayFish.length, 0);
+console.log('PASS: legacy all/any Event display membership and planning preserved; timed Fish descriptions cannot override extracted availability');

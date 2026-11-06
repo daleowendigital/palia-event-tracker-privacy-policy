@@ -49,6 +49,15 @@ function setup(enabled = true) {
   };
   c.scheduleTimeGroupOccurrences = async () => { c.scheduled.push('request'); return ['request']; };
   vm.createContext(c);
+  const helpers = ts.createSourceFile('screen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const names = new Set(['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker']);
+  function loadHelper(node) {
+    if (ts.isFunctionDeclaration(node) && node.name && names.has(node.name.text)) {
+      vm.runInContext(ts.transpile(node.getText(helpers), { target: ts.ScriptTarget.ES2020 }), c);
+    }
+    ts.forEachChild(node, loadHelper);
+  }
+  loadHelper(helpers);
   const code = ['resyncTimeNotifications', 'toggleNotifications', 'performReset', 'toggleCaughtStandard', 'toggleCaughtStar'].map(callback).join('\n') + '\nthis.api = {resyncTimeNotifications, toggleNotifications, performReset, toggleCaughtStandard, toggleCaughtStar};';
   vm.runInContext(ts.transpile(code, { target: ts.ScriptTarget.ES2020 }), c);
   return c;
@@ -116,7 +125,7 @@ function runEffect(context, label, endText) {
     context.normalizeRemoteFish = value => value;
     context.isBlockedFishEntry = () => false;
     context.fishAppearsToWindow = () => ({ hour: 0, minute: 0, hasRange: false });
-    context.buildFishNotes = () => 'Appears: Any Time';
+    context.buildFishNotes = fish => `Appears: ${fish.appears}`;
     context.console.log = () => {};
     return context;
   }

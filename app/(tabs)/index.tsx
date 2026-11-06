@@ -353,7 +353,7 @@ function fishAppearsToPeriodsFlags(appearsRaw: any): { morning: boolean; day: bo
   if (!lower) return { morning: false, day: false, evening: false, night: false };
 
   // "Any Time" (or similar) => all true.
-  if (lower.includes("any")) return { morning: true, day: true, evening: true, night: true };
+  if (/^(any time|all day)\b/.test(lower)) return { morning: true, day: true, evening: true, night: true };
 
   return {
     morning: has("morning"),
@@ -367,17 +367,39 @@ function fishAppearsIsAnyTime(appearsRaw: any): boolean {
   const s = String(appearsRaw ?? "").trim();
   const lower = s.toLowerCase();
 
-  // Direct labels we use/expect
-  if (lower.includes("any time")) return true;
-  if (lower.includes("all day")) return true;
-
-  // Sometimes notes are messy; treat "Any/All" tokens as "any time".
-  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
-  if (tokens.includes("any") || tokens.includes("all")) return true;
+  // Only explicit availability labels count; arbitrary description words do not.
+  if (/^(any time|all day)\b/.test(lower)) return true;
 
   // If flags say it's available in every period, it's effectively "any time".
   const f = fishAppearsToPeriodsFlags(s);
   return !!(f.morning && f.day && f.evening && f.night);
+}
+
+function isAllDayFish(marker: Marker | undefined): boolean {
+  return !!marker && String(marker.id).startsWith("fish_") &&
+    fishAppearsIsAnyTime(extractFishFieldFromNotes(marker.notes, "Appears"));
+}
+
+function canNotifyMarker(marker: Marker | undefined): boolean {
+  return !!marker && !isAllDayFish(marker);
+}
+
+function normaliseFishNotification(marker: Marker): Marker {
+  return isAllDayFish(marker) && marker.notify ? { ...marker, notify: false } : marker;
+}
+
+function eventNotesMatchLegacyAllDay(notes: string | undefined): boolean {
+  // Preserve the pre-existing Event display rule, including its permissive text matching.
+  const lower = String(notes ?? "").trim().toLowerCase();
+  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
+  return lower.includes("any") || lower.includes("all day") || tokens.includes("all") ||
+    ["morning", "day", "evening", "night"].every((period) => tokens.includes(period));
+}
+
+function isAllDayListMarker(marker: Marker): boolean {
+  return String(marker.id).startsWith("fish_")
+    ? isAllDayFish(marker)
+    : eventNotesMatchLegacyAllDay(marker.notes);
 }
 
 function fishAppearsInPeriod(marker: Marker, period: "morning" | "day" | "evening" | "night"): boolean {
@@ -795,7 +817,7 @@ function normalizeStoredMarker(v: unknown): Marker | null {
     const notesRaw = v["notes"];
   const notes = typeof notesRaw === "string" ? notesRaw.trim().slice(0, 600) : "";
 
-  return { id, name, hour, minute, enabled, notify, notes: notes || undefined, hasRange, endHour, endMinute };
+  return normaliseFishNotification({ id, name, hour, minute, enabled, notify, notes: notes || undefined, hasRange, endHour, endMinute });
 }
 
 // SECTION 6) NOTIFICATION UTILITIES
@@ -2893,10 +2915,10 @@ const NowFishGrid = React.memo(function NowFishGrid({
 
                             <View style={styles.fishMetaRow}>
                               <Text style={styles.fishMetaText} numberOfLines={1}>
-                                {fishAppearsIsAnyTime(marker?.notes) ? "Any Time" : `Ends ${it.endHour != null ? format12hTime(it.endHour, it.endMinute ?? 0) : "—"}`}
+                                {isAllDayFish(marker) ? "Any Time" : `Ends ${it.endHour != null ? format12hTime(it.endHour, it.endMinute ?? 0) : "—"}`}
                               </Text>
 
-                              <ScalePressable
+                              {canNotifyMarker(marker) ? <ScalePressable
                                 onPress={() => {
                                   if (!marker) return;
                                   toggleNotify(marker.id);
@@ -2908,7 +2930,7 @@ const NowFishGrid = React.memo(function NowFishGrid({
                                   size={16}
                                   color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
                                 />
-                              </ScalePressable>
+                              </ScalePressable> : null}
                             </View>
                           </View>
                         </View>
@@ -3107,7 +3129,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                         </Text>
                                       )}
 
-                                      <ScalePressable
+                                      {canNotifyMarker(marker) ? <ScalePressable
                                         onPress={() => {
                                           if (!marker) return;
                                           toggleNotify(marker.id);
@@ -3119,7 +3141,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                           size={16}
                                           color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
                                         />
-                                      </ScalePressable>
+                                      </ScalePressable> : null}
                                     </View>
                                   </View>
                                 </View>
@@ -3329,7 +3351,7 @@ const AllDayFishGrid = React.memo(function AllDayFishGrid({
                             <View style={styles.fishMetaRow}>
                               <View style={{ flex: 1 }} />
 
-                              <ScalePressable
+                              {canNotifyMarker(marker) ? <ScalePressable
                                 onPress={() => {
                                   if (!marker) return;
                                   toggleNotify(marker.id);
@@ -3341,7 +3363,7 @@ const AllDayFishGrid = React.memo(function AllDayFishGrid({
                                   size={14}
                                   color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
                                 />
-                              </ScalePressable>
+                              </ScalePressable> : null}
                             </View>
                           </View>
                         </View>
@@ -3934,7 +3956,7 @@ useEffect(() => {
       return {
         ...base,
         enabled: existing.enabled,
-        notify: existing.notify,
+        notify: canNotifyMarker(base) && canNotifyMarker(existing) && existing.notify,
       };
     });
 
@@ -4266,7 +4288,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
       if (!isActiveNow(m, paliaTime.hour, paliaTime.minute)) continue;
 
       // Skip "Any Time" fish - they'll show in a separate All Day section
-      if (fishAppearsIsAnyTime(m.notes)) continue;
+      if (isAllDayListMarker(m)) continue;
 
       const { eventName, location } = splitName(m.name);
       const eh = (m.endHour as number) ?? m.hour;
@@ -4297,7 +4319,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   // All Day fish (active "Any Time", shown in a separate section at the bottom)
   const allDayFish = useMemo(() => {
     if (!homeListMarkers.length) return [];
-    return homeListMarkers.filter(m => fishAppearsIsAnyTime(m.notes)).sort((a, b) => {
+    return homeListMarkers.filter(m => isAllDayListMarker(m)).sort((a, b) => {
       const nameA = (a.name ?? "").toLowerCase();
       const nameB = (b.name ?? "").toLowerCase();
       return nameA.localeCompare(nameB);
@@ -4459,8 +4481,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     for (const marker of enabledMarkers) {
       if (!String(marker.id).startsWith("fish_") || seen.has(marker.id)) continue;
       seen.add(marker.id);
-      const appears = extractFishFieldFromNotes(marker.notes, "Appears");
-      if (fishAppearsIsAnyTime(appears)) allDay.push(marker);
+      if (isAllDayFish(marker)) allDay.push(marker);
       else if (fishAppearsInPeriod(marker, nextTimeFilter)) specific.push(marker);
     }
     const byName = (a: Marker, b: Marker) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
@@ -4675,7 +4696,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   }, []);
 
   const toggleNotify = useCallback((id: string) => {
-    setMarkers((prev) => prev.map((m) => (m.id === id ? { ...m, notify: !m.notify } : m)));
+    setMarkers((prev) => prev.map((m) => (m.id === id ? { ...m, notify: canNotifyMarker(m) && !m.notify } : m)));
   }, []);
 
   // Fish caught tracking toggles
@@ -4709,7 +4730,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
   function setNotifyForMany(ids: string[], notify: boolean) {
     const idSet = new Set(ids);
-    setMarkers((prev) => prev.map((m) => (idSet.has(m.id) ? { ...m, notify } : m)));
+    setMarkers((prev) => prev.map((m) => (idSet.has(m.id) ? { ...m, notify: canNotifyMarker(m) && notify } : m)));
   }
 
   function addOrSave() {
@@ -4807,7 +4828,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
         return;
       }
 
-      const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify);
+      const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify && canNotifyMarker(m));
       const groups = groupEnabledMarkersByTime(enabledForNotif);
 
       if (__DEV__) {
@@ -4875,7 +4896,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
               continue;
             }
 
-            const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify);
+            const enabledForNotif = markersRef.current.filter((m) => m.enabled && m.notify && canNotifyMarker(m));
 
             // We schedule notifications PER PALIA TIME (HH:MM)
             const groups = groupEnabledMarkersByTime(enabledForNotif);
@@ -4886,13 +4907,11 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
               );
             }
 
-            // Always ensure permissions + android channel before scheduling
-            const perm = await ensurePermission(false);
-            if (!perm.ok) throw new Error("Notification permission is not granted; rebuild skipped.");
 
             // Clear existing scheduled notifications.
             // NOTE: Android doesn't always reliably round-trip `content.data` in getAllScheduledNotificationsAsync.
-            // So: try targeted cancel; if that yields 0 but there are scheduled notifs, fall back to cancelAll.
+            // Use targeted cancellation only when every request has readable ownership.
+            // Otherwise cancel all and rebuild eligible groups, including shared times.
             phase = "cancel existing";
             {
               const existing = await Notifications.getAllScheduledNotificationsAsync();
@@ -4905,7 +4924,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
                 .map((n: any) => n.identifier)
                 .filter((id: unknown): id is string => typeof id === "string" && id.length > 0);
 
-              if (idsToCancel.length > 0) {
+              if (idsToCancel.length > 0 && idsToCancel.length === existing.length) {
                 for (const id of idsToCancel) {
                   await Notifications.cancelScheduledNotificationAsync(id);
                 }
@@ -4921,6 +4940,12 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
               gate.lastAt = Date.now();
               continue;
             }
+
+            // Cancellation needs no scheduling permission. Never leave old groups
+            // behind merely because permission was denied or checking it failed.
+            phase = "permission check";
+            const perm = await ensurePermission(false);
+            if (!perm.ok) throw new Error("Notification permission is not granted; rebuild skipped after cleanup.");
 
             // iOS practical limit is 64 scheduled notifications.
             // Android: keep the horizon modest to avoid OEM throttling.
@@ -5263,7 +5288,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
         JSON.stringify(beforeState) !== JSON.stringify(afterState) ||
         beforeState.inFlight || beforeState.queued || afterState.inFlight || afterState.queued;
       const expected = new Map(groupEnabledMarkersByTime(
-        markersRef.current.filter((m) => m.enabled && m.notify)
+        markersRef.current.filter((m) => m.enabled && m.notify && canNotifyMarker(m))
       ).map((group) => [group.timeKey, group.markers.map((m) => m.id).sort()]));
       const groups = new Map<string, { requests: number; members: Set<string>; times: number[] }>();
       const seen = new Set<string>();
@@ -6326,7 +6351,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                             </View>
 
                             <View style={styles.nowRightRow}>
-                              <ScalePressable
+                              {canNotifyMarker(marker) ? <ScalePressable
                                 onPress={() => {
                                   if (!marker) return;
                                   toggleNotify(marker.id);
@@ -6338,7 +6363,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                   size={18}
                                   color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
                                 />
-                              </ScalePressable>
+                              </ScalePressable> : null}
                             </View>
                           </Pressable>
 
@@ -6483,7 +6508,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                               </View>
 
                               <View style={styles.nextRowRight}>
-                                <ScalePressable
+                                {canNotifyMarker(marker) ? <ScalePressable
                                   onPress={() => {
                                     if (!marker) return;
                                     toggleNotify(marker.id);
@@ -6495,7 +6520,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                                     size={18}
                                     color={marker?.notify ? ACCENT : SOFT_WHITE_DIM}
                                   />
-                                </ScalePressable>
+                                </ScalePressable> : null}
                               </View>
                             </Pressable>
 
@@ -7245,7 +7270,8 @@ const CLOSED_TEST_WHAT_TO_TEST = [
       const cusAllNotify = customMarkers.length > 0 && customMarkers.every((m) => m.notify);
 
       const fishAllEnabled = fishMarkers.length > 0 && fishMarkers.every((m) => m.enabled);
-      const fishAllNotify = fishMarkers.length > 0 && fishMarkers.every((m) => m.notify);
+      const notifiableFish = fishMarkers.filter(canNotifyMarker);
+      const fishAllNotify = notifiableFish.length > 0 && notifiableFish.every((m) => m.notify);
 
       const repAllEnabled = repeatableMarkers.length > 0 && repeatableMarkers.every((m) => m.enabled);
       const repAllNotify = repeatableMarkers.length > 0 && repeatableMarkers.every((m) => m.notify);
@@ -7378,7 +7404,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                           </ScalePressable>
                         ) : null}
 
-                        <ScalePressable
+                        {canNotifyMarker(m) ? <ScalePressable
                           onPress={() => {
                             rowGuard = true;
                             toggleNotify(m.id);
@@ -7391,7 +7417,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                             size={18}
                             color={!m.enabled ? SOFT_WHITE_DIM : m.notify ? ACCENT : SOFT_WHITE_DIM}
                           />
-                        </ScalePressable>
+                        </ScalePressable> : null}
 
                         {!isProtected ? (
                           <ScalePressable
@@ -7618,7 +7644,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     <ActionChip
                       icon={fishAllNotify ? "notifications-off-outline" : "notifications-outline"}
                       label={fishAllNotify ? "Mute" : "Unmute"}
-                      onPress={() => setNotifyForMany(fishMarkers.map((m) => m.id), !fishAllNotify)}
+                      onPress={() => setNotifyForMany((fishAllNotify ? fishMarkers : notifiableFish).map((m) => m.id), !fishAllNotify)}
                     />
                   </View>
 
