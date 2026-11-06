@@ -7315,7 +7315,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                         style={[styles.checkBox, m.enabled && styles.checkBoxOn]}
                         hitSlop={8}
                       >
-                        {m.enabled ? <Text style={styles.checkMark}>?</Text> : null}
+                        {m.enabled ? <Ionicons name="checkmark" size={styles.checkMark.fontSize} color={styles.checkMark.color} style={{ includeFontPadding: false }} /> : null}
                       </Pressable>
 
                       <View style={styles.markerTextCol}>
