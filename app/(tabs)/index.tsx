@@ -3111,7 +3111,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                     <View style={styles.fishMetaRow}>
                                       {filteredFishMode ? <View style={{ flex: 1 }} /> : (
                                         <Text style={styles.fishMetaText} numberOfLines={1}>
-                                          Ends {format12hTime(m.hour, m.minute)}
+                                          Starts {format12hTime(m.hour, m.minute)}
                                         </Text>
                                       )}
 
@@ -4366,10 +4366,15 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   const nextCountdownSeconds = useMemo(() => {
     if (!nextSectionMarkers.length) return 0;
     const first = nextSectionMarkers[0];
+    if (clockViewMode === "fish") {
+      // Expanded Fish windows may start later than the base catalogue marker.
+      // Countdown updates (including foreground refresh) supply the existing tick.
+      return getSecondsUntilNextPaliaTime(first.hour, first.minute);
+    }
     // Use baseId if present (for fish with expanded windows)
     const lookupId = (first as any).baseId || first.id;
     return Math.max(0, countdowns[lookupId] ?? 0);
-  }, [nextSectionMarkers, countdowns]);
+  }, [nextSectionMarkers, countdowns, clockViewMode]);
 
   const nextCountdownLabel = useMemo(() => {
     if (!nextSectionMarkers.length) return "�";
