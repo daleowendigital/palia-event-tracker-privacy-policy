@@ -4200,7 +4200,11 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     }
 
     // "events"
-    return enabledMarkers.filter((m) => !String(m.id).startsWith("fish_"));
+    return enabledMarkers.filter((m) => !String(m.id).startsWith("fish_")).sort((a, b) => {
+      const difference = minutesUntil(paliaTime.hour, paliaTime.minute, a.hour, a.minute) -
+        minutesUntil(paliaTime.hour, paliaTime.minute, b.hour, b.minute);
+      return difference || a.id.localeCompare(b.id);
+    });
   }, [enabledMarkers, expandedFishMarkers, clockViewMode, paliaTime.hour, paliaTime.minute]);
 
   const nextTimeKey = useMemo(() => {
