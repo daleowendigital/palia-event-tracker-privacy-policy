@@ -3376,9 +3376,12 @@ const AllDayFishGrid = React.memo(function AllDayFishGrid({
   );
 });
 
-export default function App() {
-  Platform.OS !== "web" && useKeepAwake();
+function NativeKeepAwake() {
+  useKeepAwake();
+  return null;
+}
 
+export default function App() {
   const { height: SCREEN_H } = useWindowDimensions();
 
 // SECTION 11.1) Core state
@@ -5929,6 +5932,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
   return (
     <View style={styles.root}>
+      {Platform.OS !== "web" && <NativeKeepAwake />}
       <BackgroundSparkles />
 
       
