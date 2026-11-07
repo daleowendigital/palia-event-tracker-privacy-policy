@@ -227,9 +227,11 @@ async function getAllCategoryMembers() {
       ...(cmcontinue ? { cmcontinue } : {}),
     });
 
-    const members = data?.query?.categorymembers ?? [];
+    const members = data?.query?.categorymembers;
+    if (!Array.isArray(members)) throw new Error("Malformed category response: categorymembers missing");
     for (const m of members) {
-      if (m?.title && !m.title.startsWith("Category:")) titles.push(m.title);
+      if (typeof m?.title !== "string" || !m.title.trim()) throw new Error("Malformed category member");
+      if (!m.title.startsWith("Category:")) titles.push(m.title);
     }
 
     cmcontinue = data?.continue?.cmcontinue;
@@ -238,6 +240,7 @@ async function getAllCategoryMembers() {
     await sleep(DELAY_MS);
   }
 
+  if (!titles.length) throw new Error("Empty Fish category; refusing generation");
   return titles;
 }
 
@@ -253,6 +256,9 @@ async function fetchParseHtml(title) {
   });
 
   const parse = data?.parse;
+  if (!parse || typeof parse.text !== "string" || !parse.text.trim()) {
+    throw new Error(`Missing parsed Wiki content for ${title}`);
+  }
   const html = parse?.text ?? "";
   const wikitext = parse?.wikitext ?? "";
   const pageid = parse?.pageid ?? null;
@@ -273,7 +279,7 @@ async function fetchPageUrlAndRevid(title) {
   });
 
   const page = data?.query?.pages?.[0];
-  if (!page || page.missing) return { url: `${BASE}/wiki/${encodeURIComponent(title.replace(/ /g, "_"))}`, lastrevid: null };
+  if (!page || page.missing || typeof page.fullurl !== "string") throw new Error(`Missing Wiki page info for ${title}`);
   return { url: page.fullurl, lastrevid: page.lastrevid ?? null };
 }
 
@@ -389,6 +395,11 @@ async function runPool(items, worker, concurrency) {
 
   const ok = records.filter((r) => r && !r._skipped);
   const failed = records.filter((r) => r && r._skipped);
+  if (failed.length) {
+    const failures = failed.map(({ id, title, error }) => ({ id, title, reason: error }));
+    console.error(JSON.stringify({ failedWikiRequests: failures }, null, 2));
+    throw new Error(`Incomplete Fish generation: ${failed.length} Wiki requests failed; catalogue not replaced`);
+  }
 
   // Filter out known junk entries so they don't reappear on the next update.
   const dropped = ok
@@ -396,6 +407,7 @@ async function runPool(items, worker, concurrency) {
     .map((r) => r.id);
 
   const okClean = ok.filter((r) => !DROP_FISH_IDS.has(String(r.id || "").toLowerCase()));
+  if (!okClean.length) throw new Error("No usable Fish; catalogue not replaced");
 
   const out = {
     meta: {

@@ -175,7 +175,7 @@ async function main() {
       fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 2) + "\n", "utf8");
       console.log("[mirror] finished writing docs/fish.json");
     } catch (e) {
-      console.log("[mirror] FAILED to write docs/fish.json:", String(e?.message || e));
+      throw new Error(`Failed to write docs/fish.json: ${String(e?.message || e)}`);
     }
   }
 
