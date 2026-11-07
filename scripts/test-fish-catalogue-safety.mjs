@@ -19,6 +19,8 @@ const mock = path.join(temp, 'mock.mjs');
 write(mock, `
 import fs from 'node:fs';
 const mode = process.env.FISH_TEST_MODE;
+const attempts = new Map();
+const multiple = mode?.startsWith('fail-fast-') || mode === 'multi-success' || mode === 'retry-success';
 const originalTimeout = globalThis.setTimeout;
 globalThis.setTimeout = (fn, ms, ...args) => originalTimeout(fn, 0, ...args);
 if (mode === 'write-failure') {
@@ -30,17 +32,27 @@ if (mode === 'write-failure') {
 }
 globalThis.fetch = async input => {
   const url = new URL(input);
+  if (process.env.FISH_TEST_REQUESTS) fs.appendFileSync(process.env.FISH_TEST_REQUESTS, url.href + '\\n');
   if (url.hostname.endsWith('github.io')) return { ok: true, json: async () => JSON.parse(fs.readFileSync(process.env.FISH_TEST_PUBLIC, 'utf8')) };
   if (url.searchParams.get('list') === 'categorymembers') {
     if (mode === 'category-failure') throw new Error('Injected category HTTP failure');
     if (mode === 'category-malformed') return { ok: true, json: async () => ({}) };
-    return { ok: true, json: async () => ({ query: { categorymembers: mode === 'category-empty' ? [] : [{ title: 'Test Fish' }] } }) };
+    return { ok: true, json: async () => ({ query: { categorymembers: mode === 'category-empty' ? [] : (multiple ? [{ title: 'Test Fish' }, { title: 'Second Fish' }] : [{ title: 'Test Fish' }]) } }) };
   }
   if (url.searchParams.get('action') === 'parse') {
     if (mode === 'fish-failure') throw new Error('Injected Wiki Fish failure');
+    if (mode === 'fish-rate-limit') return { ok: false, status: 429, statusText: 'Too Many Requests', headers: { get: () => '26' }, text: async () => 'Injected Wiki throttle' };
+    const title = url.searchParams.get('page');
+    const count = (attempts.get(title) || 0) + 1; attempts.set(title, count);
+    if (title === 'Test Fish' && (mode === 'fail-fast-parse' || (mode === 'retry-success' && count === 1))) return { ok: false, status: 429, statusText: 'Too Many Requests', headers: { get: () => '26' }, text: async () => 'Injected terminal parse throttle' };
+    if (title === 'Test Fish' && mode === 'fail-fast-malformed') return { ok: true, json: async () => ({}) };
+    if (title === 'Second Fish') return { ok: true, json: async () => ({ parse: { title, pageid: 2, text: '<p>Second Fish fixture</p>' } }) };
     return { ok: true, json: async () => ({ parse: { title: 'Test Fish', pageid: 1, text: '<p>Fixture Fish description for validating a complete and successful Wiki response.</p><table class="infobox"><tr><th>Appears</th><td>Morning (3:00 AM - 6:00 AM)</td></tr></table>' } }) };
   }
-  if (url.searchParams.get('prop') === 'info') return { ok: true, json: async () => ({ query: { pages: [{ fullurl: 'https://palia.wiki.gg/wiki/Test_Fish', lastrevid: 1 }] } }) };
+  if (url.searchParams.get('prop') === 'info') {
+    if (mode === 'fail-fast-info' && url.searchParams.get('titles') === 'Test Fish') throw new Error('Injected terminal information failure');
+    return { ok: true, json: async () => ({ query: { pages: [{ fullurl: 'https://palia.wiki.gg/wiki/Test_Fish', lastrevid: 1 }] } }) };
+  }
   if (mode === 'image-failure') throw new Error('Injected recoverable image failure');
   return { ok: true, arrayBuffer: async () => new Uint8Array(2048).buffer };
 };
@@ -121,14 +133,41 @@ function workspace(name) {
   write(path.join(dir, 'fish.json'), approved); write(path.join(dir, 'docs/fish.json'), approved);
   return dir;
 }
-for (const mode of ['fish-failure', 'category-failure', 'category-malformed', 'category-empty']) {
+for (const mode of ['fish-failure', 'fish-rate-limit', 'category-failure', 'category-malformed', 'category-empty']) {
   const dir = workspace(mode), before = fs.readFileSync(path.join(dir, 'fish.json'));
   const result = run(path.join(dir, 'pull-fish.mjs'), [], dir, mode);
   assert.notEqual(result.status, 0, mode);
   assert.ok(fs.readFileSync(path.join(dir, 'fish.json')).equals(before));
   if (mode === 'fish-failure') { assert.match(result.stderr, /test_fish/); assert.match(result.stderr, /Injected Wiki Fish failure/); }
+  if (mode === 'fish-rate-limit') { assert.match(result.stderr, /test_fish/); assert.match(result.stderr, /API 429.*retry-after: 26/); }
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 'docs/fish.json'))), approved);
   console.log('PASS:', mode, 'nonzero and approved files unchanged');
+}
+for (const mode of ['fail-fast-parse', 'fail-fast-info', 'fail-fast-malformed', 'multi-success', 'retry-success']) {
+  const dir = workspace(mode), log = path.join(dir, 'requests.log');
+  const before = fs.readFileSync(path.join(dir, 'fish.json'));
+  const publicBefore = fs.readFileSync(path.join(dir, 'docs/fish.json'));
+  const result = run(path.join(dir, 'pull-fish.mjs'), [], dir, mode, { FISH_TEST_REQUESTS: log });
+  const requests = fs.readFileSync(log, 'utf8').trim().split('\n').map(url => new URL(url));
+  const fishRequests = requests.filter(url => !url.searchParams.has('list'));
+  const fails = mode.startsWith('fail-fast-');
+  assert.equal(result.status === 0, !fails, result.stderr);
+  if (fails) {
+    assert.ok(fishRequests.every(url => (url.searchParams.get('page') || url.searchParams.get('titles')) === 'Test Fish'));
+    const diagnostic = JSON.parse(result.stderr.match(/\{\s*"failedWikiRequests"[\s\S]*?\n\}/)[0]).failedWikiRequests[0];
+    assert.equal(diagnostic.id, 'test_fish'); assert.equal(diagnostic.title, 'Test Fish');
+    assert.equal(diagnostic.operation, mode === 'fail-fast-info' ? 'page information' : 'parse');
+    assert.match(diagnostic.reason, mode === 'fail-fast-parse' ? /API 429.*retry-after: 26/ : mode === 'fail-fast-info' ? /Injected terminal information failure/ : /Missing parsed Wiki content/);
+    assert.equal(fishRequests.length, mode === 'fail-fast-parse' ? 6 : mode === 'fail-fast-info' ? 7 : 1);
+    assert.ok(fs.readFileSync(path.join(dir, 'fish.json')).equals(before));
+  } else {
+    const output = JSON.parse(fs.readFileSync(path.join(dir, 'fish.json'), 'utf8'));
+    assert.deepEqual(output.fish.map(row => [row.id, row.title]), [['test_fish', 'Test Fish'], ['second_fish', 'Second Fish']]);
+    assert.equal(output.meta.count, 2); assert.equal(output.meta.ok, 2); assert.equal(output.meta.failed, 0);
+    assert.deepEqual(fishRequests.map(url => url.searchParams.get('page') || url.searchParams.get('titles')), mode === 'retry-success' ? ['Test Fish', 'Test Fish', 'Test Fish', 'Second Fish', 'Second Fish'] : ['Test Fish', 'Test Fish', 'Second Fish', 'Second Fish']);
+  }
+  assert.ok(fs.readFileSync(path.join(dir, 'docs/fish.json')).equals(publicBefore));
+  console.log('PASS:', mode, 'request order, diagnostics and catalogue safety');
 }
 for (const mode of ['write-failure', 'image-failure']) {
   const dir = workspace(mode), before = fs.readFileSync(path.join(dir, 'docs/fish.json'));

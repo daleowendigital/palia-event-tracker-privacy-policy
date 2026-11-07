@@ -17,8 +17,7 @@ const CATEGORY = "Category:Fish";
 const OUT_FILE = path.resolve(process.cwd(), "fish.json");
 
 // Wiki.gg rate-limits aggressively if you hammer it. Keep this conservative.
-const CONCURRENCY = 2;
-const DELAY_MS = 350; // baseline throttle between requests
+const CONCURRENCY = 1;
 
 // Tip: set a real contact (email or repo) before running this a lot.
 const USER_AGENT = "PaliaEventTrackerBot/1.2 (contact: https://daleowendigital.github.io/palia-event-tracker-privacy-policy/)";
@@ -34,30 +33,71 @@ const DROP_FISH_IDS = new Set([
 // ------------ utils ------------
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function withRetry(fn, { tries = 6, baseDelayMs = 800, maxDelayMs = 15000 } = {}) {
-  let attempt = 0;
-  // Exponential backoff + small jitter. Retries on 429 and transient failures.
-  while (true) {
-    try {
-      return await fn();
-    } catch (e) {
-      attempt++;
-      if (attempt >= tries) throw e;
-
-      const msg = String(e?.message || e);
-      const is429 = /\b429\b/.test(msg) || /too many requests/i.test(msg);
-
-      // Backoff harder on 429, otherwise still back off a bit.
-      const mult = is429 ? 1.5 : 1.0;
-      const exp = Math.min(maxDelayMs, Math.floor(baseDelayMs * Math.pow(2, attempt - 1) * mult));
-      const jitter = Math.floor(Math.random() * 250);
-      const wait = Math.min(maxDelayMs, exp + jitter);
-
-      console.warn(`Retry ${attempt}/${tries - 1} in ${wait}ms${is429 ? " (429)" : ""}`);
-      await sleep(wait);
+// One shared queue includes retries, so no worker can send during another's cooldown.
+// Budgets cover the Wiki phase: 6 attempts/request, 1s between requests, 120s max
+// server delay, 10 minutes total sleeping and 20 minutes elapsed, 20s/request.
+function createWikiRequester({ fetchImpl = fetch, now = Date.now, pause = sleep, random = Math.random, warn = console.warn } = {}) {
+  const deadline = now() + 20 * 60 * 1000;
+  let queue = Promise.resolve(), nextAllowed = 0, slept = 0, fatalError;
+  const fatal = message => {
+    fatalError = new Error(message);
+    return fatalError;
+  };
+  const waitForGate = async () => {
+    if (fatalError) throw fatalError;
+    const wait = Math.max(0, nextAllowed - now());
+    if (slept + wait > 10 * 60 * 1000 || now() + wait >= deadline) throw fatal('Wiki pacing execution budget exceeded');
+    slept += wait;
+    if (wait) await pause(wait);
+    if (now() >= deadline) throw fatal('Wiki elapsed execution budget exceeded');
+  };
+  const retryAfterMs = header => {
+    if (typeof header !== 'string' || !header.trim()) return null;
+    const value = header.trim();
+    if (/^\d+$/.test(value)) return Number(value) * 1000;
+    // HTTP-date supports IMF-fixdate and the two legacy HTTP date forms.
+    if (!/^(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)(?:day)?[, ]|Tuesday,|Wednesday,|Thursday,|Saturday,)/i.test(value)) return null;
+    const date = Date.parse(value);
+    return Number.isFinite(date) ? Math.max(0, date - now()) : null;
+  };
+  const request = async url => {
+    for (let attempt = 0; attempt < 6; attempt++) {
+      await waitForGate();
+      let error, serverDelay = null;
+      try {
+        const response = await fetchImpl(url, {
+          headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
+          signal: AbortSignal.timeout(Math.max(1, Math.min(20000, deadline - now()))),
+        });
+        if (!response.ok) {
+          const header = response.headers.get('retry-after');
+          if (response.status === 429) serverDelay = retryAfterMs(header);
+          const body = await response.text().catch(() => '');
+          throw new Error(`API ${response.status} ${response.statusText}${header ? ` (retry-after: ${header})` : ''} for ${url}\n${body.slice(0, 400)}`);
+        }
+        const json = await response.json();
+        if (json?.error) throw new Error(`API error for ${url}: ${json.error.code} - ${json.error.info}`);
+        nextAllowed = now() + 1000;
+        return json;
+      } catch (caught) { error = caught; }
+      if (serverDelay !== null && (!Number.isFinite(serverDelay) || serverDelay > 120000)) {
+        throw fatal(`${error.message}\nRetry-After exceeds the 120-second server-delay budget`);
+      }
+      const fallback = Math.min(15000, 800 * 2 ** attempt + Math.floor(random() * 250));
+      const delay = serverDelay ?? fallback;
+      nextAllowed = now() + Math.max(1000, delay);
+      if (attempt === 5) throw error;
+      warn(`Wiki retry ${attempt + 1}/5 in ${Math.max(1000, delay)}ms: ${error.message}`);
     }
-  }
+  };
+  return url => {
+    const result = queue.then(() => request(url));
+    queue = result.catch(() => {});
+    return result;
+  };
 }
+
+const requestWiki = createWikiRequester();
 
 function decodeEntities(s) {
   if (!s) return "";
@@ -189,26 +229,7 @@ async function apiGet(params) {
   const url = new URL(API);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, String(v));
 
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent": USER_AGENT,
-      "Accept": "application/json",
-    },
-  });
-
-  if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    const retryAfter = res.headers.get("retry-after");
-    // Preserve status in the message so withRetry can detect 429 reliably.
-    // Include Retry-After when present (wiki.gg sometimes sends it).
-    throw new Error(
-      `API ${res.status} ${res.statusText}${retryAfter ? ` (retry-after: ${retryAfter})` : ""} for ${url}\n${txt.slice(0, 400)}`
-    );
-  }
-
-  const json = await res.json();
-  if (json?.error) throw new Error(`API error: ${json.error.code} - ${json.error.info}`);
-  return json;
+  return requestWiki(url);
 }
 
 async function getAllCategoryMembers() {
@@ -237,7 +258,6 @@ async function getAllCategoryMembers() {
     cmcontinue = data?.continue?.cmcontinue;
     if (!cmcontinue) break;
 
-    await sleep(DELAY_MS);
   }
 
   if (!titles.length) throw new Error("Empty Fish category; refusing generation");
@@ -329,7 +349,6 @@ async function runPool(items, worker, concurrency) {
       const item = items[my];
       const res = await worker(item, my);
       results[my] = res;
-      await sleep(DELAY_MS);
     }
   }
 
@@ -349,11 +368,11 @@ async function runPool(items, worker, concurrency) {
   const records = await runPool(
     titles,
     async (title) => {
+      let operation = 'parse';
       try {
-        const [{ title: fixedTitle, pageid, html }, { url, lastrevid }] = await Promise.all([
-          withRetry(() => fetchParseHtml(title)),
-          withRetry(() => fetchPageUrlAndRevid(title)),
-        ]);
+        const { title: fixedTitle, pageid, html } = await fetchParseHtml(title);
+        operation = 'page information';
+        const { url, lastrevid } = await fetchPageUrlAndRevid(title);
 
         const infobox = extractInfoboxFields(html);
         const description = pickFirstParagraph(html);
@@ -380,14 +399,9 @@ async function runPool(items, worker, concurrency) {
           },
         };
       } catch (e) {
-        // If a page still fails after retries, skip it.
-        // We keep counts in meta so you know something was skipped.
-        return {
-          _skipped: true,
-          id: slugifyTitle(title),
-          title,
-          error: String(e?.message || e),
-        };
+        const failure = { id: slugifyTitle(title), title, operation, reason: String(e?.message || e) };
+        console.error(JSON.stringify({ failedWikiRequests: [failure] }, null, 2));
+        throw new Error(`Incomplete Fish generation: ${failure.id} (${title}), ${operation} failed: ${failure.reason}; catalogue not replaced`);
       }
     },
     CONCURRENCY
