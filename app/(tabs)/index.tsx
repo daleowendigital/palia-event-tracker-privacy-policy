@@ -249,6 +249,21 @@ function fishAvailabilityDisplayLabel(appears: string): string {
     .join("\n");
 }
 
+// Event Setup Time sorting only; unknown schedules must not become midnight entries.
+function fishTimeSortKey(appears: string): { group: number; start: number } {
+  if (fishAppearsIsAnyTime(appears)) return { group: 1, start: 0 };
+  const validHM = (hour: number | undefined, minute: number | undefined) =>
+    Number.isInteger(hour) && Number.isInteger(minute) &&
+    hour! >= 0 && hour! < 24 && minute! >= 0 && minute! < 60;
+  const windows = fishAppearsToWindows(appears).filter((window) =>
+    window.hasRange && validHM(window.hour, window.minute) &&
+    validHM(window.endHour, window.endMinute) &&
+    (window.hour !== window.endHour || window.minute !== window.endMinute));
+  return windows.length
+    ? { group: 0, start: Math.min(...windows.map((window) => window.hour * 60 + window.minute)) }
+    : { group: 2, start: 0 };
+}
+
 function buildFishNotes(f: FishEntry) {
   const lines: string[] = [];
   if (f.description) lines.push(String(f.description).trim());
@@ -5619,7 +5634,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
   const [defaultMarkersSort, setDefaultMarkersSort] = useState<"time" | "next">("time");
   const [customMarkersSort, setCustomMarkersSort] = useState<"time" | "next">("time");
   const [repeatableMarkersSort, setRepeatableMarkersSort] = useState<"time" | "next">("time");
-  const [fishMarkersSort, setFishMarkersSort] = useState<"time" | "next">("time");
 
   // Event Setup: tap an event row to reveal its notes underneath (simple dropdown)
   const [expandedEventNotesId, setExpandedEventNotesId] = useState<string | null>(null);
@@ -5881,11 +5895,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     setRepeatableMarkersSort((s) => (s === "time" ? "next" : "time"));
   }, [softLayoutNext]);
 
-  const toggleFishSort = useCallback(() => {
-    softLayoutNext();
-    setFishMarkersSort((s) => (s === "time" ? "next" : "time"));
-  }, [softLayoutNext]);
-
   // Create a Map for O(1) marker lookups instead of linear searches
   const markerMap = useMemo(() => {
     const m = new Map<string, Marker>();
@@ -5916,6 +5925,17 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     }
     return labels;
   }, [markerFieldCache]);
+
+  const fishTimeSortMetadata = useMemo(() => {
+    const metadata = new Map<string, { group: number; start: number; name: string }>();
+    for (const marker of markers) {
+      if (!marker.id.startsWith("fish_")) continue;
+      const separator = marker.name.indexOf(" - ");
+      const name = separator < 0 ? marker.name : marker.name.slice(0, separator).trim() || marker.name;
+      metadata.set(marker.id, { ...fishTimeSortKey(markerFieldCache.get(marker.id)?.appears ?? ""), name });
+    }
+    return metadata;
+  }, [markers, markerFieldCache]);
 
   // SECTION 15.2.X) Precompute fish card render data to speed up fish view rendering
 
@@ -7331,9 +7351,16 @@ const CLOSED_TEST_WHAT_TO_TEST = [
         return (repeatableMarkersSort === "time" ? arr.sort(sortByTime) : arr.sort(sortByNext));
       })();
 
+      const sortFishByTime = (a: Marker, b: Marker) => {
+        const aa = fishTimeSortMetadata.get(a.id)!;
+        const bb = fishTimeSortMetadata.get(b.id)!;
+        return aa.group - bb.group || aa.start - bb.start ||
+          aa.name.localeCompare(bb.name) || a.id.localeCompare(b.id);
+      };
+
       const fishMarkersView = (() => {
         const arr = [...fishMarkers];
-        return (fishMarkersSort === "time" ? arr.sort(sortByTime) : arr.sort(sortByNext));
+        return arr.sort(sortFishByTime);
       })();
       const renderRows = (rows: Marker[]) => {
               // Folder body renderer (height-capped). We intentionally avoid FlatList here because
@@ -7661,13 +7688,6 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     />
                   </View>
 
-                  <View style={styles.folderBulkRight}>
-                    <ActionChip
-                      icon={fishMarkersSort === "time" ? "time-outline" : "flash-outline"}
-                      label={fishMarkersSort === "time" ? "Sort: Time" : "Sort: Next"}
-                      onPress={toggleFishSort}
-                    />
-                  </View>
                 </View>
 
                 {fishOpen ? renderRows(fishMarkersView) : null}

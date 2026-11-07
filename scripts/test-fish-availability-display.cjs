@@ -26,6 +26,7 @@ const cases = {
   fairy_carp: '3:00 AM - 6:00 AM\n6:00 PM - 9:00 PM',
   cactus_moray: '6:00 AM - 6:00 PM\n9:00 PM - 3:00 AM',
   devilfish: '6:00 PM - 6:00 AM',
+  eleroo_eel: '6:00 PM - 6:00 AM',
   piksii_floatfish: '9:00 PM - 6:00 PM',
   albino_eel: 'Any Time',
 };
