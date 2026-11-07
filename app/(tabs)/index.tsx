@@ -7995,7 +7995,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                       {Platform.OS === "android" && Number(Platform.Version) >= 31 ? (
                         <View style={styles.notifHintWrap}>
                           <Text style={styles.notifHintText}>
-                            If alerts are late on Android, enable "Alarms and reminders" and disable battery optimizations for this app.
+                            If alerts are late on Android, enable &quot;Alarms and reminders&quot; and disable battery optimizations for this app.
                           </Text>
                           <Pressable onPress={() => Linking.openSettings()} style={styles.notifHintBtn}>
                             <Text style={styles.notifHintBtnText}>Open Settings</Text>
