@@ -8082,7 +8082,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
                 <View style={styles.helpButtonRow}>
                   <Pressable onPress={shareDiagnostics} style={[styles.notifHintBtn, styles.helpHalfBtn]}>
-                    <Text style={styles.notifHintBtnText}>Copy diagnostics</Text>
+                    <Text style={styles.notifHintBtnText}>Share diagnostics</Text>
                   </Pressable>
 
                   <Pressable onPress={resetAppData} style={[styles.notifHintBtn, styles.helpHalfBtn]}>
