@@ -240,6 +240,15 @@ function fishAppearsToWindows(appearsRaw: string | undefined | null): { hour: nu
   });
 }
 
+// Display only: use the same complete windows as Home without changing base timing.
+function fishAvailabilityDisplayLabel(appears: string): string {
+  if (fishAppearsIsAnyTime(appears)) return "Any Time";
+  return fishAppearsToWindows(appears)
+    .filter((window) => window.hasRange)
+    .map((window) => `${format12hTime(window.hour, window.minute)} - ${format12hTime(window.endHour!, window.endMinute!)}`)
+    .join("\n");
+}
+
 function buildFishNotes(f: FishEntry) {
   const lines: string[] = [];
   if (f.description) lines.push(String(f.description).trim());
@@ -5899,6 +5908,15 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     return cache;
   }, [markers]);
 
+  // Recalculate availability text only when catalogue-derived marker fields change.
+  const fishAvailabilityLabels = useMemo(() => {
+    const labels = new Map<string, string>();
+    for (const [id, fields] of markerFieldCache) {
+      if (id.startsWith("fish_")) labels.set(id, fishAvailabilityDisplayLabel(fields.appears));
+    }
+    return labels;
+  }, [markerFieldCache]);
+
   // SECTION 15.2.X) Precompute fish card render data to speed up fish view rendering
 
   const fishCardRenderDataCache = useMemo(() => {
@@ -7339,9 +7357,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 
                 const { eventName, location } = splitNameLocation(m.name);
                 const hasRange = !!m.hasRange && typeof m.endHour === "number" && typeof m.endMinute === "number";
-                const timeLabel = hasRange
+                const timeLabel = fishAvailabilityLabels.get(m.id) || (hasRange
                   ? `${format12hTime(m.hour, m.minute)} - ${format12hTime(m.endHour as number, m.endMinute as number)}`
-                  : format12hTime(m.hour, m.minute);
+                  : format12hTime(m.hour, m.minute));
 
                 return (
                   <View style={{ marginBottom: 12 }}>
@@ -8175,12 +8193,12 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                     typeof eventDetailsMarker.endHour === "number" &&
                     typeof eventDetailsMarker.endMinute === "number";
 
-                  const timeText = hasRange
+                  const timeText = fishAvailabilityLabels.get(eventDetailsMarker.id) || (hasRange
                     ? `${format12hTime(eventDetailsMarker.hour, eventDetailsMarker.minute)} - ${format12hTime(
                         eventDetailsMarker.endHour as number,
                         eventDetailsMarker.endMinute as number
                       )}`
-                    : format12hTime(eventDetailsMarker.hour, eventDetailsMarker.minute);
+                    : format12hTime(eventDetailsMarker.hour, eventDetailsMarker.minute));
 
                   return (
                     <>
