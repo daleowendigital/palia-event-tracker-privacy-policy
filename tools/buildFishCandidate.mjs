@@ -7,6 +7,41 @@ import { baselineReport, validateCatalogues } from './validateFishCatalogue.mjs'
 
 const source = fs.realpathSync.native(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'));
 
+function applyHeatherMantaEditorialOverride(catalogue, baselineRoot) {
+  const rows = catalogue.fish.filter(fish => fish.id === 'heather_manta');
+  if (!rows.length) return { active: false, reason: 'Heather Manta absent; normal removal validation still applies' };
+  if (rows.length !== 1 || rows[0].pageid !== 268814) {
+    throw new Error('Heather Manta editorial override requires unique heather_manta with Wiki page ID 268814');
+  }
+  const fish = rows[0];
+  const fields = ['bestBait', 'appears', 'description'];
+  const snapshot = row => Object.fromEntries(fields.map(key => [key, structuredClone(row[key] ?? null)]));
+  const raw = snapshot(fish);
+  const previous = baselineRoot.fish.find(row => row.id === fish.id);
+  // Restore either field only after explicit Owner approval of a code change.
+  const holdBait = true;
+  const holdAvailability = true;
+  if (holdBait) fish.bestBait = [];
+  if (holdAvailability) fish.appears = null;
+  // Never reintroduce unreviewed claims through the raw description.
+  fish.description = 'Heather Manta is a rare fish found in Royal Highlands Bay. Bait and availability are unconfirmed.';
+  if (!holdBait || !holdAvailability) {
+    fish.description = 'Heather Manta is a rare fish found in Royal Highlands Bay. See the bait and availability fields for reviewed information.';
+  }
+  const effective = snapshot(fish);
+  return {
+    active: holdBait || holdAvailability, temporary: true, requiresOwnerApproval: true,
+    id: fish.id, pageid: fish.pageid, lastrevid: fish.lastrevid ?? null,
+    heldFields: { bestBait: holdBait, appears: holdAvailability }, raw, effective,
+    proposedFields: fields.filter(key => JSON.stringify(raw[key]) !== JSON.stringify(effective[key])),
+    baselineComparison: previous ? {
+      note: 'Compared with checked-in root fields, which may already contain editorial values; not proof of a source correction.',
+      lastrevid: previous.lastrevid ?? null,
+      changedRawFields: fields.filter(key => JSON.stringify(raw[key]) !== JSON.stringify(previous[key] ?? null)),
+    } : null,
+  };
+}
+
 function isolatedOutput(requested) {
   if (!requested) throw new Error('Candidate directory is required');
   let ancestor = path.resolve(requested);
@@ -72,6 +107,12 @@ try {
     if (result.error || result.status !== 0) {
       report.generationFailure = { script, exitCode: result.status, details: result.stderr || result.error?.message };
       throw new Error(`${script} failed: ${result.error?.message || result.status}`);
+    }
+    if (script === 'pull-fish.mjs') {
+      const file = path.join(candidate, 'fish.json');
+      const extracted = JSON.parse(fs.readFileSync(file, 'utf8'));
+      report.heatherMantaEditorialOverride = applyHeatherMantaEditorialOverride(extracted, baselineRoot);
+      if (report.heatherMantaEditorialOverride.active) fs.writeFileSync(file, JSON.stringify(extracted, null, 2), 'utf8');
     }
   }
   const root = JSON.parse(fs.readFileSync(path.join(candidate, 'fish.json'), 'utf8'));

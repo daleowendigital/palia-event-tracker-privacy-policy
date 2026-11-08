@@ -62,6 +62,35 @@ Routine additions and valid schedule changes can pass validation, but still requ
 review and explicit approval before incorporation or publication. Re-run validation
 if either baseline changes after the candidate was generated.
 
+## Temporary Heather Manta editorial hold
+
+`buildFishCandidate.mjs` applies a Heather Manta-only hold immediately after Wiki
+extraction, before image enrichment, public mirroring and version generation. It
+requires the unique ID `heather_manta` and Wiki page ID `268814`; a mismatch stops
+generation. Conflicting source claims are an editorial reason to use `bestBait: []`
+and `appears: null`, not proof that the source values are incorrect. A neutral
+description removes those claims. Location, biome, rarity and all other fields stay
+intact. BUG-017 displays Unconfirmed and suppresses timed countdowns/notifications.
+
+The existing report's `heatherMantaEditorialOverride` contains raw and effective
+bait, availability and description, page/revision IDs, held fields and proposed
+differences. Raw fields are also compared with the checked-in root baseline where
+available. That baseline may already be editorially corrected; this comparison is
+not a persistent source history. A changed revision alone proves no gameplay fact.
+
+Review new raw evidence and obtain explicit Owner approval before changing either
+`holdBait` or `holdAvailability` in the helper. Each can be restored independently;
+the description remains neutral rather than copying unreviewed prose. Review the
+resulting candidate and separately approve incorporation and publication.
+
+The validator remains unchanged. Against the current known root schedule, this
+hold deliberately fails with `lost known schedule: heather_manta`: the failure
+report retains the editorial evidence, but no validated review candidate is exported.
+Use the manual baseline-transition procedure above for the initial approved
+incorporation. Do not bypass the failure or call it validated. Once the approved
+root/public baseline and live Pages agree on the unknown schedule, normal future
+validation can proceed while the hold remains active.
+
 ## Verify a separately authorised publication
 
 - Confirm Pages deployed the intended commit and `/fish.json` matches approved

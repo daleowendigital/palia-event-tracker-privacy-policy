@@ -14,6 +14,53 @@ const copy = value => JSON.parse(JSON.stringify(value));
 const fish = (id = 'test_fish', appears = 'Morning (3:00 AM - 6:00 AM)') => ({ id, title: id === 'test_fish' ? 'Test Fish' : id, appears, pageid: id === 'test_fish' ? 1 : 2, description: 'Fixture Fish', imageUrl: 'https://palia.wiki.gg/Test_Fish.png' });
 const catalogue = rows => ({ meta: { count: rows.length, ok: rows.length, failed: 0, dropped: [], skippedTitles: [] }, fish: rows });
 const approved = catalogue([fish()]);
+// Exercise the exact helper without executing the builder's live entry point.
+const builderSource = fs.readFileSync(path.join(repo, 'tools/buildFishCandidate.mjs'), 'utf8');
+const helperSource = builderSource.slice(builderSource.indexOf('function applyHeatherMantaEditorialOverride('), builderSource.indexOf('function isolatedOutput('));
+const helper = code => new Function(code + '\nreturn applyHeatherMantaEditorialOverride;')();
+const applyHeather = helper(helperSource);
+const heather = { ...fish('heather_manta'), title: 'Heather Manta', pageid: 268814, lastrevid: 775112,
+  bestBait: ['Glow Worm'], appears: 'Morning, Day and Evening (3:00 AM - 9:00 PM)',
+  description: 'Worms, during the day (6:00AM to 6:00PM).', locations: ['Royal Highlands'],
+  biomes: ['Royal Highlands Bay'], rarity: 'Rare', value: { basic: null, quality: null } };
+const heatherBaseline = catalogue([copy(heather), fish()]);
+const effectiveHeather = copy(heatherBaseline);
+const editorialReport = applyHeather(effectiveHeather, heatherBaseline);
+const expectedHeather = { ...heather, bestBait: [], appears: null,
+  description: 'Heather Manta is a rare fish found in Royal Highlands Bay. Bait and availability are unconfirmed.' };
+assert.deepEqual(effectiveHeather.fish, [expectedHeather, fish()]);
+assert.deepEqual(editorialReport.raw, { bestBait: heather.bestBait, appears: heather.appears, description: heather.description });
+assert.deepEqual(editorialReport.effective, { bestBait: [], appears: null, description: expectedHeather.description });
+assert.equal(editorialReport.active, true); assert.equal(editorialReport.pageid, 268814);
+assert.equal(editorialReport.lastrevid, 775112);
+assert.deepEqual(editorialReport.proposedFields, ['bestBait', 'appears', 'description']);
+assert.deepEqual(editorialReport.baselineComparison.changedRawFields, []);
+const futureHeather = copy(heatherBaseline);
+Object.assign(futureHeather.fish[0], { bestBait: ['Worm'], appears: 'Any Time', description: 'New source wording', lastrevid: 999999 });
+const futureReport = applyHeather(futureHeather, heatherBaseline);
+assert.deepEqual(futureReport.baselineComparison.changedRawFields, ['bestBait', 'appears', 'description']);
+assert.deepEqual(futureReport.raw.bestBait, ['Worm']); assert.equal(futureReport.raw.appears, 'Any Time');
+assert.deepEqual(futureHeather.fish[0].bestBait, []); assert.equal(futureHeather.fish[0].appears, null);
+for (const pageid of [1, null, '268814']) {
+  const wrong = catalogue([{ ...heather, pageid }]), before = copy(wrong);
+  assert.throws(() => applyHeather(wrong, heatherBaseline), /page ID 268814/); assert.deepEqual(wrong, before);
+}
+assert.throws(() => applyHeather(catalogue([heather, copy(heather)]), heatherBaseline), /unique/);
+const absent = copy(approved); assert.equal(applyHeather(absent, approved).active, false); assert.deepEqual(absent, approved);
+for (const [flag, restored, held] of [['holdBait', 'bestBait', 'appears'], ['holdAvailability', 'appears', 'bestBait']]) {
+  // Simulate a future explicitly approved code change, never a runtime bypass.
+  const restore = helper(helperSource.replace(`const ${flag} = true;`, `const ${flag} = false;`));
+  const candidate = copy(heatherBaseline); restore(candidate, heatherBaseline);
+  assert.deepEqual(candidate.fish[0][restored], heather[restored]);
+  assert.deepEqual(candidate.fish[0][held], held === 'bestBait' ? [] : null);
+  assert.match(candidate.fish[0].description, /reviewed information/);
+}
+assert.deepEqual(validateCatalogues(effectiveHeather, effectiveHeather, [heatherBaseline]).errors, ['lost known schedule: heather_manta']);
+assert.equal(validateCatalogues(effectiveHeather, effectiveHeather, [effectiveHeather]).valid, true);
+const unrelatedLoss = copy(effectiveHeather); unrelatedLoss.fish[1].appears = null;
+assert.deepEqual(validateCatalogues(unrelatedLoss, unrelatedLoss, [effectiveHeather]).errors, ['lost known schedule: test_fish']);
+assert.deepEqual(heatherBaseline.fish[0], heather);
+console.log('PASS: Heather identity, independent holds, raw evidence, future proposals and unchanged validator gates');
 function write(file, value) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, typeof value === 'string' ? value : JSON.stringify(value)); }
 const mock = path.join(temp, 'mock.mjs');
 write(mock, `
@@ -197,6 +244,35 @@ for (const mode of ['', 'fish-failure', 'removal']) {
   assert.ok(fs.readFileSync(path.join(dir, 'docs/fish.json')).equals(before));
   assert.ok(fs.readFileSync(path.join(dir, 'fish.json')).equals(rootBefore));
   console.log('PASS: isolated candidate pipeline', mode || 'valid', '(no Git publication credentials)');
+}
+// Run the copied pipeline with a static extracted fixture; no Wiki extraction.
+for (const knownBaseline of [true, false]) {
+  const dir = workspace('heather-pipeline-' + knownBaseline);
+  const baseline = knownBaseline ? heatherBaseline : effectiveHeather;
+  write(path.join(dir, 'fish.json'), baseline); write(path.join(dir, 'docs/fish.json'), baseline);
+  write(path.join(dir, 'pull-fish.mjs'), `import fs from 'node:fs'; fs.writeFileSync('fish.json', ${JSON.stringify(JSON.stringify(heatherBaseline))});`);
+  const output = path.join(temp, 'heather-output-' + knownBaseline);
+  const result = run(path.join(dir, 'tools/buildFishCandidate.mjs'), [output], temp, '', { FISH_TEST_PUBLIC: path.join(dir, 'docs/fish.json') });
+  assert.equal(result.status === 0, !knownBaseline, result.stdout + result.stderr);
+  const report = JSON.parse(fs.readFileSync(path.join(output, 'review-report.json')));
+  assert.deepEqual(report.heatherMantaEditorialOverride.raw, editorialReport.raw);
+  assert.deepEqual(report.heatherMantaEditorialOverride.effective, editorialReport.effective);
+  assert.deepEqual(report.validation.errors, knownBaseline ? Array(2).fill('lost known schedule: heather_manta') : []);
+  assert.equal(fs.existsSync(path.join(output, 'review/fish.json')), !knownBaseline);
+  const root = JSON.parse(fs.readFileSync(path.join(output, 'candidate/fish.json')));
+  const publicCopy = JSON.parse(fs.readFileSync(path.join(output, 'candidate/docs/fish.json')));
+  assert.deepEqual(root, effectiveHeather);
+  for (let i = 0; i < root.fish.length; i++) {
+    const { imageUrl, ...publicFields } = publicCopy.fish[i];
+    const { imageUrl: rootImage, ...rootFields } = root.fish[i];
+    assert.deepEqual(publicFields, rootFields);
+  }
+  const { createHash } = await import('node:crypto');
+  const hash = createHash('sha256').update(fs.readFileSync(path.join(output, 'candidate/fish.json'))).digest('hex').slice(0, 12);
+  assert.match(fs.readFileSync(path.join(output, 'candidate/src/fishVersion.ts'), 'utf8'), new RegExp(hash));
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 'fish.json'))), baseline);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 'docs/fish.json'))), baseline);
+  console.log('PASS: Heather pipeline ordering, mirroring, version and ' + (knownBaseline ? 'blocked validation with retained report' : 'approved unknown baseline'));
 }
 // Fixed fixtures: legitimate updates to the real catalogue cannot break this coverage.
 const rootFixture = catalogue([fish(), fish('root_only', null)]);
