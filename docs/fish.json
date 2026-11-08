@@ -1,28 +1,25 @@
 {
   "meta": {
     "category": "Category:Fish",
-    "count": 105,
-    "ok": 100,
-    "failed": 2,
+    "count": 126,
+    "ok": 123,
+    "failed": 0,
     "dropped": [
       "bass",
       "catfish",
       "trout"
     ],
-    "fetchedAt": "2026-01-24T16:13:07.927Z",
+    "fetchedAt": "2026-11-07T20:14:39.446Z",
     "base": "https://palia.wiki.gg",
     "api": "https://palia.wiki.gg/api.php",
-    "skippedTitles": [
-      "Mudminnow",
-      "Mutated Angler"
-    ]
+    "skippedTitles": []
   },
   "fish": [
     {
       "id": "albino_eel",
       "title": "Albino Eel",
       "pageid": 365,
-      "lastrevid": 633699,
+      "lastrevid": 773444,
       "url": "https://palia.wiki.gg/wiki/Albino_Eel",
       "description": "Albino Eel is more attracted to Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Common",
@@ -44,7 +41,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Albino_Eel.png"
     },
@@ -52,7 +49,7 @@
       "id": "alligator_gar",
       "title": "Alligator Gar",
       "pageid": 329,
-      "lastrevid": 640985,
+      "lastrevid": 672443,
       "url": "https://palia.wiki.gg/wiki/Alligator_Gar",
       "description": "Alligator Gar is more attracted to Glow Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -73,9 +70,37 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Alligator_Gar.png"
+    },
+    {
+      "id": "amber_moray",
+      "title": "Amber Moray",
+      "pageid": 271672,
+      "lastrevid": 800733,
+      "url": "https://palia.wiki.gg/wiki/Amber_Moray",
+      "description": "Amber Moray is more attracted to Glow Worms, and can be caught in Ponds and Rivers in the Royal Highlands at night (9:00 PM - 3:00 AM).",
+      "rarity": "Rare",
+      "appears": "Night (9:00 PM - 3:00 AM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Amber_Moray.png"
     },
     {
       "id": "ancient_cloudminnow",
@@ -101,7 +126,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Ancient_Cloudminnow.png"
     },
@@ -109,7 +134,7 @@
       "id": "ancient_fish",
       "title": "Ancient Fish",
       "pageid": 1493,
-      "lastrevid": 624913,
+      "lastrevid": 672464,
       "url": "https://palia.wiki.gg/wiki/Ancient_Fish",
       "description": "The Ancient Fish can only be caught after completing all Vault of the Waves bundles, and simultaneously completing the Something's in the Water accomplishment.\n\nNote: there have been reports from players that the Ancient Fish has been caught before completing these bundles, but after speaking to Einar about lifting the lockdown.",
       "rarity": "Epic",
@@ -131,7 +156,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Ancient_Fish.png"
     },
@@ -139,7 +164,7 @@
       "id": "ancient_koi",
       "title": "Ancient Koi",
       "pageid": 167228,
-      "lastrevid": 610966,
+      "lastrevid": 672473,
       "url": "https://palia.wiki.gg/wiki/Ancient_Koi",
       "description": "Ancient Koi is more attracted to Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Rare",
@@ -159,7 +184,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Ancient_Koi.png"
     },
@@ -167,7 +192,7 @@
       "id": "angelfish",
       "title": "Angelfish",
       "pageid": 167237,
-      "lastrevid": 624364,
+      "lastrevid": 672496,
       "url": "https://palia.wiki.gg/wiki/Angelfish",
       "description": "Angelfish is more attracted to Glow Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, during the morning, day and evening (3:00 AM - 9:00 PM).",
       "rarity": "Rare",
@@ -187,7 +212,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Angelfish.png"
     },
@@ -195,7 +220,7 @@
       "id": "bahari_bass",
       "title": "Bahari Bass",
       "pageid": 351,
-      "lastrevid": 633723,
+      "lastrevid": 672522,
       "url": "https://palia.wiki.gg/wiki/Bahari_Bass",
       "description": "Bahari Bass is more attracted to no bait, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -215,7 +240,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bahari_Bass.png"
     },
@@ -223,7 +248,7 @@
       "id": "bahari_bream",
       "title": "Bahari Bream",
       "pageid": 354,
-      "lastrevid": 598250,
+      "lastrevid": 676877,
       "url": "https://palia.wiki.gg/wiki/Bahari_Bream",
       "description": "Bahari Bream is more attracted to Worms, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -243,7 +268,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bahari_Bream.png"
     },
@@ -251,7 +276,7 @@
       "id": "bahari_pike",
       "title": "Bahari Pike",
       "pageid": 345,
-      "lastrevid": 618903,
+      "lastrevid": 672535,
       "url": "https://palia.wiki.gg/wiki/Bahari_Pike",
       "description": "Bahari Pike is more attracted to Glow Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -271,7 +296,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bahari_Pike.png"
     },
@@ -279,7 +304,7 @@
       "id": "barracuda",
       "title": "Barracuda",
       "pageid": 353,
-      "lastrevid": 633735,
+      "lastrevid": 677164,
       "url": "https://palia.wiki.gg/wiki/Barracuda",
       "description": "Barracuda is more attracted to no bait, and can be caught at Bahari Coast in Bahari Bay, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -299,7 +324,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Barracuda.png"
     },
@@ -307,7 +332,7 @@
       "id": "bat_ray",
       "title": "Bat Ray",
       "pageid": 366,
-      "lastrevid": 633747,
+      "lastrevid": 672566,
       "url": "https://palia.wiki.gg/wiki/Bat_Ray",
       "description": "Bat Ray is more attracted to Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Uncommon",
@@ -329,7 +354,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bat_Ray.png"
     },
@@ -337,7 +362,7 @@
       "id": "beluga_sturgeon",
       "title": "Beluga Sturgeon",
       "pageid": 330,
-      "lastrevid": 640997,
+      "lastrevid": 739104,
       "url": "https://palia.wiki.gg/wiki/Beluga_Sturgeon",
       "description": "Beluga Sturgeon is more attracted to Glow Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -357,7 +382,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Beluga_Sturgeon.png"
     },
@@ -365,7 +390,7 @@
       "id": "black_sea_bass",
       "title": "Black Sea Bass",
       "pageid": 358,
-      "lastrevid": 633758,
+      "lastrevid": 676628,
       "url": "https://palia.wiki.gg/wiki/Black_Sea_Bass",
       "description": "Black Sea Bass is more attracted to Glow Worms, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -385,7 +410,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Black_Sea_Bass.png"
     },
@@ -393,7 +418,7 @@
       "id": "blobfish",
       "title": "Blobfish",
       "pageid": 369,
-      "lastrevid": 633769,
+      "lastrevid": 672594,
       "url": "https://palia.wiki.gg/wiki/Blobfish",
       "description": "Blobfish is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Common",
@@ -415,7 +440,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Blobfish.png"
     },
@@ -423,7 +448,7 @@
       "id": "blue_marlin",
       "title": "Blue Marlin",
       "pageid": 357,
-      "lastrevid": 633780,
+      "lastrevid": 672617,
       "url": "https://palia.wiki.gg/wiki/Blue_Marlin",
       "description": "Blue Marlin is more attracted to Worms, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Rare",
@@ -443,7 +468,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Blue_Marlin.png"
     },
@@ -451,7 +476,7 @@
       "id": "blue_spotted_ray",
       "title": "Blue Spotted Ray",
       "pageid": 361,
-      "lastrevid": 633791,
+      "lastrevid": 677328,
       "url": "https://palia.wiki.gg/wiki/Blue_Spotted_Ray",
       "description": "Blue Spotted Ray is more attracted to Glow Worms, and can be caught at Bahari Coast in Bahari Bay, during the morning, day and evening (3:00 AM - 9:00 PM).",
       "rarity": "Rare",
@@ -471,7 +496,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Blue_Spotted_Ray.png"
     },
@@ -479,7 +504,7 @@
       "id": "bluefin_tuna",
       "title": "Bluefin Tuna",
       "pageid": 355,
-      "lastrevid": 633802,
+      "lastrevid": 672688,
       "url": "https://palia.wiki.gg/wiki/Bluefin_Tuna",
       "description": "Bluefin Tuna is more attracted to Worms, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -499,7 +524,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bluefin_Tuna.png"
     },
@@ -507,7 +532,7 @@
       "id": "bronze_bluegill",
       "title": "Bronze Bluegill",
       "pageid": 167246,
-      "lastrevid": 641525,
+      "lastrevid": 672710,
       "url": "https://palia.wiki.gg/wiki/Bronze_Bluegill",
       "description": "Bronze Bluegill is more attracted to no bait, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -527,7 +552,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Bronze_Bluegill.png"
     },
@@ -535,7 +560,7 @@
       "id": "cactus_moray",
       "title": "Cactus Moray",
       "pageid": 360,
-      "lastrevid": 633814,
+      "lastrevid": 773451,
       "url": "https://palia.wiki.gg/wiki/Cactus_Moray",
       "description": "Cactus Moray is more attracted to Glow Worms, and can be caught at the Bahari Coast in Bahari Bay, during the day (6:00 AM - 6:00 PM), as well as at night (9:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -555,7 +580,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Cactus_Moray.png"
     },
@@ -563,7 +588,7 @@
       "id": "calico_koi",
       "title": "Calico Koi",
       "pageid": 292,
-      "lastrevid": 641383,
+      "lastrevid": 672727,
       "url": "https://palia.wiki.gg/wiki/Calico_Koi",
       "description": "Calico Koi is more attracted to no bait, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
@@ -585,7 +610,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Calico_Koi.png"
     },
@@ -593,7 +618,7 @@
       "id": "cantankerous_koi",
       "title": "Cantankerous Koi",
       "pageid": 296,
-      "lastrevid": 641397,
+      "lastrevid": 672748,
       "url": "https://palia.wiki.gg/wiki/Cantankerous_Koi",
       "description": "Cantankerous Koi is more attracted to no bait, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, during the day (6:00 AM - 6:00 PM), as well as at night (9:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -615,7 +640,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Cantankerous_Koi.png"
     },
@@ -623,7 +648,7 @@
       "id": "channel_catfish",
       "title": "Channel Catfish",
       "pageid": 309,
-      "lastrevid": 641141,
+      "lastrevid": 672979,
       "url": "https://palia.wiki.gg/wiki/Channel_Catfish",
       "description": "Channel Catfish is more attracted to no bait, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Uncommon",
@@ -643,15 +668,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Channel_Catfish.png"
+    },
+    {
+      "id": "charged_cardinal",
+      "title": "Charged Cardinal",
+      "pageid": 269120,
+      "lastrevid": 794715,
+      "url": "https://palia.wiki.gg/wiki/Charged_Cardinal",
+      "description": "The Charged Cardinal can be located in the Royal Highlands. This can be found at any time and with any bait used.",
+      "rarity": "Uncommon",
+      "appears": "Any Time",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Charged_Cardinal.png"
     },
     {
       "id": "chub",
       "title": "Chub",
       "pageid": 347,
-      "lastrevid": 633863,
+      "lastrevid": 673012,
       "url": "https://palia.wiki.gg/wiki/Chub",
       "description": "Chub is more attracted to Glow Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Uncommon",
@@ -671,7 +724,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Chub.png"
     },
@@ -679,7 +732,7 @@
       "id": "cloudfish",
       "title": "Cloudfish",
       "pageid": 304,
-      "lastrevid": 641411,
+      "lastrevid": 673033,
       "url": "https://palia.wiki.gg/wiki/Cloudfish",
       "description": "Cloudfish is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, during the morning and day (3:00 AM - 6:00 PM).",
       "rarity": "Rare",
@@ -701,17 +754,45 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Cloudfish.png"
+    },
+    {
+      "id": "copper_sturgeon",
+      "title": "Copper Sturgeon",
+      "pageid": 268816,
+      "lastrevid": 741114,
+      "url": "https://palia.wiki.gg/wiki/Copper_Sturgeon",
+      "description": "Copper Sturgeon  can be caught in Ponds and Rivers in the Royal Highlands.",
+      "rarity": "Rare",
+      "appears": null,
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Copper_Sturgeon.png"
     },
     {
       "id": "crimson_fangtooth",
       "title": "Crimson Fangtooth",
       "pageid": 371,
-      "lastrevid": 633886,
+      "lastrevid": 739729,
       "url": "https://palia.wiki.gg/wiki/Crimson_Fangtooth",
-      "description": "Crimson Fangtooth is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
+      "description": "Crimson Fangtooth are more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Uncommon",
       "appears": "Any Time",
       "locations": [
@@ -731,7 +812,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Crimson_Fangtooth.png"
     },
@@ -739,7 +820,7 @@
       "id": "crucian_carp",
       "title": "Crucian Carp",
       "pageid": 317,
-      "lastrevid": 641155,
+      "lastrevid": 673090,
       "url": "https://palia.wiki.gg/wiki/Crucian_Carp",
       "description": "Crucian Carp is more attracted to Glow Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -759,7 +840,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Crucian_Carp.png"
     },
@@ -767,7 +848,7 @@
       "id": "cutthroat_trout",
       "title": "Cutthroat Trout",
       "pageid": 341,
-      "lastrevid": 611226,
+      "lastrevid": 673100,
       "url": "https://palia.wiki.gg/wiki/Cutthroat_Trout",
       "description": "Cutthroat Trout is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Uncommon",
@@ -787,15 +868,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Cutthroat_Trout.png"
+    },
+    {
+      "id": "dart_eel",
+      "title": "Dart Eel",
+      "pageid": 275113,
+      "lastrevid": 795189,
+      "url": "https://palia.wiki.gg/wiki/Dart_Eel",
+      "description": "Dart Eel is more attracted to Glow Worms, and can be caught in Ponds and Rivers in the Royal Highlands at night (9:00 PM - 3:00 AM).",
+      "rarity": "Epic",
+      "appears": "Night (9:00 PM - 3:00 AM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Dart_Eel.png"
     },
     {
       "id": "dawnray",
       "title": "Dawnray",
       "pageid": 337,
-      "lastrevid": 619664,
+      "lastrevid": 680849,
       "url": "https://palia.wiki.gg/wiki/Dawnray",
       "description": "The Dawnray is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, during the morning (3:00 AM - 6:00 AM).",
       "rarity": "Uncommon",
@@ -815,7 +924,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Dawnray.png"
     },
@@ -823,7 +932,7 @@
       "id": "devilfish",
       "title": "Devilfish",
       "pageid": 167255,
-      "lastrevid": 624365,
+      "lastrevid": 673176,
       "url": "https://palia.wiki.gg/wiki/Devilfish",
       "description": "Devilfish is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, during the morning, evening and night (6:00 PM - 6:00 AM).",
       "rarity": "Rare",
@@ -843,7 +952,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Devilfish.png"
     },
@@ -851,7 +960,7 @@
       "id": "duskray",
       "title": "Duskray",
       "pageid": 338,
-      "lastrevid": 619665,
+      "lastrevid": 673193,
       "url": "https://palia.wiki.gg/wiki/Duskray",
       "description": "The Duskray is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, during the evening (6:00 PM - 9:00 PM).",
       "rarity": "Uncommon",
@@ -871,7 +980,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Duskray.png"
     },
@@ -879,7 +988,7 @@
       "id": "eleroo_eel",
       "title": "Eleroo Eel",
       "pageid": 167264,
-      "lastrevid": 624371,
+      "lastrevid": 773446,
       "url": "https://palia.wiki.gg/wiki/Eleroo_Eel",
       "description": "Eleroo Eel is more attracted to Glow Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, during the morning, evening and night (6:00 PM - 6:00 AM).",
       "rarity": "Rare",
@@ -899,7 +1008,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Eleroo_Eel.png"
     },
@@ -907,7 +1016,7 @@
       "id": "enchanted_pupfish",
       "title": "Enchanted Pupfish",
       "pageid": 331,
-      "lastrevid": 641009,
+      "lastrevid": 696327,
       "url": "https://palia.wiki.gg/wiki/Enchanted_Pupfish",
       "description": "Enchanted Pupfish is more attracted to Glow Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Uncommon",
@@ -928,7 +1037,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Enchanted_Pupfish.png"
     },
@@ -936,7 +1045,7 @@
       "id": "energized_piranha",
       "title": "Energized Piranha",
       "pageid": 315,
-      "lastrevid": 641167,
+      "lastrevid": 769797,
       "url": "https://palia.wiki.gg/wiki/Energized_Piranha",
       "description": "Energized Piranha is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Rare",
@@ -956,15 +1065,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Energized_Piranha.png"
+    },
+    {
+      "id": "enfield_eel",
+      "title": "Enfield Eel",
+      "pageid": 270343,
+      "lastrevid": 773425,
+      "url": "https://palia.wiki.gg/wiki/Enfield_Eel",
+      "description": "Enfield Eel is more attracted to no bait, and can be caught in Ponds and Rivers in the Royal Highlands at night (9:00 PM - 3:00 AM).",
+      "rarity": "Common",
+      "appears": "Night (9:00 PM - 3:00 AM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Enfield_Eel.png"
     },
     {
       "id": "eyeless_minnow",
       "title": "Eyeless Minnow",
       "pageid": 363,
-      "lastrevid": 618876,
+      "lastrevid": 676893,
       "url": "https://palia.wiki.gg/wiki/Eyeless_Minnow",
       "description": "Eyeless Minnow is more attracted to no bait, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Common",
@@ -986,7 +1123,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Eyeless_Minnow.png"
     },
@@ -994,7 +1131,7 @@
       "id": "fairy_carp",
       "title": "Fairy Carp",
       "pageid": 300,
-      "lastrevid": 641424,
+      "lastrevid": 673756,
       "url": "https://palia.wiki.gg/wiki/Fairy_Carp",
       "description": "Fairy Carp is more attracted to Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, during the morning (3:00 AM - 6:00 AM) and the evening (6:00 PM - 9:00 PM).",
       "rarity": "Rare",
@@ -1016,15 +1153,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Fairy_Carp.png"
+    },
+    {
+      "id": "fairy_manta",
+      "title": "Fairy Manta",
+      "pageid": 272759,
+      "lastrevid": 756953,
+      "url": "https://palia.wiki.gg/wiki/Fairy_Manta",
+      "description": "Fairy Manta is attracted to  Glow Worms and can be found in the Royal Highlands bay during the morning, day, and evening (3:00 AM - 9:00 PM).",
+      "rarity": "Epic",
+      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Fairy_Manta.png"
     },
     {
       "id": "fathead_minnow",
       "title": "Fathead Minnow",
       "pageid": 346,
-      "lastrevid": 633908,
+      "lastrevid": 677067,
       "url": "https://palia.wiki.gg/wiki/Fathead_Minnow",
       "description": "Fathead Minnow is more attracted to Glow Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -1044,7 +1209,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Fathead_Minnow.png"
     },
@@ -1052,7 +1217,7 @@
       "id": "flametongue_ray",
       "title": "Flametongue Ray",
       "pageid": 322,
-      "lastrevid": 641180,
+      "lastrevid": 677213,
       "url": "https://palia.wiki.gg/wiki/Flametongue_Ray",
       "description": "Flametongue Ray is more attracted to Glow Worms, and can be caught in Kilima Rivers in Kilima Valley, during the morning and day (3:00 AM - 6:00 PM).",
       "rarity": "Epic",
@@ -1072,7 +1237,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Flametongue_Ray.png"
     },
@@ -1080,7 +1245,7 @@
       "id": "freshwater_eel",
       "title": "Freshwater Eel",
       "pageid": 312,
-      "lastrevid": 641193,
+      "lastrevid": 773447,
       "url": "https://palia.wiki.gg/wiki/Freshwater_Eel",
       "description": "Freshwater Eel is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -1100,7 +1265,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Freshwater_Eel.png"
     },
@@ -1108,7 +1273,7 @@
       "id": "giant_goldfish",
       "title": "Giant Goldfish",
       "pageid": 305,
-      "lastrevid": 641437,
+      "lastrevid": 676685,
       "url": "https://palia.wiki.gg/wiki/Giant_Goldfish",
       "description": "Giant Goldfish is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Epic",
@@ -1130,7 +1295,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Giant_Goldfish.png"
     },
@@ -1138,7 +1303,7 @@
       "id": "giant_kilima_stingray",
       "title": "Giant Kilima Stingray",
       "pageid": 333,
-      "lastrevid": 641022,
+      "lastrevid": 677338,
       "url": "https://palia.wiki.gg/wiki/Giant_Kilima_Stingray",
       "description": "Giant Kilima Stingray is more attracted to Glow Worms, and can be caught in Kilima Lake in Kilima Valley, during the morning, day and evening (3:00 AM - 9:00 PM).",
       "rarity": "Epic",
@@ -1159,7 +1324,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Giant_Kilima_Stingray.png"
     },
@@ -1167,7 +1332,7 @@
       "id": "gillyfin",
       "title": "Gillyfin",
       "pageid": 285,
-      "lastrevid": 641035,
+      "lastrevid": 758035,
       "url": "https://palia.wiki.gg/wiki/Gillyfin",
       "description": "Gillyfin is more attracted to no bait,  and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -1188,7 +1353,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Gillyfin.png"
     },
@@ -1196,7 +1361,7 @@
       "id": "golden_salmon",
       "title": "Golden Salmon",
       "pageid": 313,
-      "lastrevid": 641212,
+      "lastrevid": 758059,
       "url": "https://palia.wiki.gg/wiki/Golden_Salmon",
       "description": "Golden Salmon is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, during the morning and day (3:00 AM - 6:00 PM).",
       "rarity": "Common",
@@ -1216,15 +1381,181 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Golden_Salmon.png"
+    },
+    {
+      "id": "green_anchovy",
+      "title": "Green Anchovy",
+      "pageid": 268817,
+      "lastrevid": 767545,
+      "url": "https://palia.wiki.gg/wiki/Green_Anchovy",
+      "description": "Green Anchovy can be caught in Royal Highlands Bay (also known as the Enfield Shores) at any time.",
+      "rarity": "Common",
+      "appears": "All Day",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "no bait"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Green_Anchovy.png"
+    },
+    {
+      "id": "heather_manta",
+      "title": "Heather Manta",
+      "pageid": 268814,
+      "lastrevid": 775112,
+      "url": "https://palia.wiki.gg/wiki/Heather_Manta",
+      "description": "Heather Manta is a rare fish found in Royal Highlands Bay. Bait and availability are unconfirmed.",
+      "rarity": "Rare",
+      "appears": null,
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Heather_Manta.png"
+    },
+    {
+      "id": "highland_floatfish",
+      "title": "Highland Floatfish",
+      "pageid": 271666,
+      "lastrevid": 717508,
+      "url": "https://palia.wiki.gg/wiki/Highland_Floatfish",
+      "description": "Highland Floatfish is more attracted to Glow Worm, and can be caught in Bays in Royal Highlands at any time of day.",
+      "rarity": "Rare",
+      "appears": "All Day",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Highland_Floatfish.png"
+    },
+    {
+      "id": "highland_shark",
+      "title": "Highland Shark",
+      "pageid": 281854,
+      "lastrevid": 740260,
+      "url": "https://palia.wiki.gg/wiki/Highland_Shark",
+      "description": "The Path of the Maws Lunar Path must be completed before Highland Shark can be caught.",
+      "rarity": "Legendary",
+      "appears": "Any Time",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Saltwater"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Highland_Shark.png"
+    },
+    {
+      "id": "highland_sturgeon",
+      "title": "Highland Sturgeon",
+      "pageid": 273043,
+      "lastrevid": 795077,
+      "url": "https://palia.wiki.gg/wiki/Highland_Sturgeon",
+      "description": "Highland Sturgeon can be caught in the Royal Highlands ponds and rivers at all times, and is attracted to No Bait.",
+      "rarity": "Common",
+      "appears": "All Day",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "No Bait"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Highland_Sturgeon.png"
+    },
+    {
+      "id": "highland_swiftscale",
+      "title": "Highland Swiftscale",
+      "pageid": 268818,
+      "lastrevid": 717511,
+      "url": "https://palia.wiki.gg/wiki/Highland_Swiftscale",
+      "description": "Highland Swiftscale is more attracted to no bait, and can be caught in Bays in Royal Highlands at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Highland_Swiftscale.png"
     },
     {
       "id": "honey_loach",
       "title": "Honey Loach",
       "pageid": 348,
-      "lastrevid": 619707,
+      "lastrevid": 674748,
       "url": "https://palia.wiki.gg/wiki/Honey_Loach",
       "description": "Honey Loach is more attracted to Glow Worms, and can be caught in the Bahari Rivers in Bahari Bay, during the day (6:00 AM - 6:00 PM), as well as at night (9:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -1244,7 +1575,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Honey_Loach.png"
     },
@@ -1252,7 +1583,7 @@
       "id": "hypnotic_moray",
       "title": "Hypnotic Moray",
       "pageid": 372,
-      "lastrevid": 597358,
+      "lastrevid": 773452,
       "url": "https://palia.wiki.gg/wiki/Hypnotic_Moray",
       "description": "Hypnotic Moray is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Rare",
@@ -1274,7 +1605,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Hypnotic_Moray.png"
     },
@@ -1282,7 +1613,7 @@
       "id": "indigo_lamprey",
       "title": "Indigo Lamprey",
       "pageid": 320,
-      "lastrevid": 641226,
+      "lastrevid": 674775,
       "url": "https://palia.wiki.gg/wiki/Indigo_Lamprey",
       "description": "Indigo Lamprey is more attracted to Glow Worms, and can be caught in Kilima Rivers in Kilima Valley, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -1302,7 +1633,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Indigo_Lamprey.png"
     },
@@ -1310,7 +1641,7 @@
       "id": "inyrevn_mermaid",
       "title": "Inyrevn Mermaid",
       "pageid": 167265,
-      "lastrevid": 607561,
+      "lastrevid": 679886,
       "url": "https://palia.wiki.gg/wiki/Inyrevn_Mermaid",
       "description": "Inyrevn Mermaid is more attracted to Glow Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Epic",
@@ -1330,15 +1661,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Inyrevn_Mermaid.png"
+    },
+    {
+      "id": "jade_koi",
+      "title": "Jade Koi",
+      "pageid": 268815,
+      "lastrevid": 757113,
+      "url": "https://palia.wiki.gg/wiki/Jade_Koi",
+      "description": "Jade Koi is more attracted to Glow Worms, and can be caught in Ponds and Rivers in Royal Highlands at any time of day.",
+      "rarity": "Rare",
+      "appears": "Any Time",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Jade_Koi.png"
     },
     {
       "id": "kenli_s_carp",
       "title": "Kenli's Carp",
       "pageid": 321,
-      "lastrevid": 641240,
+      "lastrevid": 674825,
       "url": "https://palia.wiki.gg/wiki/Kenli%27s_Carp",
       "description": "Kenli's Carp is more attracted to Glow Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Rare",
@@ -1358,15 +1717,44 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Kenli's_Carp.png"
+    },
+    {
+      "id": "kestra_eel",
+      "title": "Kestra Eel",
+      "pageid": 273226,
+      "lastrevid": 801014,
+      "url": "https://palia.wiki.gg/wiki/Kestra_Eel",
+      "description": "Kestra Eel is more attracted to Worms and Glow Worms, and can be caught in Ponds and Rivers in the Royal Highlands at night (9:00 PM - 3:00 AM).",
+      "rarity": "Uncommon",
+      "appears": "Night (9:00 PM - 3:00 AM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Worm",
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Kestra_Eel.png"
     },
     {
       "id": "kilima_catfish",
       "title": "Kilima Catfish",
       "pageid": 297,
-      "lastrevid": 641450,
+      "lastrevid": 676905,
       "url": "https://palia.wiki.gg/wiki/Kilima_Catfish",
       "description": "Kilima Catfish is more attracted to Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
@@ -1388,7 +1776,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Kilima_Catfish.png"
     },
@@ -1396,7 +1784,7 @@
       "id": "kilima_grayling",
       "title": "Kilima Grayling",
       "pageid": 319,
-      "lastrevid": 641254,
+      "lastrevid": 674835,
       "url": "https://palia.wiki.gg/wiki/Kilima_Grayling",
       "description": "Kilima Grayling is more attracted to Glow Worms, and can be caught in the Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Uncommon",
@@ -1416,7 +1804,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Kilima_Grayling.png"
     },
@@ -1424,7 +1812,7 @@
       "id": "kilima_redfin",
       "title": "Kilima Redfin",
       "pageid": 339,
-      "lastrevid": 633931,
+      "lastrevid": 677077,
       "url": "https://palia.wiki.gg/wiki/Kilima_Redfin",
       "description": "Kilima Redfin is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -1444,7 +1832,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Kilima_Redfin.png"
     },
@@ -1452,7 +1840,7 @@
       "id": "lake_shark",
       "title": "Lake Shark",
       "pageid": 167266,
-      "lastrevid": 609307,
+      "lastrevid": 679892,
       "url": "https://palia.wiki.gg/wiki/Lake_Shark",
       "description": "Lake Shark is more attracted to Glow Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Uncommon",
@@ -1472,7 +1860,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Lake_Shark.png"
     },
@@ -1480,7 +1868,7 @@
       "id": "largemouth_bass",
       "title": "Largemouth Bass",
       "pageid": 323,
-      "lastrevid": 641048,
+      "lastrevid": 674848,
       "url": "https://palia.wiki.gg/wiki/Largemouth_Bass",
       "description": "Largemouth Bass is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -1501,15 +1889,44 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Largemouth_Bass.png"
+    },
+    {
+      "id": "lesser_snakehead",
+      "title": "Lesser Snakehead",
+      "pageid": 271667,
+      "lastrevid": 733678,
+      "url": "https://palia.wiki.gg/wiki/Lesser_Snakehead",
+      "description": "Lesser Snakehead can be caught at Bays in the Royal Highlands at any time of day, and is attracted to Worm and Glow Worm.",
+      "rarity": "Uncommon",
+      "appears": "All Day",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "Worm",
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Lesser_Snakehead.png"
     },
     {
       "id": "long_nosed_unicorn_fish",
       "title": "Long Nosed Unicorn Fish",
       "pageid": 765,
-      "lastrevid": 646277,
+      "lastrevid": 678387,
       "url": "https://palia.wiki.gg/wiki/Long_Nosed_Unicorn_Fish",
       "description": "Long Nosed Unicorn Fish is more attracted to Glow Worms, and can be caught at Bahari Coast in Bahari Bay, during the day (6:00 AM - 6:00 PM).",
       "rarity": "Epic",
@@ -1529,7 +1946,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Long_Nosed_Unicorn_Fish.png"
     },
@@ -1537,7 +1954,7 @@
       "id": "majiri_of_war",
       "title": "Majiri-of-War",
       "pageid": 167267,
-      "lastrevid": 609316,
+      "lastrevid": 679898,
       "url": "https://palia.wiki.gg/wiki/Majiri-of-War",
       "description": "Majiri-of-War is more attracted to Glow Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, during the morning (3:00 AM - 6:00 AM), as well as the evening (6:00 PM - 9:00 PM).",
       "rarity": "Epic",
@@ -1557,15 +1974,45 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Majiri-of-War.png"
+    },
+    {
+      "id": "major_manta",
+      "title": "Major Manta",
+      "pageid": 268819,
+      "lastrevid": 799460,
+      "url": "https://palia.wiki.gg/wiki/Major_Manta",
+      "description": "Major Manta is attracted to any Bait and can be found in the Royal Highlands bay during the morning, day, and evening (3:00 AM - 9:00 PM).",
+      "rarity": "Uncommon",
+      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "None",
+        "Worm",
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Major_Manta.png"
     },
     {
       "id": "maws",
       "title": "Maws",
       "pageid": 167163,
-      "lastrevid": 610993,
+      "lastrevid": 742723,
       "url": "https://palia.wiki.gg/wiki/Maws",
       "description": "Maws is more attracted to Glow Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Legendary",
@@ -1585,7 +2032,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Maws.png"
     },
@@ -1593,7 +2040,7 @@
       "id": "midnight_floatfish",
       "title": "Midnight Floatfish",
       "pageid": 167268,
-      "lastrevid": 606388,
+      "lastrevid": 679973,
       "url": "https://palia.wiki.gg/wiki/Midnight_Floatfish",
       "description": "Midnight Floatfish is more attracted to Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -1613,7 +2060,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Midnight_Floatfish.png"
     },
@@ -1621,7 +2068,7 @@
       "id": "midnight_paddlefish",
       "title": "Midnight Paddlefish",
       "pageid": 332,
-      "lastrevid": 641061,
+      "lastrevid": 678396,
       "url": "https://palia.wiki.gg/wiki/Midnight_Paddlefish",
       "description": "Midnight Paddlefish is more attracted to Glow Worms, and can be caught in Kilima Lake in Kilima Valley, at night (9:00 PM - 3:00 AM).",
       "rarity": "Rare",
@@ -1642,7 +2089,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Midnight_Paddlefish.png"
     },
@@ -1650,7 +2097,7 @@
       "id": "mini_mullet",
       "title": "Mini Mullet",
       "pageid": 167269,
-      "lastrevid": 615484,
+      "lastrevid": 679912,
       "url": "https://palia.wiki.gg/wiki/Mini_Mullet",
       "description": "Mini Mullet is more attracted to no bait, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -1670,7 +2117,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Mini_Mullet.png"
     },
@@ -1678,7 +2125,7 @@
       "id": "mirror_carp",
       "title": "Mirror Carp",
       "pageid": 299,
-      "lastrevid": 641463,
+      "lastrevid": 674942,
       "url": "https://palia.wiki.gg/wiki/Mirror_Carp",
       "description": "Mirror Carp is more attracted to Worms, and can be caught in the Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Uncommon",
@@ -1700,7 +2147,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Mirror_Carp.png"
     },
@@ -1708,7 +2155,7 @@
       "id": "mossyfin",
       "title": "Mossyfin",
       "pageid": 167270,
-      "lastrevid": 627524,
+      "lastrevid": 679981,
       "url": "https://palia.wiki.gg/wiki/Mossyfin",
       "description": "Mossyfin is more attracted to Glow Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Uncommon",
@@ -1728,7 +2175,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Mossyfin.png"
     },
@@ -1736,7 +2183,7 @@
       "id": "mottled_gobi",
       "title": "Mottled Gobi",
       "pageid": 302,
-      "lastrevid": 641475,
+      "lastrevid": 674963,
       "url": "https://palia.wiki.gg/wiki/Mottled_Gobi",
       "description": "Mottled Gobi is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
@@ -1758,15 +2205,104 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Mottled_Gobi.png"
+    },
+    {
+      "id": "muddy_manta",
+      "title": "Muddy Manta",
+      "pageid": 275070,
+      "lastrevid": 771182,
+      "url": "https://palia.wiki.gg/wiki/Muddy_Manta",
+      "description": "The Muddy Manta is more attracted to no bait, and can be caught in the Bay in the Royal Highlands, during the morning, day and evening (3:00 AM - 9:00 PM).",
+      "rarity": "Common",
+      "appears": "Morning, Day and Evening (3:00 AM - 9:00 PM)",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "None",
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Muddy_Manta.png"
+    },
+    {
+      "id": "mudminnow",
+      "title": "Mudminnow",
+      "pageid": 295,
+      "lastrevid": 674973,
+      "url": "https://palia.wiki.gg/wiki/Mudminnow",
+      "description": "Mudminnow is more attracted to no bait, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
+      "rarity": "Common",
+      "appears": "Any Time",
+      "locations": [
+        "Housing Plot",
+        "Kilima Valley",
+        "Bahari Bay"
+      ],
+      "biomes": [
+        "Ponds"
+      ],
+      "bestBait": [
+        "No Bait"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mudminnow.png"
+    },
+    {
+      "id": "mutated_angler",
+      "title": "Mutated Angler",
+      "pageid": 367,
+      "lastrevid": 676730,
+      "url": "https://palia.wiki.gg/wiki/Mutated_Angler",
+      "description": "Mutated Angler is more attracted to Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
+      "rarity": "Rare",
+      "appears": "Any Time",
+      "locations": [
+        "Kilima Valley",
+        "Bahari Bay",
+        "The Underground"
+      ],
+      "biomes": [
+        "Caves"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Mutated_Angler.png"
     },
     {
       "id": "oily_anchovy",
       "title": "Oily Anchovy",
       "pageid": 340,
-      "lastrevid": 633974,
+      "lastrevid": 676739,
       "url": "https://palia.wiki.gg/wiki/Oily_Anchovy",
       "description": "Oily Anchovy is more attracted to Worms, and can be caught in the Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -1786,15 +2322,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Oily_Anchovy.png"
+    },
+    {
+      "id": "ooh_barracuda",
+      "title": "Ooh Barracuda",
+      "pageid": 268833,
+      "lastrevid": 717510,
+      "url": "https://palia.wiki.gg/wiki/Ooh_Barracuda",
+      "description": "Ooh Barracuda is more attracted to Glow Worm, and can be caught in Bays in Royal Highlands at any time of day.",
+      "rarity": "Rare",
+      "appears": null,
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Bay"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ooh_Barracuda.png"
     },
     {
       "id": "orange_bluegill",
       "title": "Orange Bluegill",
       "pageid": 298,
-      "lastrevid": 641536,
+      "lastrevid": 675161,
       "url": "https://palia.wiki.gg/wiki/Orange_Bluegill",
       "description": "Orange Bluegill is more attracted to Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
@@ -1816,7 +2380,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Orange_Bluegill.png"
     },
@@ -1824,7 +2388,7 @@
       "id": "paddlefish",
       "title": "Paddlefish",
       "pageid": 342,
-      "lastrevid": 619717,
+      "lastrevid": 675203,
       "url": "https://palia.wiki.gg/wiki/Paddlefish",
       "description": "Paddlefish is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, during the morning, day and evening (3:00 AM - 9:00 PM).",
       "rarity": "Uncommon",
@@ -1844,7 +2408,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Paddlefish.png"
     },
@@ -1852,7 +2416,7 @@
       "id": "painted_perch",
       "title": "Painted Perch",
       "pageid": 324,
-      "lastrevid": 641073,
+      "lastrevid": 758047,
       "url": "https://palia.wiki.gg/wiki/Painted_Perch",
       "description": "Painted Perch is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -1873,7 +2437,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Painted_Perch.png"
     },
@@ -1881,7 +2445,7 @@
       "id": "palian_betta",
       "title": "Palian Betta",
       "pageid": 167271,
-      "lastrevid": 620942,
+      "lastrevid": 710364,
       "url": "https://palia.wiki.gg/wiki/Palian_Betta",
       "description": "Palian Betta is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Uncommon",
@@ -1901,7 +2465,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Palian_Betta.png"
     },
@@ -1909,7 +2473,7 @@
       "id": "piksii_floatfish",
       "title": "Piksii Floatfish",
       "pageid": 167272,
-      "lastrevid": 609335,
+      "lastrevid": 679937,
       "url": "https://palia.wiki.gg/wiki/Piksii_Floatfish",
       "description": "Piksii Floatfish is more attracted to Glow Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, during the morning and day (3:00 AM - 6:00 PM), as well as at night (9:00 PM - 3:00 AM).",
       "rarity": "Common",
@@ -1929,7 +2493,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Piksii_Floatfish.png"
     },
@@ -1937,7 +2501,7 @@
       "id": "platinum_chad",
       "title": "Platinum Chad",
       "pageid": 318,
-      "lastrevid": 641266,
+      "lastrevid": 675333,
       "url": "https://palia.wiki.gg/wiki/Platinum_Chad",
       "description": "Platinum Chad is more attracted to Glow Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -1957,7 +2521,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Platinum_Chad.png"
     },
@@ -1965,7 +2529,7 @@
       "id": "prism_trout",
       "title": "Prism Trout",
       "pageid": 326,
-      "lastrevid": 641086,
+      "lastrevid": 675420,
       "url": "https://palia.wiki.gg/wiki/Prism_Trout",
       "description": "Prism Trout is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, during the morning and day (3:00 AM - 6:00 PM).",
       "rarity": "Uncommon",
@@ -1986,7 +2550,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Prism_Trout.png"
     },
@@ -1994,7 +2558,7 @@
       "id": "radiant_sunfish",
       "title": "Radiant Sunfish",
       "pageid": 316,
-      "lastrevid": 646480,
+      "lastrevid": 696239,
       "url": "https://palia.wiki.gg/wiki/Radiant_Sunfish",
       "description": "Radiant Sunfish is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Rare",
@@ -2014,15 +2578,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Radiant_Sunfish.png"
+    },
+    {
+      "id": "ragdoll_sturgeon",
+      "title": "Ragdoll Sturgeon",
+      "pageid": 273227,
+      "lastrevid": 739120,
+      "url": "https://palia.wiki.gg/wiki/Ragdoll_Sturgeon",
+      "description": "Ragdoll Sturgeon can be caught in the rivers and ponds of the Royal Highlands, and is more attracted to  Worm.",
+      "rarity": "Uncommon",
+      "appears": null,
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Ragdoll_Sturgeon.png"
     },
     {
       "id": "rainbow_trout",
       "title": "Rainbow Trout",
       "pageid": 310,
-      "lastrevid": 641290,
+      "lastrevid": 679550,
       "url": "https://palia.wiki.gg/wiki/Rainbow_Trout",
       "description": "Rainbow Trout is more attracted to no bait, and can be caught in the Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Uncommon",
@@ -2042,7 +2634,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Rainbow_Trout.png"
     },
@@ -2050,7 +2642,7 @@
       "id": "red_bellied_piranha",
       "title": "Red-bellied Piranha",
       "pageid": 311,
-      "lastrevid": 641317,
+      "lastrevid": 670595,
       "url": "https://palia.wiki.gg/wiki/Red-bellied_Piranha",
       "description": "Red-bellied Piranha is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -2070,7 +2662,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Red-bellied_Piranha.png"
     },
@@ -2078,7 +2670,7 @@
       "id": "ribbontail_ray",
       "title": "Ribbontail Ray",
       "pageid": 356,
-      "lastrevid": 584784,
+      "lastrevid": 678405,
       "url": "https://palia.wiki.gg/wiki/Ribbontail_Ray",
       "description": "Ribbontail Ray is more attracted to Worms, and can be caught at Bahari Coast in Bahari Bay, during the morning (3:00 AM - 6:00 AM) and the evening (6:00 PM - 9:00 PM).",
       "rarity": "Uncommon",
@@ -2098,7 +2690,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Ribbontail_Ray.png"
     },
@@ -2106,7 +2698,7 @@
       "id": "rosy_bitterling",
       "title": "Rosy Bitterling",
       "pageid": 334,
-      "lastrevid": 579291,
+      "lastrevid": 678415,
       "url": "https://palia.wiki.gg/wiki/Rosy_Bitterling",
       "description": "Rosy Bitterling is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -2126,15 +2718,43 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Rosy_Bitterling.png"
+    },
+    {
+      "id": "royal_betta",
+      "title": "Royal Betta",
+      "pageid": 268812,
+      "lastrevid": 718260,
+      "url": "https://palia.wiki.gg/wiki/Royal_Betta",
+      "description": "Royal Betta is more attracted to Glow Worms, and can be caught in Ponds and Rivers in Royal Highlands at any time of day.",
+      "rarity": "Uncommon",
+      "appears": "Any Time",
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Glow Worm"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Royal_Betta.png"
     },
     {
       "id": "sabertoothed_anchovy",
       "title": "Sabertoothed Anchovy",
       "pageid": 167273,
-      "lastrevid": 615901,
+      "lastrevid": 679944,
       "url": "https://palia.wiki.gg/wiki/Sabertoothed_Anchovy",
       "description": "Sabertoothed Anchovy is more attracted to Worms, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2154,7 +2774,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Sabertoothed_Anchovy.png"
     },
@@ -2162,7 +2782,7 @@
       "id": "sardine",
       "title": "Sardine",
       "pageid": 352,
-      "lastrevid": 581861,
+      "lastrevid": 678426,
       "url": "https://palia.wiki.gg/wiki/Sardine",
       "description": "Sardine is more attracted to no bait, and can be caught at Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -2182,7 +2802,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Sardine.png"
     },
@@ -2190,7 +2810,7 @@
       "id": "scarlet_koi",
       "title": "Scarlet Koi",
       "pageid": 301,
-      "lastrevid": 641499,
+      "lastrevid": 675630,
       "url": "https://palia.wiki.gg/wiki/Scarlet_Koi",
       "description": "Scarlet Koi is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, at any time of day.",
       "rarity": "Common",
@@ -2212,7 +2832,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Scarlet_Koi.png"
     },
@@ -2220,7 +2840,7 @@
       "id": "shimmerfin",
       "title": "Shimmerfin",
       "pageid": 328,
-      "lastrevid": 641099,
+      "lastrevid": 736340,
       "url": "https://palia.wiki.gg/wiki/Shimmerfin",
       "description": "Shimmerfin is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Rare",
@@ -2241,15 +2861,44 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Shimmerfin.png"
+    },
+    {
+      "id": "sillyfin",
+      "title": "Sillyfin",
+      "pageid": 267908,
+      "lastrevid": 743346,
+      "url": "https://palia.wiki.gg/wiki/Sillyfin",
+      "description": "Sillyfin is attracted to both no bait and Worms, and can be caught in rivers and ponds in the Royal Highlands at any time of day.",
+      "rarity": "Common",
+      "appears": null,
+      "locations": [
+        "Royal Highlands"
+      ],
+      "biomes": [
+        "Royal Highlands Rivers and Ponds"
+      ],
+      "bestBait": [
+        "Worm",
+        "None"
+      ],
+      "value": {
+        "basic": null,
+        "quality": null
+      },
+      "source": {
+        "wiki": "palia.wiki.gg",
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
+      },
+      "imageUrl": "https://palia.wiki.gg/wiki/Special:Filepath/Sillyfin.png"
     },
     {
       "id": "silver_salmon",
       "title": "Silver Salmon",
       "pageid": 306,
-      "lastrevid": 641330,
+      "lastrevid": 675721,
       "url": "https://palia.wiki.gg/wiki/Silver_Salmon",
       "description": "Silver Salmon is more attracted to no bait, and can be caught in Kilima Rivers in Kilima Valley, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Common",
@@ -2269,7 +2918,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Silver_Salmon.png"
     },
@@ -2277,7 +2926,7 @@
       "id": "silvery_minnow",
       "title": "Silvery Minnow",
       "pageid": 335,
-      "lastrevid": 619725,
+      "lastrevid": 676758,
       "url": "https://palia.wiki.gg/wiki/Silvery_Minnow",
       "description": "Silvery Minnow is more attracted to no bait, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -2297,7 +2946,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Silvery_Minnow.png"
     },
@@ -2305,7 +2954,7 @@
       "id": "smallmouth_bass",
       "title": "Smallmouth Bass",
       "pageid": 325,
-      "lastrevid": 641108,
+      "lastrevid": 675733,
       "url": "https://palia.wiki.gg/wiki/Smallmouth_Bass",
       "description": "Smallmouth Bass is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -2326,7 +2975,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Smallmouth_Bass.png"
     },
@@ -2334,7 +2983,7 @@
       "id": "spotted_bullhead",
       "title": "Spotted Bullhead",
       "pageid": 307,
-      "lastrevid": 641342,
+      "lastrevid": 677400,
       "url": "https://palia.wiki.gg/wiki/Spotted_Bullhead",
       "description": "Spotted Bullhead is more attracted to no bait, and can be caught in the Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -2354,7 +3003,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Spotted_Bullhead.png"
     },
@@ -2362,7 +3011,7 @@
       "id": "stalking_catfish",
       "title": "Stalking Catfish",
       "pageid": 303,
-      "lastrevid": 641512,
+      "lastrevid": 678435,
       "url": "https://palia.wiki.gg/wiki/Stalking_Catfish",
       "description": "Stalking Catfish is more attracted to Glow Worms, and can be caught in Ponds in Kilima Valley, Bahari Bay and the Player's Housing Plot, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -2384,7 +3033,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Stalking_Catfish.png"
     },
@@ -2392,7 +3041,7 @@
       "id": "starry_bitterling",
       "title": "Starry Bitterling",
       "pageid": 167274,
-      "lastrevid": 646473,
+      "lastrevid": 679951,
       "url": "https://palia.wiki.gg/wiki/Starry_Bitterling",
       "description": "Starry Bitterling is more attracted to Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2412,7 +3061,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Starry_Bitterling.png"
     },
@@ -2420,7 +3069,7 @@
       "id": "stickleback",
       "title": "Stickleback",
       "pageid": 314,
-      "lastrevid": 641356,
+      "lastrevid": 696251,
       "url": "https://palia.wiki.gg/wiki/Stickleback",
       "description": "Stickleback is more attracted to Worms, and can be caught in Kilima Rivers in Kilima Valley, during the morning and day (3:00 AM - 6:00 PM).",
       "rarity": "Uncommon",
@@ -2440,7 +3089,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Stickleback.png"
     },
@@ -2448,7 +3097,7 @@
       "id": "stonefish",
       "title": "Stonefish",
       "pageid": 370,
-      "lastrevid": 615558,
+      "lastrevid": 677437,
       "url": "https://palia.wiki.gg/wiki/Stonefish",
       "description": "Stonefish is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Common",
@@ -2470,7 +3119,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Stonefish.png"
     },
@@ -2478,7 +3127,7 @@
       "id": "stormray",
       "title": "Stormray",
       "pageid": 349,
-      "lastrevid": 567662,
+      "lastrevid": 678444,
       "url": "https://palia.wiki.gg/wiki/Stormray",
       "description": "Stormray is more attracted to Glow Worms, and can be caught in Bahari Rivers in Bahari Bay, during the morning (3:00 AM - 6:00 AM) and the evening (6:00 PM - 9:00 PM).",
       "rarity": "Rare",
@@ -2498,7 +3147,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Stormray.png"
     },
@@ -2506,7 +3155,7 @@
       "id": "striped_dace",
       "title": "Striped Dace",
       "pageid": 308,
-      "lastrevid": 641369,
+      "lastrevid": 678453,
       "url": "https://palia.wiki.gg/wiki/Striped_Dace",
       "description": "Striped Dace is more attracted to no bait, and can be caught in Kilima Rivers in Kilima Valley, at any time of day.",
       "rarity": "Common",
@@ -2526,7 +3175,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Striped_Dace.png"
     },
@@ -2534,7 +3183,7 @@
       "id": "striped_sturgeon",
       "title": "Striped Sturgeon",
       "pageid": 327,
-      "lastrevid": 641121,
+      "lastrevid": 739107,
       "url": "https://palia.wiki.gg/wiki/Striped_Sturgeon",
       "description": "Striped Sturgeon is more attracted to Worms, and can be caught in Kilima Lake in Kilima Valley, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -2555,7 +3204,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Striped_Sturgeon.png"
     },
@@ -2563,7 +3212,7 @@
       "id": "swordfin_eel",
       "title": "Swordfin Eel",
       "pageid": 350,
-      "lastrevid": 567673,
+      "lastrevid": 773449,
       "url": "https://palia.wiki.gg/wiki/Swordfin_Eel",
       "description": "Swordfin Eel is more attracted to Glow Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Epic",
@@ -2583,7 +3232,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Swordfin_Eel.png"
     },
@@ -2591,7 +3240,7 @@
       "id": "thundering_eel",
       "title": "Thundering Eel",
       "pageid": 343,
-      "lastrevid": 567683,
+      "lastrevid": 773450,
       "url": "https://palia.wiki.gg/wiki/Thundering_Eel",
       "description": "Thundering Eel is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Rare",
@@ -2611,7 +3260,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Thundering_Eel.png"
     },
@@ -2619,7 +3268,7 @@
       "id": "tinfin",
       "title": "Tinfin",
       "pageid": 167275,
-      "lastrevid": 619548,
+      "lastrevid": 676003,
       "url": "https://palia.wiki.gg/wiki/Tinfin",
       "description": "Tinfin is more attracted to no bait, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2639,7 +3288,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Tinfin.png"
     },
@@ -2647,7 +3296,7 @@
       "id": "toadstool_floatfish",
       "title": "Toadstool Floatfish",
       "pageid": 167173,
-      "lastrevid": 619564,
+      "lastrevid": 676011,
       "url": "https://palia.wiki.gg/wiki/Toadstool_Floatfish",
       "description": "Toadstool Floatfish is more attracted to no bait, and can be caught in the Elderwood Saltwater bodies in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2667,7 +3316,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Toadstool_Floatfish.png"
     },
@@ -2675,7 +3324,7 @@
       "id": "turn_pike",
       "title": "Turn Pike",
       "pageid": 167276,
-      "lastrevid": 609355,
+      "lastrevid": 679958,
       "url": "https://palia.wiki.gg/wiki/Turn_Pike",
       "description": "Turn Pike is more attracted to Glow Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, at any time of day.",
       "rarity": "Common",
@@ -2695,7 +3344,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Turn_Pike.png"
     },
@@ -2703,7 +3352,7 @@
       "id": "umbraan_betta",
       "title": "Umbraan Betta",
       "pageid": 167277,
-      "lastrevid": 611041,
+      "lastrevid": 710365,
       "url": "https://palia.wiki.gg/wiki/Umbraan_Betta",
       "description": "Umbraan Betta is more attracted to Glow Worms, and can be caught in the Elderwood Freshwater rivers and ponds in the Elderwood, during the evening and night (6:00 PM - 3:00 AM).",
       "rarity": "Uncommon",
@@ -2723,7 +3372,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Umbraan_Betta.png"
     },
@@ -2731,7 +3380,7 @@
       "id": "umbran_carp",
       "title": "Umbran Carp",
       "pageid": 364,
-      "lastrevid": 566776,
+      "lastrevid": 678483,
       "url": "https://palia.wiki.gg/wiki/Umbran_Carp",
       "description": "Umbran Carp is more attracted to no bait, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Uncommon",
@@ -2753,7 +3402,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Umbran_Carp.png"
     },
@@ -2761,7 +3410,7 @@
       "id": "void_ray",
       "title": "Void Ray",
       "pageid": 373,
-      "lastrevid": 567197,
+      "lastrevid": 677521,
       "url": "https://palia.wiki.gg/wiki/Void_Ray",
       "description": "Void Ray is more attracted to Glow Worms, and can be caught in Caves in Kilima Valley and Bahari Bay, as well as in The Underground, at any time of day.",
       "rarity": "Epic",
@@ -2783,7 +3432,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Void_Ray.png"
     },
@@ -2791,7 +3440,7 @@
       "id": "willow_lamprey",
       "title": "Willow Lamprey",
       "pageid": 344,
-      "lastrevid": 567696,
+      "lastrevid": 678494,
       "url": "https://palia.wiki.gg/wiki/Willow_Lamprey",
       "description": "Willow Lamprey is more attracted to Worms, and can be caught in Bahari Rivers in Bahari Bay, at night (9:00 PM - 3:00 AM).",
       "rarity": "Rare",
@@ -2811,7 +3460,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Willow_Lamprey.png"
     },
@@ -2819,7 +3468,7 @@
       "id": "yellow_perch",
       "title": "Yellow Perch",
       "pageid": 336,
-      "lastrevid": 618877,
+      "lastrevid": 678504,
       "url": "https://palia.wiki.gg/wiki/Yellow_Perch",
       "description": "Yellow Perch is more attracted to no bait, and can be caught in the Bahari Rivers in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -2839,7 +3488,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Yellow_Perch.png"
     },
@@ -2847,7 +3496,7 @@
       "id": "yellowfin_tuna",
       "title": "Yellowfin Tuna",
       "pageid": 359,
-      "lastrevid": 633985,
+      "lastrevid": 677550,
       "url": "https://palia.wiki.gg/wiki/Yellowfin_Tuna",
       "description": "Yellowfin Tuna is more attracted to Glow Worms, and can be caught at the Bahari Coast in Bahari Bay, at any time of day.",
       "rarity": "Common",
@@ -2867,7 +3516,7 @@
       },
       "source": {
         "wiki": "palia.wiki.gg",
-        "fetchedAt": "2026-01-24T16:13:07.927Z"
+        "fetchedAt": "2026-11-07T20:14:39.446Z"
       },
       "imageUrl": "https://daleowendigital.github.io/palia-event-tracker-privacy-policy/fish-images/Yellowfin_Tuna.png"
     }
