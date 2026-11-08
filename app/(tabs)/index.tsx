@@ -97,7 +97,7 @@ type FishEntry = {
   url?: string;
   description?: string;
   rarity?: string;
-  appears?: string;
+  appears?: string | null;
   locations?: string[];
   biomes?: string[];
   bestBait?: string[];
@@ -173,7 +173,57 @@ function normalizeRemoteFish(raw: any): FishEntry[] {
     });
 }
 
+// Validate the whole label; period words inside uncertain prose are not schedules.
+function parseFishSchedule(value: unknown): { kind: "timed" | "any-time" | "unconfirmed"; periods: string[]; ranges: [number, number][] } {
+  const unknown = { kind: "unconfirmed" as const, periods: [], ranges: [] };
+  if (typeof value !== "string" || !value.trim()) return unknown;
+  const label = value.trim().toLowerCase();
+  if (/^(any time|all day)$/.test(label)) return { kind: "any-time", periods: [], ranges: [] };
+  const ranges: [number, number][] = [];
+  let invalid = false;
+  const readRange = (text: string) => {
+    const match = text.trim().match(/^(\d{1,2}):(\d{2})\s*(am|pm)\s*-\s*(\d{1,2}):(\d{2})\s*(am|pm)$/);
+    if (!match || +match[1] < 1 || +match[1] > 12 || +match[4] < 1 || +match[4] > 12 || +match[2] > 59 || +match[5] > 59) {
+      invalid = true;
+      return;
+    }
+    const start = (+match[1] % 12 + (match[3] === "pm" ? 12 : 0)) * 60 + +match[2];
+    const end = (+match[4] % 12 + (match[6] === "pm" ? 12 : 0)) * 60 + +match[5];
+    if (start === end) invalid = true;
+    ranges.push([start, end]);
+  };
+  const words = label.replace(/\(([^()]*)\)/g, (_, range: string) => { readRange(range); return " "; });
+  // Explicit clock ranges also allow genuine midnight without inferring a period.
+  if (words === label && /\d/.test(label)) {
+    for (const range of label.split(/\s+and\s+|\s*[,/]\s*/)) readRange(range);
+    return invalid ? unknown : { kind: "timed", periods: [], ranges };
+  }
+  const periods = words.replace(/[,/]/g, " ").trim().split(/\s+/).filter(word => word && word !== "and");
+  const bounds: Record<string, [number, number]> = { morning: [180, 360], day: [360, 1080], evening: [1080, 1260], night: [1260, 180] };
+  if (invalid || !periods.length || periods.some(word => !Object.prototype.hasOwnProperty.call(bounds, word))) return unknown;
+  if (ranges.length) {
+    // Compare merged coverage, including overnight ranges, to reject contradictions.
+    const coverage = (windows: [number, number][]) => {
+      const parts = windows.flatMap(([start, end]) => start < end ? [[start, end]] : [[0, end], [start, 1440]])
+        .sort((a, b) => a[0] - b[0]);
+      const merged: number[][] = [];
+      for (const part of parts) {
+        const last = merged[merged.length - 1];
+        if (last && part[0] <= last[1]) last[1] = Math.max(last[1], part[1]);
+        else merged.push([...part]);
+      }
+      return JSON.stringify(merged);
+    };
+    if (coverage(periods.map(period => bounds[period])) !== coverage(ranges)) return unknown;
+  }
+  return { kind: new Set(periods).size === 4 ? "any-time" : "timed", periods, ranges };
+}
+
 function fishAppearsToWindow(appearsRaw: string | undefined | null): { hour: number; minute: number; hasRange: boolean; endHour?: number; endMinute?: number } {
+  const schedule = parseFishSchedule(appearsRaw);
+  // Invalid sentinels preserve the numeric Marker shape without inventing midnight.
+  if (schedule.kind === "unconfirmed") return { hour: -1, minute: -1, hasRange: false };
+  if (schedule.kind === "timed" && !schedule.periods.length) return fishAppearsToWindows(appearsRaw)[0];
   const s = String(appearsRaw ?? "").toLowerCase();
 
   // Defaults
@@ -182,11 +232,16 @@ function fishAppearsToWindow(appearsRaw: string | undefined | null): { hour: num
   if (s.includes("evening")) return { hour: 18, minute: 0, hasRange: true, endHour: 21, endMinute: 0 };
   if (s.includes("night")) return { hour: 21, minute: 0, hasRange: true, endHour: 3, endMinute: 0 };
 
-  // "Any Time" (or unknown): treat as a simple one-time entry (doesn't become a constant 'Now' event)
+  // Any Time retains its existing non-range representation.
   return { hour: 0, minute: 0, hasRange: false };
 }
 
 function fishAppearsToWindows(appearsRaw: string | undefined | null): { hour: number; minute: number; hasRange: boolean; endHour?: number; endMinute?: number }[] {
+  const schedule = parseFishSchedule(appearsRaw);
+  if (schedule.kind === "unconfirmed") return [];
+  if (schedule.kind === "timed" && !schedule.periods.length) {
+    return schedule.ranges.map(([start, end]) => ({ hour: Math.floor(start / 60), minute: start % 60, hasRange: true, endHour: Math.floor(end / 60), endMinute: end % 60 }));
+  }
   const s = String(appearsRaw ?? "").toLowerCase();
 
   // Any Time / All Day -> no range windows (we also hide "Ends" UI for these)
@@ -242,6 +297,7 @@ function fishAppearsToWindows(appearsRaw: string | undefined | null): { hour: nu
 
 // Display only: use the same complete windows as Home without changing base timing.
 function fishAvailabilityDisplayLabel(appears: string): string {
+  if (parseFishSchedule(appears).kind === "unconfirmed") return "Unconfirmed";
   if (fishAppearsIsAnyTime(appears)) return "Any Time";
   return fishAppearsToWindows(appears)
     .filter((window) => window.hasRange)
@@ -264,28 +320,31 @@ function fishTimeSortKey(appears: string): { group: number; start: number } {
     : { group: 2, start: 0 };
 }
 
+function fishFieldLabel(value: unknown): string {
+  if (Array.isArray(value)) return value.filter(item => typeof item === "string" && item.trim()).join(", ") || "Unconfirmed";
+  return typeof value === "string" && value.trim() ? value.trim() : "Unconfirmed";
+}
+
 function buildFishNotes(f: FishEntry) {
   const lines: string[] = [];
-  if (f.description) lines.push(String(f.description).trim());
+  lines.push(f.description?.trim() || "Description: Unconfirmed");
   lines.push("");
-  if (f.rarity) lines.push(`Rarity: ${f.rarity}`);
-  if (f.appears) {
+  lines.push(`Rarity: ${fishFieldLabel(f.rarity)}`);
+  if (parseFishSchedule(f.appears).kind !== "unconfirmed") {
     // Normalize "All Day" to "Any Time" for consistency
     const appears = f.appears === "All Day" ? "Any Time" : f.appears;
     lines.push(`Appears: ${appears}`);
-  }
-  if (Array.isArray(f.locations) && f.locations.length) lines.push(`Locations: ${f.locations.join(", ")}`);
-  if (Array.isArray(f.biomes) && f.biomes.length) lines.push(`Biomes: ${f.biomes.join(", ")}`);
-  if (Array.isArray(f.bestBait) && f.bestBait.length) lines.push(`Best bait: ${f.bestBait.join(", ")}`);
-  if (f.value && (f.value.basic != null || f.value.quality != null)) {
-    lines.push(`Value: ${f.value.basic ?? "—"} (basic), ${f.value.quality ?? "—"} (quality)`);
-  }
+  } else lines.push("Appears: Unconfirmed");
+  lines.push(`Locations: ${fishFieldLabel(f.locations)}`);
+  lines.push(`Biomes: ${fishFieldLabel(f.biomes)}`);
+  lines.push(`Best bait: ${fishFieldLabel(f.bestBait)}`);
+  lines.push(`Value: ${f.value?.basic ?? "Unconfirmed"} (basic), ${f.value?.quality ?? "Unconfirmed"} (quality)`);
   return lines.join("\n").trim();
 }
 
 function extractFishFieldFromNotes(notes: any, fieldLabel: string): string {
   const s = String(notes ?? "");
-  const reLine = new RegExp(`^\\s*${fieldLabel}\\s*:\\s*(.+)\\s*$`, "im");
+  const reLine = new RegExp(`^[ \\t]*${fieldLabel}[ \\t]*:[ \\t]*([^\\r\\n]+)[ \\t]*$`, "im");
   const m = s.match(reLine);
   return m && m[1] ? String(m[1]).trim() : "";
 }
@@ -367,36 +426,25 @@ function fishAppearsToPeriodsLabel(appearsRaw: any): string {
 }
 
 function fishAppearsToPeriodsFlags(appearsRaw: any): { morning: boolean; day: boolean; evening: boolean; night: boolean } {
-  const s = String(appearsRaw ?? "").trim();
-  const lower = s.toLowerCase();
-
-  // Tokenize so we can safely detect whole words even if the source contains punctuation/times.
-  const tokens = lower.replace(/[^a-z]+/g, " ").trim().split(/\s+/).filter(Boolean);
-  const has = (w: string) => tokens.includes(w);
-
-  if (!lower) return { morning: false, day: false, evening: false, night: false };
-
-  // "Any Time" (or similar) => all true.
-  if (/^(any time|all day)\b/.test(lower)) return { morning: true, day: true, evening: true, night: true };
-
+  const schedule = parseFishSchedule(appearsRaw);
+  const has = (period: string, start: number, end: number) => schedule.kind === "any-time" ||
+    schedule.periods.includes(period) || schedule.ranges.some(([a, b]) =>
+      (a < b ? [[a, b]] : [[0, b], [a, 1440]]).some(([from, to]) => Math.max(from, start) < Math.min(to, end)));
   return {
-    morning: has("morning"),
-    day: has("day"),
-    evening: has("evening"),
-    night: has("night"),
+    morning: has("morning", 180, 360),
+    day: has("day", 360, 1080),
+    evening: has("evening", 1080, 1260),
+    night: has("night", 1260, 1440) || has("night", 0, 180),
   };
 }
 
 function fishAppearsIsAnyTime(appearsRaw: any): boolean {
-  const s = String(appearsRaw ?? "").trim();
-  const lower = s.toLowerCase();
+  return parseFishSchedule(appearsRaw).kind === "any-time";
+}
 
-  // Only explicit availability labels count; arbitrary description words do not.
-  if (/^(any time|all day)\b/.test(lower)) return true;
-
-  // If flags say it's available in every period, it's effectively "any time".
-  const f = fishAppearsToPeriodsFlags(s);
-  return !!(f.morning && f.day && f.evening && f.night);
+function isUnconfirmedFish(marker: Marker | undefined): boolean {
+  return !!marker && String(marker.id).startsWith("fish_") &&
+    parseFishSchedule(extractFishFieldFromNotes(marker.notes, "Appears")).kind === "unconfirmed";
 }
 
 function isAllDayFish(marker: Marker | undefined): boolean {
@@ -405,10 +453,11 @@ function isAllDayFish(marker: Marker | undefined): boolean {
 }
 
 function canNotifyMarker(marker: Marker | undefined): boolean {
-  return !!marker && !isAllDayFish(marker);
+  return !!marker && !isAllDayFish(marker) && !isUnconfirmedFish(marker);
 }
 
 function normaliseFishNotification(marker: Marker): Marker {
+  if (isUnconfirmedFish(marker)) return { ...marker, hour: -1, minute: -1, hasRange: false, endHour: undefined, endMinute: undefined, notify: false };
   return isAllDayFish(marker) && marker.notify ? { ...marker, notify: false } : marker;
 }
 
@@ -419,7 +468,7 @@ function fishAppearsInPeriod(marker: Marker, period: "morning" | "day" | "evenin
 
 function fishBestBaitShort(baitRaw: any): string {
   const s = String(baitRaw ?? "").trim();
-  if (!s) return "";
+  if (!s) return "Unconfirmed";
   // Keep it compact for cards: first bait option only.
   const first = s.split(",")[0]?.trim() ?? s;
   return first;
@@ -2901,7 +2950,7 @@ const NowFishGrid = React.memo(function NowFishGrid({
                             </Text>
 
                             {(() => {
-                              const loc = it.location ? `L: ${it.location}` : "";
+                              const loc = `L: ${fishFieldLabel(it.location)}`;
                               const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
                               const bait = renderData?.baitShort ?? "";
 
@@ -2910,7 +2959,7 @@ const NowFishGrid = React.memo(function NowFishGrid({
                                   {loc ? (
                                     <View style={{ flexDirection: 'row', marginTop: 0 }}>
                                       <Text style={styles.fishSub}>L: </Text>
-                                      <Text style={[styles.fishSub, { flex: 1 }]}>{it.location}</Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{fishFieldLabel(it.location)}</Text>
                                     </View>
                                   ) : null}
                                   {bait ? (
@@ -3110,7 +3159,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                     </Text>
 
                                     {(() => {
-                                      const loc = location ? `L: ${location}` : "";
+                                      const loc = `L: ${fishFieldLabel(location)}`;
                                       const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
                                       const bait = renderData?.baitShort ?? "";
 
@@ -3119,7 +3168,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                           {loc ? (
                                             <View style={{ flexDirection: 'row', marginTop: 0 }}>
                                               <Text style={styles.fishSub}>L: </Text>
-                                              <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                              <Text style={[styles.fishSub, { flex: 1 }]}>{fishFieldLabel(location)}</Text>
                                             </View>
                                           ) : null}
                                           {bait ? (
@@ -3135,7 +3184,7 @@ const NextFishGrid = React.memo(function NextFishGrid({
                                     <View style={styles.fishMetaRow}>
                                       {filteredFishMode ? <View style={{ flex: 1 }} /> : (
                                         <Text style={styles.fishMetaText} numberOfLines={1}>
-                                          Starts {format12hTime(m.hour, m.minute)}
+                                          {isUnconfirmedFish(marker) ? "Unconfirmed" : `Starts ${format12hTime(m.hour, m.minute)}`}
                                         </Text>
                                       )}
 
@@ -3336,7 +3385,7 @@ const AllDayFishGrid = React.memo(function AllDayFishGrid({
                             </Text>
 
                             {(() => {
-                              const loc = location ? `L: ${location}` : "";
+                              const loc = `L: ${fishFieldLabel(location)}`;
                               const renderData = fishCardRenderDataCache.get(marker?.id ?? "");
                               const bait = renderData?.baitShort ?? "";
 
@@ -3345,7 +3394,7 @@ const AllDayFishGrid = React.memo(function AllDayFishGrid({
                                   {loc ? (
                                     <View style={{ flexDirection: 'row', marginTop: 0 }}>
                                       <Text style={styles.fishSub}>L: </Text>
-                                      <Text style={[styles.fishSub, { flex: 1 }]}>{location}</Text>
+                                      <Text style={[styles.fishSub, { flex: 1 }]}>{fishFieldLabel(location)}</Text>
                                     </View>
                                   ) : null}
                                   {bait ? (
@@ -3946,7 +3995,7 @@ useEffect(() => {
       const timing = fishAppearsToWindow(f.appears);
       const notes = buildFishNotes(f);
 
-      const primaryLoc = String((f.biomes?.[0] ?? f.locations?.[0] ?? "")).trim();
+      const primaryLoc = fishFieldLabel(f.biomes?.find(location => location.trim()) || f.locations?.find(location => location.trim()));
       const fishDisplayName = primaryLoc ? `${f.title} - ${primaryLoc}` : f.title;
 
       const base: Marker = {
@@ -4098,6 +4147,7 @@ useEffect(() => {
     const next: Record<string, number> = {};
 
     for (const m of ms) {
+      if (isUnconfirmedFish(m)) continue;
       let targetPaliaMinutes = m.hour * 60 + m.minute;
       if (targetPaliaMinutes <= currentPaliaMinutes) targetPaliaMinutes += 1440;
 
@@ -4193,6 +4243,10 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     const out: HomeMarker[] = [];
 
     for (const m of fishBase) {
+      if (isUnconfirmedFish(m)) {
+        out.push({ ...m, ...fishAppearsToWindow(null), baseId: m.id });
+        continue;
+      }
       const appears = extractFishFieldFromNotes(m.notes, "Appears");
       const windows = fishAppearsToWindows(appears);
 
@@ -4228,6 +4282,8 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
       // Sort by next occurrence from *now* (so Next list is actually "next")
       // This only runs when fish list changes, but we still sort by current time when rendering
       const sorted = [...expandedFishMarkers].sort((a, b) => {
+        const unknownA = isUnconfirmedFish(a), unknownB = isUnconfirmedFish(b);
+        if (unknownA || unknownB) return Number(unknownA) - Number(unknownB) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id);
         const aa = minutesUntil(paliaTime.hour, paliaTime.minute, a.hour, a.minute);
         const bb = minutesUntil(paliaTime.hour, paliaTime.minute, b.hour, b.minute);
         return aa - bb;
@@ -4245,7 +4301,8 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
   const nextTimeKey = useMemo(() => {
     if (!enabledMarkers.length) return null;
-    const first = enabledMarkers[0];
+    const first = enabledMarkers.find(marker => !isUnconfirmedFish(marker));
+    if (!first) return null;
     return `${pad2(first.hour)}:${pad2(first.minute)}`;
   }, [enabledMarkers]);
 
@@ -4387,12 +4444,14 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
   const nextDigitalLabel = useMemo(() => {
     if (!nextSectionMarkers.length) return "�";
     const first = nextSectionMarkers[0];
+    if (isUnconfirmedFish(first)) return "Unconfirmed";
     return format12hTime(first.hour, first.minute);
   }, [nextSectionMarkers]);
 
   const nextCountdownSeconds = useMemo(() => {
     if (!nextSectionMarkers.length) return 0;
     const first = nextSectionMarkers[0];
+    if (isUnconfirmedFish(first)) return 0;
     if (clockViewMode === "fish") {
       // Expanded Fish windows may start later than the base catalogue marker.
       // Countdown updates (including foreground refresh) supply the existing tick.
@@ -4405,6 +4464,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
 
   const nextCountdownLabel = useMemo(() => {
     if (!nextSectionMarkers.length) return "�";
+    if (isUnconfirmedFish(nextSectionMarkers[0])) return "Unconfirmed";
     const cd = nextCountdownSeconds;
     const mm = Math.floor(cd / 60);
     const ss = cd % 60;
@@ -7420,9 +7480,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                           {eventName}
                         </Text>
 
-                        {location ? (
+                        {location || m.id.startsWith("fish_") ? (
                           <Text style={[styles.markerLocation, disabled && styles.dimText]}>
-                            {location}
+                            {m.id.startsWith("fish_") ? fishFieldLabel(location) : location}
                           </Text>
                         ) : null}
 
@@ -8225,9 +8285,9 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                       <View style={styles.modalSection}>
                         <Text style={styles.modalSectionTitle}>{eventName}</Text>
 
-                        {location ? (
+                        {location || eventDetailsMarker.id.startsWith("fish_") ? (
                           <Text style={[styles.notifHintText, { marginTop: 2 }]}>
-                            Location: <Text style={styles.eventDetailsValue}>{location}</Text>
+                            Location: <Text style={styles.eventDetailsValue}>{eventDetailsMarker.id.startsWith("fish_") ? fishFieldLabel(location) : location}</Text>
                           </Text>
                         ) : null}
 

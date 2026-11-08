@@ -50,7 +50,7 @@ function setup(enabled = true) {
   c.scheduleTimeGroupOccurrences = async () => { c.scheduled.push('request'); return ['request']; };
   vm.createContext(c);
   const helpers = ts.createSourceFile('screen.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-  const names = new Set(['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker']);
+  const names = new Set(['parseFishSchedule', 'isUnconfirmedFish', 'fishFieldLabel', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker']);
   function loadHelper(node) {
     if (ts.isFunctionDeclaration(node) && node.name && names.has(node.name.text)) {
       vm.runInContext(ts.transpile(node.getText(helpers), { target: ts.ScriptTarget.ES2020 }), c);

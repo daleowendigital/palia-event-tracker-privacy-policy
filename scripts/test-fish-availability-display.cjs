@@ -15,7 +15,7 @@ let computations = 0;
 const c = { pad2: n => String(n).padStart(2, '0'), useMemo: fn => { computations++; return fn(); } };
 vm.createContext(c);
 function run(code) { return vm.runInContext(ts.transpile(code, { target: ts.ScriptTarget.ES2020 }), c); }
-for (const name of ['format12hTime', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'fishAppearsToWindows', 'fishAvailabilityDisplayLabel', 'buildFishNotes', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker']) run(nodes.get(name).getText(tree));
+for (const name of ['format12hTime', 'parseFishSchedule', 'isUnconfirmedFish', 'fishFieldLabel', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'fishAppearsToWindows', 'fishAvailabilityDisplayLabel', 'buildFishNotes', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker']) run(nodes.get(name).getText(tree));
 const catalogue = require('../fish.json').fish;
 const cases = {
   angelfish: '3:00 AM - 9:00 PM',
@@ -68,11 +68,11 @@ for (const fish of catalogue.filter(f => f.appears === 'All Day')) {
   assert.equal(c.fishAvailabilityLabels.get('fish_' + fish.id), 'Any Time');
   assert.equal(c.canNotifyMarker({ id: 'fish_' + fish.id, notes: c.buildFishNotes(fish) }), false);
 }
-// Missing schedules retain the existing base-label fallback; Events are unaffected.
-assert.equal(c.fishAvailabilityLabels.get('fish_copper_sturgeon'), '');
+// Missing Fish schedules must not use base times; Events retain their fallback.
+assert.equal(c.fishAvailabilityLabels.get('fish_copper_sturgeon'), 'Unconfirmed');
 for (const id of ['fish_copper_sturgeon', 'custom_example']) {
   c.m = c.eventDetailsMarker = { id, hour: 10, minute: 15, endHour: 11, endMinute: 30 };
-  for (const renderer of ['timeLabel', 'timeText']) assert.equal(run(nodes.get(renderer).initializer.getText(tree)), '10:15 AM - 11:30 AM');
+  for (const renderer of ['timeLabel', 'timeText']) assert.equal(run(nodes.get(renderer).initializer.getText(tree)), id.startsWith('fish_') ? 'Unconfirmed' : '10:15 AM - 11:30 AM');
 }
 assert.equal(computations, 1, 'rendering labels must reuse the memoized map');
 assert.match(nodes.get('fishAvailabilityLabels').initializer.getText(tree), /\[markerFieldCache\]/);

@@ -34,7 +34,7 @@ const c = {
 };
 vm.createContext(c);
 function run(text) { vm.runInContext(ts.transpile(text, { target: ts.ScriptTarget.ES2020 }), c); }
-for (const name of ['getPaliaMinutesNow', 'getMsUntilNextPaliaTime', 'getSecondsUntilNextPaliaTime']) run(nodes.get(name).getText(tree));
+for (const name of ['parseFishSchedule', 'extractFishFieldFromNotes', 'isUnconfirmedFish', 'getPaliaMinutesNow', 'getMsUntilNextPaliaTime', 'getSecondsUntilNextPaliaTime']) run(nodes.get(name).getText(tree));
 function read() {
   for (const name of ['nextCountdownSeconds', 'nextCountdownLabel']) {
     currentMemo = name; run(`this.${name} = ${nodes.get(name).initializer.getText(tree)};`);
@@ -42,13 +42,14 @@ function read() {
   return [c.nextCountdownSeconds, c.nextCountdownLabel];
 }
 function atPalia(hour, minute = 0, seconds = 0) { elapsedMs = (hour * 60 + minute) * 2500 + seconds * 1000; }
-const window = (hour, minute, extra = {}) => ({ id: 'fish_test__w1', baseId: 'fish_test', hour, minute, ...extra });
+const window = (hour, minute, extra = {}) => ({ id: 'fish_test__w1', baseId: 'fish_test', hour, minute, notes: 'Appears: Morning', ...extra });
 
 // Disjoint Morning/Evening windows: the base clock must not determine the selected window.
 atPalia(12); c.nextSectionMarkers = [window(18, 0, { endHour: 21, endMinute: 0 })];
-c.markersRef.current = [{ id: 'fish_test', hour: 3, minute: 0 }];
+c.markersRef.current = [{ id: 'fish_test', hour: 3, minute: 0, notes: 'Appears: Morning' }, { id: 'fish_unknown', hour: 0, minute: 0 }];
 run(tickEffect.getText(tree));
 assert.equal(c.countdowns.fish_test, 2250);
+assert.equal(c.countdowns.fish_unknown, undefined, 'unknown Fish must not receive a countdown');
 assert.deepEqual(read(), [900, '15:00']);
 const selected = c.nextSectionMarkers;
 elapsedMs += 1000; timer(); assert.deepEqual(read(), [899, '14:59']);
@@ -71,7 +72,7 @@ c.countdowns = { custom_event: 122 }; assert.deepEqual(read(), [122, '2:02']);
 c.nextSectionMarkers = []; assert.equal(read()[0], 0);
 
 const nextGrid = nodes.get('NextFishGrid').getText(tree), nowGrid = nodes.get('NowFishGrid').getText(tree);
-assert.ok(nextGrid.includes('Starts {format12hTime(m.hour, m.minute)}'));
+assert.ok(nextGrid.includes('`Starts ${format12hTime(m.hour, m.minute)}`'));
 assert.ok(!nextGrid.includes('Ends {format12hTime(m.hour, m.minute)}'));
 assert.match(nextGrid, /filteredFishMode \? <View style=\{\{ flex: 1 \}\} \/> : \(/);
 assert.ok(nowGrid.includes('`Ends ${it.endHour'));

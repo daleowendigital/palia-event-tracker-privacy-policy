@@ -33,7 +33,7 @@ function evaluate(name) {
   vm.runInContext(ts.transpile(text, { target: ts.ScriptTarget.ES2020 }), c);
   return c[name];
 }
-for (const name of ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker', 'minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
+for (const name of ['parseFishSchedule', 'isUnconfirmedFish', 'fishFieldLabel', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker', 'minutesUntil', 'isActiveNow', 'splitName', 'getEventWindowEnd', 'eventOccursInPeriod', 'sortKeyForTimeOfDay', 'isMinuteInTimeOfDay']) evaluate(name);
 function render(markers, hour, minute) {
   c.markers = markers; c.paliaTime = { hour, minute };
   c.countdowns = Object.fromEntries(markers.map(m => [m.id, c.minutesUntil(hour, minute, m.hour, m.minute) * 2.5]));
@@ -79,7 +79,7 @@ assert.deepEqual(Array.from(c.eventPlanningMarkers, m => m.id), ['late', 'middle
 c.nextTimeFilter = null; c.filteredEventMode = false;
 
 c.clockViewMode = 'fish';
-c.expandedFishMarkers = [event('fish_a', 6), event('fish_b', 7)];
+c.expandedFishMarkers = [event('fish_a', 6, 0, { notes: 'Appears: Day' }), event('fish_b', 7, 0, { notes: 'Appears: Day' })];
 markers = c.expandedFishMarkers;
 assert.deepEqual(render(markers, 5, 59), ['fish_a', 'fish_b']);
 assert.deepEqual(render(markers, 6, 1), ['fish_b', 'fish_a']);

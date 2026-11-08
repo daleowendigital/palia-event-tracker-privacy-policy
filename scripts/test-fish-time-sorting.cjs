@@ -14,7 +14,7 @@ visit(tree);
 const c = { useMemo: fn => fn(), countdowns: {} };
 vm.createContext(c);
 const run = code => vm.runInContext(ts.transpile(code, { target: ts.ScriptTarget.ES2020 }), c);
-for (const name of ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'fishAppearsToWindows', 'fishAppearsToWindow', 'fishTimeSortKey']) run(nodes.get(name).getText(tree));
+for (const name of ['parseFishSchedule', 'isUnconfirmedFish', 'fishFieldLabel', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'fishAppearsToWindows', 'fishAppearsToWindow', 'fishTimeSortKey']) run(nodes.get(name).getText(tree));
 function evaluate(name) { run(`this.${name} = ${nodes.get(name).initializer.getText(tree)};`); }
 const catalogue = require('../fish.json').fish;
 c.markers = catalogue.map(f => ({ id: 'fish_' + f.id, name: f.title + ' - Location', ...c.fishAppearsToWindow(f.appears) }));

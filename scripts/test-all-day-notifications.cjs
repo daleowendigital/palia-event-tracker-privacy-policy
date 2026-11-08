@@ -19,7 +19,7 @@ function visit(n) {
 visit(tree); assert.equal(guardedBells, 6);
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 const tick = () => new Promise(resolve => setImmediate(resolve));
-const helpers = ['fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker', 'normaliseFishNotification', 'isRecord', 'toIntInRange', 'normalizeStoredMarker', 'groupEnabledMarkersByTime'];
+const helpers = ['parseFishSchedule', 'isUnconfirmedFish', 'fishFieldLabel', 'fishAppearsToPeriodsFlags', 'fishAppearsIsAnyTime', 'extractFishFieldFromNotes', 'isAllDayFish', 'canNotifyMarker', 'normaliseFishNotification', 'isRecord', 'toIntInRange', 'normalizeStoredMarker', 'groupEnabledMarkersByTime'];
 function setup() {
   const c = {
     Platform: { OS: 'android' }, __DEV__: false, useCallback: fn => fn,
@@ -58,11 +58,11 @@ const fish = (id, appears, extra = {}) => ({ id: 'fish_' + id, name: id, hour: 0
   assert.equal(restored.notes, all.notes);
   assert.equal(c.normalizeStoredMarker(JSON.parse(JSON.stringify(restored))).notify, false);
   assert.equal(c.normalizeStoredMarker(timed).notify, true);
-  assert.equal(c.normalizeStoredMarker(unknown).notify, true);
+  assert.equal(c.normalizeStoredMarker(unknown).notify, false);
   c.markersRef.current = [all, timed, unknown];
   c.toggleNotify(all.id); assert.equal(c.markersRef.current[0].notify, false);
   c.setNotifyForMany([all.id, timed.id, unknown.id], true);
-  assert.deepEqual(c.markersRef.current.map(m => m.notify), [false, true, true]);
+  assert.deepEqual(c.markersRef.current.map(m => m.notify), [false, true, false]);
   assert.equal(c.markersRef.current.filter(c.canNotifyMarker).every(m => m.notify), true);
 
   // Exercise the real catalogue merge in both directions, with generated notes.
@@ -83,7 +83,7 @@ const fish = (id, appears, extra = {}) => ({ id: 'fish_' + id, name: id, hour: 0
 
   // Native and web source inputs and snapshot expectations all use the safeguard.
   assert.equal((source.match(/filter\(\(m\) => m.enabled && m.notify && canNotifyMarker\(m\)\)/g) || []).length, 3);
-  c = setup(); c.Platform.OS = 'web'; c.markersRef.current = [all, timed];
+  c = setup(); c.Platform.OS = 'web'; c.markersRef.current = [all, timed, unknown, fish('malformed', 'Morning (99:00 AM - 99:00 PM)')];
   c.webTimerIdsRef = { current: [] }; const webNames = [];
   c.clearTimeout = () => {};
   c.ensureWebNotificationPermission = async () => ({ ok: true });
@@ -93,7 +93,7 @@ const fish = (id, appears, extra = {}) => ({ id: 'fish_' + id, name: id, hour: 0
   await c.resyncTimeNotifications();
   assert.ok(webNames.length > 0); assert.ok(webNames.every(id => id === timed.id));
   c = setup(); const event = { ...timed, id: 'default_midnight', name: 'Event' };
-  c.markersRef.current = [all, timed, event];
+  c.markersRef.current = [all, timed, unknown, fish('malformed', 'Morning (99:00 AM - 99:00 PM)'), event];
   c.pending = [{ identifier: 'old-mixed', content: { data: { type: 'time_group' } } }];
   assert.equal(await c.resyncTimeNotifications(), true);
   assert.deepEqual(c.scheduledMembers.sort(), [event.id, timed.id].sort());
