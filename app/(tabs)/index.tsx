@@ -3558,6 +3558,7 @@ const wheelLastSnapIdxRef = useRef({ hour: 0, minute: 0, endHour: 0, endMinute: 
   const [nowSectionOpen, setNowSectionOpen] = useState(true);
   const [nextSectionOpen, setNextSectionOpen] = useState(true);
   const [allDaySectionOpen, setAllDaySectionOpen] = useState(true);
+  const [unconfirmedSectionOpen, setUnconfirmedSectionOpen] = useState(true);
   
   // Closed testing first-launch notice
   const [closedTestOpen, setClosedTestOpen] = useState(false);
@@ -4396,7 +4397,17 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     });
   }, [homeListMarkers]);
 
-  // Filtered list for Next section - excludes fish already in Now or All Day
+  const unconfirmedFish = useMemo(() => {
+    const seen = new Set<string>();
+    return homeListMarkers.filter(m => {
+      const id = (m as HomeMarker).baseId ?? m.id;
+      if (!isUnconfirmedFish(m) || seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+  }, [homeListMarkers]);
+
+  // Next excludes unknown schedules and Fish already in Now or All Day.
   const nextSectionMarkers = useMemo(() => {
     if (!homeListMarkers.length) return [];
     
@@ -4423,6 +4434,7 @@ function minutesUntil(fromH: number, fromM: number, toH: number, toM: number) {
     const seenBaseIds = new Set<string>();
     
     return homeListMarkers.filter(m => {
+      if (isUnconfirmedFish(m)) return false;
       const mId = m.id;
       const mBaseId = (m as any).baseId;
       
@@ -6026,6 +6038,23 @@ const CLOSED_TEST_WHAT_TO_TEST = [
     return pairs;
   }, [displayedNextFish, renderFishCount]);
 
+  const unconfirmedFishGridPairs = useMemo(() => {
+    const pairs: HomeMarker[][] = [];
+    for (let i = 0; i < unconfirmedFish.length; i += 2) {
+      pairs.push(unconfirmedFish.slice(i, i + 2));
+    }
+    return pairs;
+  }, [unconfirmedFish]);
+
+  const showUnconfirmedFish = clockViewMode === "fish" && !filteredFishMode && unconfirmedFish.length > 0;
+  const openFishWiki = useCallback(async () => {
+    try {
+      await Linking.openURL("https://palia.wiki.gg/wiki/Fish");
+    } catch {
+      Alert.alert("Could not open Wiki", "Please visit https://palia.wiki.gg/wiki/Fish in your browser.");
+    }
+  }, []);
+
 // SECTION 19.2) Render
 
   return (
@@ -6549,7 +6578,7 @@ const CLOSED_TEST_WHAT_TO_TEST = [
 	                    splitName={splitName}
 	                  />
                 ) : nextSectionOpen ? (
-                  <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No enabled events</Text>
+                  <Text style={[styles.nextEmpty, { marginTop: 8 }]}>No upcoming Fish</Text>
                 ) : null
               ) : nextSectionOpen && nextTimeGroups.length ? (
                 <View style={styles.nextList}>
@@ -6696,6 +6725,48 @@ const CLOSED_TEST_WHAT_TO_TEST = [
                   setExpandedNowNotesId={setExpandedNowNotesId}
                   splitName={splitName}
                 />
+                )}
+              </View>
+            )}
+            {showUnconfirmedFish && (
+              <View style={styles.nextCard}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Unconfirmed Fish"
+                  accessibilityState={{ expanded: unconfirmedSectionOpen }}
+                  onPress={() => setUnconfirmedSectionOpen(open => !open)}
+                  style={styles.nextHeaderRow}
+                >
+                  <View style={styles.nextHeaderLeft}>
+                    <Ionicons name={unconfirmedSectionOpen ? "chevron-down" : "chevron-forward"} size={18} color={SOFT_WHITE_DIM} />
+                    <Text style={styles.nextTitle}>Unconfirmed</Text>
+                    <Text style={styles.nextMeta}>{unconfirmedFish.length} Fish</Text>
+                  </View>
+                </Pressable>
+                {unconfirmedSectionOpen && (
+                  <>
+                    <Text style={styles.eventNotesText}>{"Appearance times for these Fish haven't been confirmed. They may still be catchable. Check the Official Palia Wiki or in-game information for further details."}</Text>
+                    <Pressable accessibilityRole="link" accessibilityLabel="Official Palia Wiki" onPress={openFishWiki} style={styles.nextSetupBtn}>
+                      <Text style={styles.nextSetupBtnText}>Official Palia Wiki</Text>
+                    </Pressable>
+                    <NextFishGrid
+                      styles={styles}
+                      markerMap={markerMap}
+                      fishCardRenderDataCache={fishCardRenderDataCache}
+                      shouldLoadFishImages={shouldLoadFishImages}
+                      caughtFish={caughtFish}
+                      FishTimeDot={FishTimeDot}
+                      nextCardGuardRef={nextCardGuardRef}
+                      toggleCaughtStandard={toggleCaughtStandard}
+                      toggleCaughtStar={toggleCaughtStar}
+                      toggleNotify={toggleNotify}
+                      fishGridPairs={unconfirmedFishGridPairs}
+                      filteredFishMode={false}
+                      expandedNextNotesId={expandedNextNotesId}
+                      setExpandedNextNotesId={setExpandedNextNotesId}
+                      splitName={splitName}
+                    />
+                  </>
                 )}
               </View>
             )}
