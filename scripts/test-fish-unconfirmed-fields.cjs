@@ -84,11 +84,24 @@ assert.equal(c.canNotifyMarker(missingLocation.marker), true);
 assert.equal(c.fishBestBaitShort(''), 'Unconfirmed');
 for (const value of ['None', 'No Bait', 'Worm']) assert.equal(c.fishBestBaitShort(value), value);
 assert.equal(c.fishFieldLabel(['']), 'Unconfirmed');
-assert.match(fish('zero').marker.notes, /Value: 0 \(basic\), 50 \(quality\)/);
+for (const value of [null, undefined, { basic: 0, quality: 0 }, { basic: 25, quality: 50 }]) {
+  const row = fish('value_case', { value: value === null ? { basic: null, quality: null } : value });
+  delete row.marker;
+  if (value === undefined) delete row.value;
+  const before = JSON.stringify(row);
+  const notes = c.buildFishNotes(row);
+  assert.doesNotMatch(notes, /^Value:/m);
+  assert.equal(notes, [
+    'A fish with confirmed location and bait.', '', 'Rarity: Rare',
+    'Appears: Morning', 'Locations: Royal Highlands', 'Biomes: Royal Highlands Bay',
+    'Best bait: Glow Worm',
+  ].join('\n'));
+  assert.equal(JSON.stringify(row), before);
+}
 const partial = fish('partial', { rarity: null, description: null, value: { basic: 0, quality: null } });
 assert.match(partial.marker.notes, /Description: Unconfirmed/);
 assert.match(partial.marker.notes, /Rarity: Unconfirmed/);
-assert.match(partial.marker.notes, /Value: 0 \(basic\), Unconfirmed \(quality\)/);
+assert.doesNotMatch(partial.marker.notes, /^Value:/m);
 
 // Unknown fish remain visible, sort last in Home, and cannot supply a countdown.
 const unknown = fish('unknown', { appears: null }).marker;
@@ -123,8 +136,9 @@ assert.equal(c.normalizeStoredMarker(event).notify, true);
 // enabled preferences, unrelated Events and caught-state data.
 c.hydrated = true; c.remoteFishStatus = 'ready'; c.useEffect = fn => fn();
 c.console = { log() {} }; c.normalizeRemoteFish = rows => rows; c.isBlockedFishEntry = () => false;
-c.markers = [event, { ...timed, notify: true }];
-c.caughtFish = { [timed.id]: { standard: true, star: false } };
+c.markers = [{ ...event, notes: 'Custom Event notes: Value: keep this text' }, { ...timed, notify: true, notes: timed.notes + '\nValue: Unconfirmed (basic), Unconfirmed (quality)' }];
+const preservedEvent = c.markers[0];
+c.caughtFish = { [timed.id]: { standard: true, star: true } };
 const catches = c.caughtFish;
 c.setMarkers = update => { c.markers = update(c.markers); };
 c.remoteFish = [
@@ -135,16 +149,18 @@ c.remoteFish = [
 const mergeStart = source.indexOf('useEffect(() => {', source.indexOf('// SECTION 12.X) Sync remote fish'));
 const mergeEnd = source.indexOf('}, [hydrated, remoteFishStatus, remoteFish]);', mergeStart) + '}, [hydrated, remoteFishStatus, remoteFish]);'.length;
 run(source.slice(mergeStart, mergeEnd));
-assert.equal(c.markers[0], event);
+assert.equal(c.markers[0], preservedEvent);
 assert.equal(c.markers[1].id, timed.id);
 assert.equal(c.markers[1].enabled, true);
 assert.equal(c.markers[1].notify, false);
 assert.equal(c.markers[1].hour, -1);
 assert.match(c.markers[1].notes, /Best bait: Glow Worm/);
+assert.doesNotMatch(c.markers[1].notes, /^Value:/m);
 assert.equal(c.markers[2].name, 'Missing location - Unconfirmed');
 assert.equal(c.canNotifyMarker(c.markers[2]), true);
 assert.equal(c.markers[3].name, 'Known biome - Known river');
 assert.match(c.markers[3].notes, /Best bait: Unconfirmed/);
 assert.equal(c.caughtFish, catches);
 assert.equal(c.caughtFish[timed.id].standard, true);
+assert.equal(c.caughtFish[timed.id].star, true);
 console.log('PASS: isolated uncertain Fish, strict schedule validation, midnight/overnight/disjoint windows, per-field fallbacks, stored preferences, visible Home entries and safe countdowns');

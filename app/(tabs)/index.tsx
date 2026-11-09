@@ -338,7 +338,6 @@ function buildFishNotes(f: FishEntry) {
   lines.push(`Locations: ${fishFieldLabel(f.locations)}`);
   lines.push(`Biomes: ${fishFieldLabel(f.biomes)}`);
   lines.push(`Best bait: ${fishFieldLabel(f.bestBait)}`);
-  lines.push(`Value: ${f.value?.basic ?? "Unconfirmed"} (basic), ${f.value?.quality ?? "Unconfirmed"} (quality)`);
   return lines.join("\n").trim();
 }
 
